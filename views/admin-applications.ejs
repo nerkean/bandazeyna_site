@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Управление заявками | Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/admin.css"> </head>
+<body>
+    
+    <div class="admin-wrapper">
+        <header class="admin-header">
+            <div class="header-left">
+                <i class="fas fa-shield-alt"></i> ADMIN PANEL
+            </div>
+            <div class="header-right">
+                <span>Заявок: <b><%= applications.length %></b></span>
+                <a href="/" class="btn-exit"><i class="fas fa-sign-out-alt"></i> Выход</a>
+            </div>
+        </header>
+
+        <div class="apps-grid">
+            <% if (applications.length === 0) { %>
+                <div class="empty-state">
+                    <i class="fas fa-check-circle"></i>
+                    <p>Все заявки разобраны!</p>
+                </div>
+            <% } %>
+
+            <% applications.forEach(app => { %>
+                <div class="app-card status-<%= app.status %>">
+                    <div class="app-header">
+                        <span class="app-id">ID: <%= app.uid %></span>
+                        <span class="app-date"><%= new Date(app.createdAt).toLocaleDateString() %></span>
+                    </div>
+                    
+                    <div class="app-user">
+                        <div class="user-icon"><i class="fab fa-discord"></i></div>
+                        <h3><%= app.discordUsername %></h3>
+                    </div>
+
+                    <div class="app-reason">
+                        <label>Причина:</label>
+                        <p>"<%= app.reason %>"</p>
+                    </div>
+
+                    <div class="app-footer">
+                        <% if (app.status === 'pending') { %>
+                            <button class="btn-action approve" onclick="processApp('<%= app._id %>', 'approve')">
+                                <i class="fas fa-check"></i> Принять
+                            </button>
+                            <button class="btn-action reject" onclick="processApp('<%= app._id %>', 'reject')">
+                                <i class="fas fa-times"></i> Отказать
+                            </button>
+                        <% } else { %>
+                            <div class="status-badge <%= app.status %>">
+                                <%= app.status === 'approved' ? 'ПРИНЯТ' : 'ОТКЛОНЕН' %>
+                            </div>
+                        <% } %>
+                    </div>
+                </div>
+            <% }) %>
+        </div>
+    </div>
+
+   <script>
+        async function processApp(appId, action) {
+            if (!confirm(`Вы уверены, что хотите ${action === 'approve' ? 'ПРИНЯТЬ' : 'ОТКЛОНИТЬ'} эту заявку?`)) return;
+
+            try {
+                const res = await fetch('/api/admin/application', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ appId, action })
+                });
+                
+                const data = await res.json();
+
+                if (res.ok) {
+                    if (action === 'approve' && data.generatedPassword) {
+                        // Показываем пароль админу, чтобы он скопировал
+                        prompt(
+                            `✅ Заявка принята!\n\nСкопируйте этот пароль и отправьте пользователю ${appId} в ЛС:\n\nЛогин: (его ник)\nПароль:`, 
+                            data.generatedPassword
+                        );
+                    } else {
+                        alert('Заявка отклонена.');
+                    }
+                    location.reload();
+                } else {
+                    alert('Ошибка: ' + (data.error || 'Неизвестная ошибка'));
+                }
+            } catch (e) {
+                console.error(e);
+                alert('Ошибка соединения');
+            }
+        }
+    </script>
+</body>
+</html>

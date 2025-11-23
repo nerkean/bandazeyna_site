@@ -1,0 +1,510 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800;900&family=Raleway:wght@400;500;600;700&display=swap');
+
+:root {
+    /* Colors */
+    --bg-dark: #050505;
+    --bg-card: #0f1115;
+    --primary: #5865F2; /* Discord Blue */
+    --primary-hover: #4752c4;
+    --accent: #00d4ff; /* Neon Cyan */
+    --text-main: #ffffff;
+    --text-muted: #9CA3AF;
+    
+    /* Gradients */
+    --grad-main: linear-gradient(135deg, #5865F2 0%, #A020F0 100%);
+    
+    /* Glassmorphism */
+    --glass-bg: rgba(20, 23, 30, 0.7);
+    --glass-border: 1px solid rgba(255, 255, 255, 0.08);
+    --glass-blur: blur(16px);
+}
+
+/* --- 2. RESET & BASE --- */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    background-color: var(--bg-dark);
+    color: var(--text-main);
+    font-family: 'Raleway', sans-serif;
+    font-weight: 500; 
+    line-height: 1.7;
+    font-size: 16px;
+    overflow-x: hidden;
+}
+
+/* Заголовки */
+h1, h2, h3, h4, .logo, .btn-primary, .btn-discord, .hero-tag, .step-number, .rank-card h3, .faq-question {
+    font-family: 'Montserrat', sans-serif;
+    letter-spacing: -0.03em;
+}
+
+h1 { font-weight: 900; }
+h2 { font-weight: 800; }
+h3 { font-weight: 700; }
+
+a { text-decoration: none; color: inherit; transition: 0.3s; }
+ul { list-style: none; }
+
+/* Custom Scrollbar */
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: var(--bg-dark); }
+::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--primary); }
+
+/* --- NAVBAR & HEADER (UPDATED) --- */
+.navbar {
+     font-family: 'Montserrat', sans-serif;
+    position: fixed; top: 0; left: 0; width: 100%;
+    height: 100px; /* Увеличили высоту (было 80px) */
+    padding: 0 5%;
+    display: flex; justify-content: space-between; align-items: center;
+    z-index: 1000; 
+    transition: all 0.3s ease;
+    background: transparent; 
+}
+
+.navbar.scrolled {
+    background: rgba(5, 5, 5, 0.95);
+    backdrop-filter: blur(15px);
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    height: 80px; /* При скролле чуть компактнее */
+    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+}
+
+/* Логотип (Градиентная снежинка) */
+.logo {
+    font-size: 1.5rem; font-weight: 900; 
+    text-transform: uppercase; letter-spacing: -0.02em;
+    /* Градиент применяется ко всему блоку */
+    background: var(--grad-main); 
+    -webkit-background-clip: text; 
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    color: transparent;
+    
+    display: flex; align-items: center; gap: 10px;
+    z-index: 1002;
+    text-decoration: none;
+}
+
+/* Важно: заставляем иконку наследовать прозрачный цвет заливки, чтобы виден был градиент */
+.logo i { 
+    background: inherit;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-size: 1.3rem; 
+}
+
+/* Меню */
+.nav-menu {
+    display: flex; align-items: center; gap: 40px;
+}
+
+.nav-links { display: flex; gap: 25px; }
+
+.nav-item {
+    font-weight: 600; font-size: 0.95rem; color: #b0b3b8;
+    display: flex; align-items: center; gap: 8px;
+    transition: 0.3s; text-decoration: none;
+}
+.nav-item:hover { color: #fff; text-shadow: 0 0 10px rgba(255,255,255,0.3); }
+
+/* --- AUTH BUTTONS --- */
+.auth { display: flex; align-items: center; gap: 12px; }
+
+.nav-balance-group {
+    display: flex;
+    gap: 10px; /* Отступ между валютами */
+}
+
+.nav-balance {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 800; 
+    height: 40px;
+    padding: 0 14px;
+    border-radius: 10px; 
+    font-size: 0.9rem;
+    display: flex; 
+    align-items: center; 
+    justify-content: center;
+    white-space: nowrap;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+/* Звезды */
+.nav-balance.stars {
+    color: #ffd700;
+    background: rgba(255, 215, 0, 0.1);
+    border-color: rgba(255, 215, 0, 0.2);
+}
+
+/* Осколки */
+.nav-balance.shards {
+    color: #00f3ff;
+    background: rgba(0, 243, 255, 0.1);
+    border-color: rgba(0, 243, 255, 0.2);
+}
+
+/* Мобильный адаптив для баланса */
+@media (max-width: 900px) {
+    .nav-balance-group {
+        flex-direction: column; /* На мобилке друг под другом */
+        width: 100%;
+        gap: 10px;
+    }
+
+    .nav-balance {
+        width: 100%;
+        height: 50px;
+        font-size: 1.1rem;
+    }
+}
+
+/* Кнопка-иконка (Инвентарь) */
+.btn-icon {
+    min-width: 40px; height: 40px;
+    padding: 0 10px; /* Базовый паддинг */
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255,255,255,0.05);
+    display: flex; align-items: center; justify-content: center;
+    color: #b0b3b8; font-size: 1.1rem;
+    transition: 0.3s; text-decoration: none;
+    gap: 8px;
+}
+.btn-icon:hover { 
+    background: rgba(255,255,255,0.15); color: #fff; 
+    border-color: rgba(255,255,255,0.2); transform: translateY(-2px); 
+}
+
+/* Скрываем текст "Инвентарь" на ПК */
+.mobile-text { display: none; }
+
+/* Кнопка профиля */
+.btn-profile {
+    display: flex; align-items: center; gap: 10px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255,255,255,0.05); 
+    height: 40px;
+    padding: 0 16px 0 4px;
+    border-radius: 50px; 
+    transition: 0.3s; text-decoration: none;
+}
+.btn-profile:hover { background: rgba(255, 255, 255, 0.15); border-color: rgba(255,255,255,0.2); }
+.btn-profile img { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; }
+.btn-profile span { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 0.9rem; color: #fff; }
+
+.btn-discord {
+    height: 40px; display: flex; align-items: center; gap: 8px;
+    background: #5865F2; color: white; padding: 0 24px;
+    border-radius: 10px; font-weight: 700; transition: 0.3s; text-decoration: none;
+}
+.btn-discord:hover { background: #4752c4; transform: translateY(-2px); }
+
+/* --- MOBILE HAMBURGER --- */
+.mobile-menu-btn {
+    display: none; flex-direction: column; gap: 6px;
+    cursor: pointer; z-index: 1002; padding: 10px;
+}
+.mobile-menu-btn span {
+    width: 28px; height: 3px; background: #fff;
+    border-radius: 3px; transition: 0.3s;
+}
+.mobile-menu-btn.open span:nth-child(1) { transform: rotate(45deg) translate(5px, 6px); }
+.mobile-menu-btn.open span:nth-child(2) { opacity: 0; }
+.mobile-menu-btn.open span:nth-child(3) { transform: rotate(-45deg) translate(5px, -6px); }
+
+/* --- MOBILE RESPONSIVE --- */
+@media (max-width: 900px) {
+    .mobile-menu-btn { display: flex; }
+
+    .nav-menu {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100vh;
+        background: rgba(5, 5, 5, 0.98); backdrop-filter: blur(20px);
+        flex-direction: column; justify-content: center; align-items: center;
+        gap: 40px; transform: translateY(-100%); transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        opacity: 0; pointer-events: none;
+    }
+    .nav-menu.active { transform: translateY(0); opacity: 1; pointer-events: all; }
+
+    .nav-links { flex-direction: column; align-items: center; gap: 30px; }
+    .nav-item { font-size: 1.6rem; font-weight: 800; }
+
+    .auth { flex-direction: column; gap: 20px; width: 100%; justify-content: center; }
+    
+    /* Мобильные кнопки */
+    .nav-balance { font-size: 1.2rem; height: 50px; padding: 0 30px; border-radius: 15px; }
+    
+    /* Инвентарь на мобилке: широкий и с текстом */
+    .btn-icon { 
+        width: auto; /* Авто ширина */
+        height: 60px; 
+        padding: 0 30px; /* Паддинг как у профиля */
+        border-radius: 60px; /* Круглые края как у профиля */
+        font-size: 1.2rem; 
+    }
+    .mobile-text { 
+        display: inline; /* Показываем текст */
+        font-weight: 700; 
+        color: #fff;
+        font-family: 'Montserrat', sans-serif;
+    }
+    
+    .btn-profile { height: 60px; padding: 0 30px 0 5px; border-radius: 60px; }
+    .btn-profile img { width: 50px; height: 50px; }
+    .btn-profile span { font-size: 1.2rem; margin-left: 10px; }
+
+    .btn-discord { height: 50px; padding: 0 40px; font-size: 1.1rem; }
+}
+
+.cyber-footer {
+    position: relative;
+    background: #050505;
+    padding: 80px 0 30px;
+    overflow: hidden;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    margin-top: auto; /* Чтобы футер всегда был внизу */
+}
+
+/* Паттерн сот (Honeycomb) на фоне */
+.footer-hex-bg {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    opacity: 0.03;
+    background-image: 
+        radial-gradient(circle at 100% 100%, transparent 10px, #ffffff 11px, #ffffff 12px, transparent 13px),
+        radial-gradient(circle at 0% 100%, transparent 10px, #ffffff 11px, #ffffff 12px, transparent 13px),
+        radial-gradient(circle at 100% 0%, transparent 10px, #ffffff 11px, #ffffff 12px, transparent 13px),
+        radial-gradient(circle at 0% 0%, transparent 10px, #ffffff 11px, #ffffff 12px, transparent 13px);
+    background-size: 60px 60px; /* Размер сот */
+    pointer-events: none;
+}
+
+/* Свечение сверху */
+.footer-glow-top {
+    position: absolute;
+    top: 0; left: 50%; transform: translateX(-50%);
+    width: 60%; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--primary), transparent);
+    box-shadow: 0 0 30px var(--primary);
+    opacity: 0.5;
+}
+
+.footer-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    position: relative;
+    z-index: 1;
+}
+
+.footer-top {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1.5fr;
+    gap: 40px;
+    margin-bottom: 60px;
+}
+
+/* Колонка бренда */
+.f-logo {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 900;
+    font-size: 1.8rem;
+    color: #fff;
+    margin-bottom: 20px;
+    display: flex; align-items: center; gap: 10px;
+    text-transform: uppercase;
+    letter-spacing: -0.02em;
+}
+.f-logo i { color: var(--primary); }
+
+.f-desc {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin-bottom: 25px;
+    max-width: 300px;
+}
+
+/* Соц-кнопки */
+.f-socials { display: flex; gap: 15px; }
+
+.social-btn {
+    width: 40px; height: 40px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 10px;
+    display: flex; justify-content: center; align-items: center;
+    color: #fff; font-size: 1.2rem;
+    transition: 0.3s;
+}
+
+.social-btn:hover { transform: translateY(-5px); border-color: transparent; }
+.social-btn.discord:hover { background: #5865F2; box-shadow: 0 5px 15px rgba(88, 101, 242, 0.4); }
+.social-btn.youtube:hover { background: #ff0000; box-shadow: 0 5px 15px rgba(255, 0, 0, 0.4); }
+.social-btn.telegram:hover { 
+    background: #0088cc; 
+    box-shadow: 0 5px 15px rgba(0, 136, 204, 0.4); 
+    color: #fff;
+}
+
+/* Ссылки */
+.f-col h4 {
+    color: #fff;
+    font-size: 1.1rem;
+    margin-bottom: 25px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.links-col a {
+    display: block;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+    font-size: 0.95rem;
+    transition: 0.2s;
+    width: fit-content;
+}
+
+.links-col a:hover {
+    color: var(--primary);
+    transform: translateX(5px);
+}
+
+/* Статус системы */
+.system-status {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 12px;
+    padding: 15px;
+}
+
+.status-row {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 10px;
+    font-size: 0.9rem;
+    color: #ccc;
+}
+.status-row:last-child { margin-bottom: 0; }
+
+.status-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    box-shadow: 0 0 5px currentColor;
+}
+.status-dot.online { background: #2ecc71; color: #2ecc71; }
+.status-dot.pending { background: #f1c40f; color: #f1c40f; }
+.status-dot.offline { background: #e74c3c; color: #e74c3c; }
+
+.status-row b { color: #fff; font-weight: 600; }
+
+.ping-text {
+    margin-top: 10px;
+    font-size: 0.8rem;
+    color: #555;
+    text-align: right;
+    font-family: monospace;
+}
+
+/* Низ футера */
+.footer-bottom {
+    border-top: 1px solid rgba(255,255,255,0.05);
+    padding-top: 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #555;
+    font-size: 0.85rem;
+}
+
+.made-by { font-weight: 500; }
+
+/* --- MOBILE FOOTER (COMPACT & CLEAN) --- */
+@media (max-width: 900px) {
+    .cyber-footer {
+        padding: 50px 0 30px; /* Чуть меньше отступы сверху */
+    }
+
+    .footer-top {
+        /* Магия Grid: делаем 2 колонки для ссылок */
+        grid-template-columns: 1fr 1fr; 
+        gap: 40px 20px; /* Отступы: 40px вертикально, 20px горизонтально */
+        text-align: left; /* Возвращаем выравнивание ссылок влево */
+    }
+
+    /* 1. Блок бренда (Лого + Описание) на всю ширину */
+    .brand-col {
+        grid-column: 1 / -1; /* Растянуть на все колонки */
+        text-align: center;
+        display: flex; 
+        flex-direction: column; 
+        align-items: center;
+        border-bottom: 1px solid rgba(255,255,255,0.05); /* Разделитель */
+        padding-bottom: 30px;
+        margin-bottom: 10px;
+    }
+    
+    .f-desc { 
+        max-width: 100%; 
+        margin: 0 auto 25px; 
+        opacity: 0.7; 
+        font-size: 0.9rem; 
+    }
+    
+    .f-socials { 
+        justify-content: center; 
+        gap: 20px; /* Кнопки пошире друг от друга */
+        width: 100%; 
+    }
+
+    /* 2. Колонки ссылок (Навигация и Полезное) */
+    .links-col {
+        /* Они автоматически встанут в 2 колонки благодаря grid-template-columns: 1fr 1fr */
+        padding-left: 10px;
+    }
+
+    .links-col h4 {
+        font-size: 1rem;
+        color: #fff;
+        margin-bottom: 20px;
+        border-left: 3px solid var(--primary); /* Акцентная полоска слева */
+        padding-left: 10px;
+    }
+
+    .links-col a {
+        margin: 0 0 15px 0; /* Больше отступ для удобного нажатия пальцем */
+        font-size: 0.95rem;
+        display: block;
+    }
+
+    /* Отключаем сдвиг при наведении на тачскринах (это иногда глючит) */
+    .links-col a:hover { transform: none; color: #fff; }
+
+    /* 3. Статус системы на всю ширину */
+    .status-col {
+        grid-column: 1 / -1;
+        margin-top: 10px;
+    }
+
+    .system-status {
+        background: rgba(255,255,255,0.03);
+        padding: 20px;
+    }
+
+    .status-row {
+        justify-content: space-between; /* Текст по краям (Бот ... Online) */
+        font-size: 0.9rem;
+    }
+
+    .ping-text {
+        text-align: center;
+        margin-top: 15px;
+        font-size: 0.75rem;
+        opacity: 0.4;
+    }
+
+    .footer-bottom {
+        margin-top: 30px;
+        font-size: 0.75rem;
+        opacity: 0.5;
+    }
+}

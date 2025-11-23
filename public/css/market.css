@@ -1,0 +1,161 @@
+/* public/css/market.css */
+
+/* --- ОБЩИЙ ЛЕЙАУТ (SCROLLABLE) --- */
+body {
+    background-color: #0b0c10;
+    overflow-x: hidden; /* Убираем только горизонтальный скролл */
+}
+
+.market-wrapper {
+    display: grid;
+    grid-template-columns: 320px 1fr; /* Левая колонка (список) | Правая часть (график + торговля) */
+    gap: 30px;
+    padding: 120px 5% 50px; /* Большие отступы */
+    max-width: 1400px;
+    margin: 0 auto;
+    min-height: 100vh; /* Чтобы футер прижался вниз */
+    align-items: start; /* Элементы не растягиваются по высоте */
+}
+
+/* --- ЛЕВАЯ ПАНЕЛЬ (СПИСОК АКЦИЙ) --- */
+.stock-list-panel {
+    background: rgba(18, 20, 26, 0.95);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 16px;
+    display: flex; flex-direction: column;
+    height: 600px; /* Фиксируем высоту только списка */
+    position: sticky; /* Липнет при скролле */
+    top: 120px;
+}
+
+.stock-list-panel h2 {
+    padding: 20px; margin: 0; font-size: 1.2rem; color: #fff;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    display: flex; align-items: center; gap: 10px;
+}
+.stock-list-panel h2 i { color: var(--primary); }
+
+.stock-table-header {
+    display: grid; grid-template-columns: 1.8fr 1fr 1fr;
+    padding: 12px 20px; font-size: 0.75rem; font-weight: 700; color: var(--text-muted);
+    background: rgba(255,255,255,0.02); text-transform: uppercase; letter-spacing: 0.05em;
+}
+
+.stock-list {
+    flex: 1; overflow-y: auto;
+    scrollbar-width: thin; scrollbar-color: #333 transparent;
+}
+
+/* Карточка акции */
+.stock-item {
+    display: grid; grid-template-columns: 1.8fr 1fr 1fr;
+    align-items: center; padding: 15px 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+    cursor: pointer; transition: background 0.2s;
+    border-left: 3px solid transparent;
+}
+
+.stock-item:hover, .stock-item.active {
+    background: rgba(255,255,255,0.04);
+    border-left-color: var(--primary);
+}
+
+.stock-symbol { font-weight: 800; color: #fff; font-size: 0.95rem; font-family: 'Montserrat', sans-serif; }
+.name { font-size: 0.8rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.stock-price .price { font-weight: 600; color: #fff; font-family: 'Montserrat', sans-serif; font-size: 0.95rem; }
+
+.change {
+    font-size: 0.8rem; font-weight: 700; padding: 4px 8px; border-radius: 6px;
+    text-align: center; width: fit-content; justify-self: end;
+    font-family: 'Montserrat', sans-serif;
+}
+.change.positive { color: #2ecc71; background: rgba(46, 204, 113, 0.1); }
+.change.negative { color: #e74c3c; background: rgba(231, 76, 60, 0.1); }
+
+/* --- ЦЕНТРАЛЬНАЯ КОЛОНКА --- */
+.center-column {
+    display: flex; flex-direction: column; gap: 30px; width: 100%;
+}
+
+/* --- ГРАФИК --- */
+.chart-panel {
+    background: #12141a;
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+}
+
+.chart-header {
+    display: flex; justify-content: space-between; align-items: flex-end;
+    margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.chart-header h2 { margin: 0; font-size: 2rem; color: #fff; }
+.chart-header h3 { margin: 0; font-size: 2.5rem; color: #fff; font-weight: 900; }
+
+.chart-wrapper {
+    position: relative; width: 100%; min-height: 400px;
+}
+
+/* --- ПАНЕЛЬ ТОРГОВЛИ --- */
+.trade-panel {
+    background: rgba(25, 28, 35, 0.5); 
+    border: 1px solid rgba(255,255,255,0.05); border-radius: 20px;
+    padding: 30px; display: flex; justify-content: space-between; align-items: center;
+}
+
+.trade-info { display: flex; gap: 60px; }
+.user-holding, .user-profit { display: flex; flex-direction: column; }
+.label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px; font-weight: 700; }
+.value { font-size: 1.5rem; font-weight: 800; color: #fff; font-family: 'Montserrat', sans-serif; }
+
+.trade-actions {
+    display: flex; gap: 20px; align-items: stretch;
+    background: rgba(255,255,255,0.03); padding: 10px; border-radius: 16px; 
+    border: 1px solid rgba(255,255,255,0.05);
+}
+
+.trade-input-group { position: relative; display: flex; align-items: center; }
+.trade-input {
+    background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1);
+    color: #fff; padding: 0 15px; border-radius: 12px; font-size: 1.2rem; font-weight: 700;
+    text-align: center; width: 120px; height: 100%; outline: none; font-family: 'Montserrat', sans-serif;
+    transition: 0.2s;
+}
+.trade-input:focus { border-color: var(--primary); background: rgba(255,255,255,0.1); }
+.trade-label { position: absolute; right: 15px; font-size: 0.8rem; color: var(--text-muted); font-weight: 600; pointer-events: none; }
+
+/* Кнопки (Neon) */
+.btn-buy, .btn-sell {
+    padding: 15px 35px; border-radius: 12px;
+    font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 1rem; letter-spacing: 0.05em;
+    text-transform: uppercase; border: 1px solid transparent; cursor: pointer;
+    transition: all 0.3s ease; color: #fff;
+}
+
+.btn-buy { background: rgba(46, 204, 113, 0.1); border-color: #2ecc71; color: #2ecc71; }
+.btn-buy:hover { background: #2ecc71; color: #000; box-shadow: 0 0 20px rgba(46, 204, 113, 0.4); }
+
+.btn-sell { background: rgba(231, 76, 60, 0.1); border-color: #e74c3c; color: #e74c3c; }
+.btn-sell:hover { background: #e74c3c; color: #fff; box-shadow: 0 0 20px rgba(231, 76, 60, 0.4); }
+
+/* --- АДАПТИВ --- */
+@media (max-width: 1000px) {
+    .market-wrapper { 
+        grid-template-columns: 1fr; /* Одна колонка */
+        gap: 40px;
+    }
+    
+    .stock-list-panel { 
+        width: 100%; 
+        position: relative; /* Перестает липнуть */
+        top: 0;
+        height: 350px;
+    }
+    
+    .trade-panel { flex-direction: column; gap: 25px; text-align: center; }
+    .trade-actions { flex-direction: column; width: 100%; }
+    .trade-input-group { width: 100%; }
+    .trade-input { width: 100%; height: 50px; }
+    .btn-buy, .btn-sell { width: 100%; }
+}

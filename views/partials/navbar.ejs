@@ -1,0 +1,73 @@
+<nav class="navbar">
+    <a href="/" class="logo">
+        <i class="fas fa-snowflake"></i> ДАЧА ЗЕЙНА
+    </a>
+
+    <div class="mobile-menu-btn" onclick="toggleMobileMenu()">
+        <span></span>
+        <span></span>
+        <span></span>
+    </div>
+    
+    <div class="nav-menu" id="navMenu">
+        <div class="nav-links">
+            <a href="/bot" class="nav-item"><i class="fas fa-robot"></i> О Боте</a>
+            <a href="/leaderboard" class="nav-item"><i class="fas fa-trophy"></i> Топ</a>
+            <a href="/market" class="nav-item"><i class="fas fa-chart-line"></i> Биржа</a>
+            <a href="/shop" class="nav-item"><i class="fas fa-store"></i> Магазин</a>
+        </div>
+
+        <div class="auth">
+            <% if (typeof user !== 'undefined' && user) { %>
+                
+                <% if (typeof profile !== 'undefined' && profile) { %>
+                    <div class="nav-balance-group">
+                        <div class="nav-balance stars" title="Звезды">
+                            <%= Math.floor(profile.stars).toLocaleString() %> ⭐
+                        </div>
+                        <div class="nav-balance shards" title="Осколки">
+                            <%= Math.floor(profile.shards).toLocaleString() %> ✨
+                        </div>
+                    </div>
+                <% } %>
+
+                <a href="/inventory" class="btn-icon" title="Инвентарь">
+                    <i class="fas fa-briefcase"></i>
+                    <span class="mobile-text">Инвентарь</span>
+                </a>
+                
+                <a href="/profile" class="btn-profile">
+                    <% if (user.avatar) { %>
+                        <img src="https://cdn.discordapp.com/avatars/<%= user.id %>/<%= user.avatar %>.png" alt="">
+                    <% } else { %>
+                        <img src="https://cdn.discordapp.com/embed/avatars/0.png" alt="">
+                    <% } %>
+                    <span>Профиль</span>
+                </a>
+
+            <% } else { %>
+                <a href="/auth/discord" class="btn-discord">
+                    <i class="fab fa-discord"></i> Войти
+                </a>
+            <% } %>
+        </div>
+    </div>
+</nav>
+
+<script>
+    function toggleMobileMenu() {
+        const menu = document.getElementById('navMenu');
+        const btn = document.querySelector('.mobile-menu-btn');
+        menu.classList.toggle('active');
+        btn.classList.toggle('open');
+    }
+
+    window.addEventListener('scroll', () => {
+        const navbar = document.querySelector('.navbar');
+        if (window.scrollY > 50) {
+            navbar.classList.add('scrolled');
+        } else {
+            navbar.classList.remove('scrolled');
+        }
+    });
+</script>

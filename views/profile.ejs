@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <%- include('partials/head', { title: 'Профиль | ' + targetUser.username }) %>
+    <link rel="stylesheet" href="/css/profile.css">
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+</head>
+<body>
+    <%- include('partials/navbar') %>
+
+    <% 
+        let bannerUrl = '/assets/backgrounds/profile_template.png';
+        if (profile.activeCardBgId) {
+            const cleanBgId = profile.activeCardBgId.replace('profile_bg_', '');
+            bannerUrl = `/assets/backgrounds/${cleanBgId}.png`; 
+        }
+    %>
+
+    <div class="profile-wrapper">
+        
+        <header class="profile-header" style="background-image: url('<%= bannerUrl %>');">
+            <div class="profile-header-overlay">
+                <div class="avatar-wrapper">
+                    <% if (profile.activeAvatarFrameId) { %>
+                        <% const cleanFrameId = profile.activeAvatarFrameId.replace('profile_frame_', ''); %>
+                        <img src="/assets/frames/<%= cleanFrameId %>.png" class="avatar-frame" alt="frame">
+                    <% } %>
+                    
+                    <% if (targetUser.avatar) { %>
+                        <img src="https://cdn.discordapp.com/avatars/<%= targetUser.id %>/<%= targetUser.avatar %>.png" class="avatar-big">
+                    <% } else { %>
+                        <img src="https://cdn.discordapp.com/embed/avatars/0.png" class="avatar-big">
+                    <% } %>
+                </div>
+                
+                <div class="profile-identity">
+                    <h1><%= targetUser.username %></h1>
+                    <% if (profile.activeTitle) { %>
+                        <span class="user-title"><%= profile.activeTitle %></span>
+                    <% } %>
+                    <div class="badges">
+                        <% if (profile.premiumType) { %>
+                            <span class="badge premium"><i class="fas fa-gem"></i> Premium</span>
+                        <% } %>
+                        <% if (profile.isTaxDelinquent) { %>
+                            <span class="badge tax-warning"><i class="fas fa-exclamation-triangle"></i> Должник</span>
+                        <% } %>
+                        <span class="badge rep"><i class="fas fa-thumbs-up"></i> Репутация: <%= profile.reputation %></span>
+                    </div>
+                </div>
+
+                <% if (isOwner) { %>
+                    <button class="btn-edit" onclick="openEditModal()"><i class="fas fa-cog"></i> Настроить</button>
+                <% } %>
+            </div>
+        </header>
+
+        <div class="dashboard-grid">
+            
+            <div class="col-left">
+                <div class="card glow-card">
+                    <h3><i class="fas fa-coins"></i> Финансы</h3>
+                    <div class="stat-row">
+                        <span>Наличные:</span>
+                        <span class="val gold"><%= Math.floor(profile.stars).toLocaleString() %> ⭐</span>
+                    </div>
+                    <div class="stat-row">
+                        <span>Осколки:</span>
+                        <span class="val shard"><%= Math.floor(profile.shards).toLocaleString() %> ✨</span>
+                    </div>
+                    <div class="stat-row">
+                        <span>В акциях:</span>
+                        <span class="val"><%= (typeof portfolioValue !== 'undefined' ? portfolioValue : 0).toFixed(2) %> ⭐</span>
+                    </div>
+                    <div class="divider"></div>
+                    <div class="stat-row total">
+                        <span>Net Worth:</span>
+                        <span class="val"><%= (typeof netWorth !== 'undefined' ? netWorth : 0).toFixed(2) %> ⭐</span>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3><i class="fas fa-chart-bar"></i> Активность</h3>
+                    <div class="stat-row">
+                        <span>Сообщений:</span>
+                        <span class="val"><%= profile.totalMessages %></span>
+                    </div>
+                    <div class="stat-row">
+                        <span>Голос (всего):</span>
+                        <span class="val"><%= (profile.totalVoiceTime / 3600).toFixed(1) %> ч.</span>
+                    </div>
+                    <div class="stat-row">
+                        <span>Зашли на сервер:</span>
+                        <span class="val small"><%= new Date(profile.joinedAt).toLocaleDateString() %></span>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3><i class="fas fa-heart"></i> Семья</h3>
+                    <% if (profile.marriedTo) { %>
+                        <div class="marriage-info">
+                            <div class="heart-icon"><i class="fas fa-heart"></i></div>
+                            <div>
+                                <p>В браке с <strong><%= typeof partnerName !== 'undefined' ? partnerName : '...' %></strong></p>
+                                <p class="small-date">с <%= new Date(profile.marriageDate).toLocaleDateString() %></p>
+                            </div>
+                        </div>
+                    <% } else { %>
+                        <p class="text-muted">Холост / Не замужем</p>
+                    <% } %>
+                </div>
+            </div>
+
+            <div class="col-center">
+                <div class="card graph-card">
+                    <h3>Активность за 7 дней</h3>
+                    <div class="chart-container">
+                        <div id="activityChart"></div>
+                    </div>
+                </div>
+
+               <div class="card">
+                    <h3><i class="fas fa-briefcase"></i> Портфель акций</h3>
+                    <% if (typeof portfolioDetails !== 'undefined' && portfolioDetails.length > 0) { %>
+                        <table class="simple-table">
+                            <thead>
+                                <tr>
+                                    <th>Тикер</th>
+                                    <th>Кол-во</th>
+                                    <th>Цена</th>
+                                    <th>Сумма</th> </tr>
+                            </thead>
+                            <tbody>
+                                <% portfolioDetails.forEach(p => { %>
+                                    <tr>
+                                        <td class="ticker-cell">$<%= p.ticker %></td>
+                                        <td><%= p.quantity %></td>
+                                        <td><%= p.currentPrice.toFixed(1) %></td>
+                                        <td><strong style="color: #ffd700;"><%= p.value.toFixed(0) %></strong></td>
+                                    </tr>
+                                <% }) %>
+                            </tbody>
+                        </table>
+                    <% } else { %>
+                        <p class="text-muted">Портфель пуст. <a href="/market" style="color: var(--primary);">Купить акции?</a></p>
+                    <% } %>
+                </div>
+                
+                <div class="card">
+                    <h3><i class="fas fa-scroll"></i> Активные квесты</h3>
+                    <% if (typeof quests !== 'undefined' && quests.length > 0) { %>
+                        <div class="quest-list">
+                            <% quests.forEach(q => { %>
+                                <% if (!q.isCompleted) { %>
+                                    <div class="quest-item">
+                                        <div class="quest-header">
+                                            <span class="quest-name"><%= q.details.name %></span>
+                                            <span class="quest-progress"><%= q.progress %> / <%= q.target %></span>
+                                        </div>
+                                        <div class="progress-bar-bg">
+                                            <div class="progress-bar-fill" style="width: <%= (q.progress / q.target) * 100 %>%;"></div>
+                                        </div>
+                                    </div>
+                                <% } %>
+                            <% }) %>
+                        </div>
+                    <% } else { %>
+                        <p class="text-muted">Нет активных квестов</p>
+                    <% } %>
+                </div>
+            </div>
+
+            <div class="col-right">
+                <div class="card">
+                    <h3><i class="fas fa-box-open"></i> Инвентарь (<%= profile.inventory.length %>)</h3>
+                    <div class="inventory-grid">
+                        <% profile.inventory.slice(0, 12).forEach(item => { %>
+                            <div class="inv-item" title="<%= item.itemId %>">
+                                <div class="inv-icon">📦</div> 
+                                <span class="inv-qty">x<%= item.quantity %></span>
+                            </div>
+                        <% }) %>
+                    </div>
+                    <% if (isOwner) { %>
+                        <a href="/inventory" class="btn-secondary full-width" style="margin-top: 15px; justify-content: center;">Открыть весь</a>
+                    <% } %>
+                </div>
+
+               <div class="card">
+                    <h3><i class="fas fa-trophy"></i> Достижения</h3>
+                    <div class="achievements-list">
+                        <% if (typeof achievements !== 'undefined' && achievements.length > 0) { %>
+                            <% achievements.forEach(ach => { %>
+                                <div class="ach-tag" title="<%= ach.details.description %>">
+                                    <%= ach.details.medalEmoji %> <%= ach.details.name %>
+                                </div>
+                            <% }) %>
+                        <% } else { %>
+                            <p class="text-muted">Нет достижений</p>
+                        <% } %>
+                    </div>
+                </div>
+                
+                <% if (isOwner) { %>
+                    <div class="card danger-zone">
+                        <h3><i class="fas fa-user-secret"></i> Личное</h3>
+                        <p>Предупреждений: <strong><%= profile.warningsReceived %></strong></p>
+                        <p>Мьютов получено: <strong><%= profile.mutesIssued %></strong></p>
+                        <% if (profile.taxDue > 0) { %>
+                             <p class="tax-alert">Налоговый долг: <%= profile.taxDue %> ⭐</p>
+                        <% } %>
+                    </div>
+                <% } %>
+            </div>
+
+        </div>
+    </div>
+
+    <% if (isOwner) { %>
+        <div class="modal-overlay" id="editModal">
+            <div class="modal-box">
+                <h2>Настройки Профиля</h2>
+                <form action="/profile/update" method="POST">
+                    <label>О себе</label>
+                    <textarea name="bio" maxlength="150" placeholder="Расскажи о себе..."><%= profile.bio %></textarea>
+                    <div class="modal-actions">
+                        <button type="button" class="btn-cancel" onclick="closeEditModal()">Отмена</button>
+                        <button type="submit" class="btn-confirm">Сохранить</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    <% } %>
+
+    <%- include('partials/footer') %>
+
+    <script>
+        <% if (isOwner) { %>
+            function openEditModal() { document.getElementById('editModal').classList.add('active'); }
+            function closeEditModal() { document.getElementById('editModal').classList.remove('active'); }
+        <% } %>
+
+        const history = <%- typeof profile.dailyActivityHistory !== 'undefined' ? JSON.stringify(profile.dailyActivityHistory) : '[]' %>;
+        const last7Days = history.slice(-7);
+        const dates = last7Days.map(h => new Date(h.date).toLocaleDateString('ru-RU', {weekday: 'short'}));
+        const msgData = last7Days.map(h => h.messages);
+        const voiceData = last7Days.map(h => (h.voiceSeconds / 60).toFixed(0));
+
+        const options = {
+            series: [{ name: 'Сообщения', data: msgData }, { name: 'Войс (мин)', data: voiceData }],
+            chart: { type: 'area', height: 250, background: 'transparent', toolbar: { show: false }, fontFamily: 'Montserrat, sans-serif' },
+            colors: ['#5865F2', '#ffd700'],
+            dataLabels: { enabled: false },
+            stroke: { curve: 'smooth', width: 3 },
+            fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.5, opacityTo: 0.1, stops: [0, 90, 100] } },
+            theme: { mode: 'dark' },
+            xaxis: { categories: dates, axisBorder: { show: false }, axisTicks: { show: false }, labels: { style: { colors: '#9CA3AF' } } },
+            yaxis: { show: false },
+            grid: { borderColor: 'rgba(255,255,255,0.05)', strokeDashArray: 4 },
+            legend: { position: 'top', horizontalAlign: 'right' }
+        };
+
+        const chart = new ApexCharts(document.querySelector("#activityChart"), options);
+        chart.render();
+    </script>
+</body>
+</html>

@@ -1,0 +1,73 @@
+<footer class="cyber-footer">
+    <div class="footer-hex-bg"></div>
+    <div class="footer-glow-top"></div>
+
+    <div class="footer-container">
+        <div class="footer-top">
+            <div class="f-col brand-col">
+                <div class="f-logo">
+                    <i class="fas fa-snowflake"></i> ДАЧА ЗЕЙНА
+                </div>
+                <p class="f-desc">
+                    Главное русскоязычное сообщество по Bee Swarm Simulator. 
+                    Торгуй, общайся и развивайся вместе с нами.
+                </p>
+                <div class="f-socials">
+                    <a href="https://discord.gg/bandazeyna" target="_blank" class="social-btn discord" title="Discord">
+                        <i class="fab fa-discord"></i>
+                    </a>
+                    <a href="https://www.youtube.com/@ZeynBss" target="_blank" class="social-btn youtube" title="YouTube">
+                        <i class="fab fa-youtube"></i>
+                    </a>
+                    <a href="https://t.me/zeynbss7" target="_blank" class="social-btn telegram" title="Telegram">
+                        <i class="fab fa-telegram"></i>
+                    </a>
+                </div>
+            </div>
+
+            <div class="f-col links-col">
+                <h4>Навигация</h4>
+                <a href="/">Главная</a>
+                <a href="/market">Биржа Акций</a>
+                <a href="/leaderboard">Топ Игроков</a>
+                <a href="/shop">Магазин</a>
+            </div>
+
+            <div class="f-col links-col">
+                <h4>Полезное</h4>
+                <a href="/profile">Мой Профиль</a>
+                <a href="/inventory">Инвентарь</a>
+                <a href="#">Правила Сервера</a>
+                <a href="#">Поддержка</a>
+            </div>
+
+            <div class="f-col status-col">
+                <h4>Статус Системы</h4>
+                <div class="system-status">
+                    <div class="status-row">
+                        <span class="status-dot <%= systemStatus.online ? 'online' : 'offline' %>"></span>
+                        <span>Бот: <b><%= systemStatus.online ? 'Online' : 'Offline' %></b></span>
+                    </div>
+                    
+                    <div class="status-row">
+                        <span class="status-dot <%= systemStatus.online ? 'online' : 'offline' %>"></span>
+                        <span>Биржа: <b><%= systemStatus.online ? 'Active' : 'Closed' %></b></span>
+                    </div>
+
+                    <div class="status-row">
+                        <span class="status-dot online" style="background: #a0a3b5; box-shadow: none;"></span>
+                        <span style="color: #a0a3b5;">Версия: <b style="color: #fff;">v2.1 Winter</b></span>
+                    </div>
+                </div>
+                <p class="ping-text">DB Latency: <%= systemStatus.ping %>ms</p>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <p>&copy; 2025 Dacha Zayna. Not affiliated with Roblox Corp.</p>
+        </div>
+    </div>
+</footer>
+
+<link rel="stylesheet" href="/css/modals.css">
+<script src="/js/modals.js"></script>

@@ -1,0 +1,317 @@
+/* public/css/shop.css */
+
+.shop-wrapper {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 120px 20px 60px;
+    min-height: 100vh;
+}
+
+.shop-header { text-align: center; margin-bottom: 60px; }
+.shop-header h1 { 
+    font-size: 3.5rem; margin-bottom: 10px; font-weight: 900; 
+    letter-spacing: -1px; color: #fff;
+}
+.text-gradient {
+    background: linear-gradient(135deg, #fff 0%, #a0a0a0 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.shop-header p { color: #9ca3af; font-size: 1.1rem; margin-bottom: 40px; }
+
+/* Tabs */
+.shop-tabs-container { display: flex; justify-content: center; }
+.shop-tabs {
+    background: #15171e; padding: 5px; border-radius: 16px;
+    border: 1px solid rgba(255,255,255,0.05);
+    display: flex; flex-wrap: wrap; justify-content: center; gap: 5px;
+}
+
+.tab-btn {
+    background: transparent; border: none; color: #9ca3af;
+    padding: 10px 20px; border-radius: 12px; font-weight: 700;
+    font-family: 'Montserrat', sans-serif; cursor: pointer;
+    transition: 0.3s; display: flex; align-items: center; gap: 8px;
+}
+.tab-btn:hover { color: #fff; background: rgba(255,255,255,0.05); }
+.tab-btn.active { background: var(--primary); color: #fff; box-shadow: 0 4px 15px rgba(88, 101, 242, 0.4); }
+
+/* Премиум таб */
+.btn-premium-tab { border: 1px solid var(--gold); }
+.btn-premium-tab.active { background: var(--gold); box-shadow: 0 0 15px rgba(255, 215, 0, 0.4); }
+
+/* Grid */
+.items-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 30px;
+}
+
+/* Cards */
+.item-card {
+    background: #12141a; 
+    border-radius: 24px; 
+    border: 1px solid rgba(255,255,255,0.05);
+    position: relative; 
+    overflow: hidden; 
+    display: flex; /* ЭТО НОРМАЛЬНО, но !important тут быть не должно */
+    flex-direction: column;
+    transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+    height: 100%;
+}
+.item-card:hover {
+    transform: translateY(-10px);
+    border-color: var(--glow-color, rgba(255,255,255,0.2));
+    box-shadow: 0 20px 40px -10px var(--glow-color, rgba(0,0,0,0.5));
+}
+
+.item-card.common { --glow-color: rgba(255,255,255,0.1); }
+.item-card.rare { --glow-color: rgba(52, 152, 219, 0.4); border-top: 2px solid #3498db; }
+.item-card.epic { --glow-color: rgba(155, 89, 182, 0.4); border-top: 2px solid #9b59b6; }
+.item-card.legendary { --glow-color: rgba(255, 215, 0, 0.4); border-top: 2px solid #ffd700; }
+
+.item-visual {
+    height: 180px; display: flex; align-items: center; justify-content: center;
+    background: radial-gradient(circle at center, rgba(255,255,255,0.03) 0%, transparent 70%);
+    position: relative;
+}
+.item-img { max-width: 70%; max-height: 70%; object-fit: contain; filter: drop-shadow(0 10px 20px rgba(0,0,0,0.5)); transition: 0.4s; }
+.item-emoji { font-size: 4.5rem; transition: 0.4s; }
+.item-card:hover .item-img { transform: scale(1.1) rotate(-5deg); }
+.item-card:hover .item-emoji { transform: scale(1.2); }
+
+.rarity-badge {
+    position: absolute; top: 15px; right: 15px; font-size: 0.7rem; font-weight: 900; color: #000;
+    padding: 4px 10px; border-radius: 4px; z-index: 2;
+}
+.rarity-badge.legendary { background: linear-gradient(45deg, #ffd700, #f1c40f); box-shadow: 0 0 10px #ffd700; }
+
+.item-content { padding: 25px; display: flex; flex-direction: column; flex: 1; background: #12141a; }
+.item-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+.item-header h3 { font-size: 1.1rem; color: #fff; font-weight: 800; margin: 0; line-height: 1.3; }
+.item-type { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; border: 1px solid rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; height: fit-content; white-space: nowrap; }
+.item-desc { font-size: 0.9rem; color: #9ca3af; margin-bottom: 20px; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+
+.item-footer { margin-top: auto; display: flex; align-items: center; justify-content: space-between; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.05); }
+
+.price-tag { display: flex; flex-direction: column; }
+/* ЦЕНА ТОВАРА */
+.cost { 
+    font-weight: 800; 
+    font-family: 'Montserrat', sans-serif; /* Было JetBrains */
+    font-size: 1rem; 
+}
+.cost.gold { color: #ffd700; }
+.cost.shard { color: #00f3ff; font-size: 0.9rem; }
+
+.btn-buy-action {
+    background: rgba(255,255,255,0.05); color: #fff; border: 1px solid rgba(255,255,255,0.1);
+    padding: 10px 20px; border-radius: 10px; font-weight: 700; cursor: pointer; transition: 0.2s;
+    font-family: 'Montserrat', sans-serif; text-transform: uppercase; font-size: 0.8rem;
+}
+.btn-buy-action:hover { background: #fff; color: #000; }
+
+/* --- PREMIUM DASHBOARD --- */
+#premiumDashboard { max-width: 900px; margin: 0 auto; }
+
+.premium-status-card {
+    background: linear-gradient(135deg, #1a1c24, #111318); border-radius: 24px; padding: 40px;
+    display: flex; justify-content: space-between; align-items: center;
+    border: 1px solid rgba(255,255,255,0.05); margin-bottom: 50px; position: relative; overflow: hidden;
+}
+.premium-status-card.is-active { border-color: var(--gold); background: linear-gradient(135deg, rgba(255, 215, 0, 0.05), #111); }
+.psc-content h2 { color: #fff; margin-bottom: 20px; font-size: 2rem; }
+.status-badge { display: inline-flex; align-items: center; gap: 10px; padding: 8px 16px; border-radius: 8px; font-weight: 800; letter-spacing: 1px; margin-bottom: 20px; }
+.status-badge.active { background: rgba(46, 204, 113, 0.2); color: #2ecc71; }
+.status-badge.inactive { background: rgba(255, 255, 255, 0.1); color: #aaa; }
+.status-desc { color: #9ca3af; font-size: 1.1rem; line-height: 1.6; }
+.status-desc span { color: var(--gold); font-weight: 700; }
+.psc-visual i { font-size: 8rem; color: rgba(255,255,255,0.03); transform: rotate(-15deg); }
+.is-active .psc-visual i { color: var(--gold); filter: drop-shadow(0 0 30px rgba(255,215,0,0.3)); animation: float 4s infinite ease-in-out; }
+
+.premium-benefits { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 50px; }
+.benefit-item { background: #15171e; padding: 20px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; gap: 15px; }
+.ben-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; justify-content: center; align-items: center; font-size: 1.2rem; }
+.ben-icon.gold { background: rgba(255, 215, 0, 0.1); color: var(--gold); }
+.ben-icon.star { background: rgba(255, 255, 255, 0.1); color: #fff; }
+.ben-icon.purple { background: rgba(142, 45, 226, 0.1); color: #8e2de2; }
+.ben-icon.red { background: rgba(231, 76, 60, 0.1); color: #e74c3c; }
+.ben-text h4 { color: #fff; margin-bottom: 5px; }
+.ben-text p { color: #888; font-size: 0.85rem; line-height: 1.4; }
+
+.premium-plans { display: flex; justify-content: center; gap: 25px; flex-wrap: wrap; }
+.plan-card { flex: 1; min-width: 250px; background: #15171e; border-radius: 20px; padding: 30px; border: 1px solid rgba(255,255,255,0.05); text-align: center; display: flex; flex-direction: column; transition: 0.3s; position: relative; }
+.plan-card:hover { transform: translateY(-10px); border-color: rgba(255,255,255,0.2); }
+.plan-header { margin-bottom: 25px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 20px; }
+.plan-header h3 { color: #fff; font-size: 1.5rem; margin-bottom: 10px; }
+
+/* ЦЕНА ПЛАНА */
+.plan-cost { 
+    font-size: 1.8rem; font-weight: 800; color: #00f3ff; 
+    font-family: 'Montserrat', sans-serif; /* Было JetBrains */
+}
+
+.plan-features { list-style: none; margin-bottom: 30px; flex: 1; }
+.plan-features li { color: #aaa; margin-bottom: 10px; font-size: 0.9rem; }
+.plan-features i { color: #2ecc71; margin-right: 8px; }
+.btn-plan { width: 100%; padding: 12px; border-radius: 10px; border: none; background: rgba(255,255,255,0.1); color: #fff; font-weight: 700; cursor: pointer; transition: 0.2s; }
+.btn-plan:hover { background: #fff; color: #000; }
+
+.plan-card.featured { border-color: var(--gold); background: linear-gradient(145deg, #1a1c24, #0f1014); transform: scale(1.05); box-shadow: 0 10px 40px rgba(0,0,0,0.3); z-index: 2; }
+.plan-card.featured:hover { transform: scale(1.05) translateY(-5px); }
+.best-value {
+    position: absolute;
+    top: -15px; /* Чуть выше, чтобы "сидел" на границе */
+    left: 50%;
+    transform: translateX(-50%);
+    
+    background: #FFD700; /* Яркий золотой */
+    color: #000; /* Черный текст для контраста */
+    
+    font-weight: 900;
+    font-size: 0.85rem;
+    padding: 6px 18px;
+    border-radius: 20px;
+    letter-spacing: 1.5px;
+    
+    /* Эффекты */
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.6); /* Сильное свечение */
+    border: 3px solid #15171e; /* Обводка цветом фона, чтобы отделить от карточки */
+    z-index: 10;
+}
+
+.plan-card.legendary .plan-header h3 { color: #e91e63; }
+.plan-card.legendary .plan-cost { color: #e91e63; }
+.plan-card.legendary .btn-plan { background: rgba(233, 30, 99, 0.2); color: #e91e63; }
+.plan-card.legendary .btn-plan:hover { background: #e91e63; color: #fff; }
+
+@media (max-width: 600px) {
+    .items-grid { grid-template-columns: 1fr; }
+    .shop-header h1 { font-size: 2.5rem; }
+}
+@keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+
+/* --- PREVIEW MODAL (ITEM INSPECTOR) --- */
+.preview-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.85); backdrop-filter: blur(10px);
+    z-index: 9999;
+    display: flex; justify-content: center; align-items: center;
+    opacity: 0; pointer-events: none; transition: 0.3s;
+}
+.preview-overlay.active { opacity: 1; pointer-events: all; }
+
+.preview-box {
+    width: 90%; max-width: 800px;
+    background: #12141a;
+    border-radius: 24px;
+    border: 1px solid rgba(255,255,255,0.1);
+    display: flex;
+    overflow: hidden;
+    box-shadow: 0 50px 100px rgba(0,0,0,0.8);
+    position: relative;
+    transform: scale(0.9); transition: 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.preview-overlay.active .preview-box { transform: scale(1); }
+
+.close-btn {
+    position: absolute; top: 20px; right: 20px;
+    background: rgba(255,255,255,0.1); border: none;
+    width: 36px; height: 36px; border-radius: 50%;
+    color: #fff; cursor: pointer; z-index: 10;
+    transition: 0.2s; display: flex; justify-content: center; align-items: center;
+}
+.close-btn:hover { background: #e74c3c; }
+
+/* Левая часть (Визуал) */
+.preview-left {
+    flex: 1;
+    background: radial-gradient(circle at center, #1a1d26 0%, #0b0c10 100%);
+    display: flex; justify-content: center; align-items: center;
+    padding: 40px;
+    border-right: 1px solid rgba(255,255,255,0.05);
+}
+
+.preview-visual-container {
+    position: relative;
+    width: 100%; height: 300px;
+    display: flex; justify-content: center; align-items: center;
+}
+
+/* Свечение за предметом в зависимости от редкости */
+.preview-visual-container::before {
+    content: ''; position: absolute;
+    width: 200px; height: 200px;
+    background: var(--glow-color, rgba(255,255,255,0.1));
+    filter: blur(60px); opacity: 0.4;
+    z-index: 0;
+    border-radius: 50%;
+}
+
+.preview-visual-container.rare { --glow-color: #3498db; }
+.preview-visual-container.epic { --glow-color: #9b59b6; }
+.preview-visual-container.legendary { --glow-color: #ffd700; }
+
+.p-img { max-width: 100%; max-height: 100%; z-index: 1; filter: drop-shadow(0 20px 40px rgba(0,0,0,0.5)); transform: scale(1.2); }
+.p-emoji { font-size: 8rem; z-index: 1; }
+
+/* Правая часть (Инфо) */
+.preview-right {
+    flex: 1;
+    padding: 40px;
+    display: flex; flex-direction: column;
+}
+
+.p-header { margin-bottom: 20px; }
+.p-rarity { 
+    font-size: 0.75rem; font-weight: 800; letter-spacing: 2px; 
+    color: #666; display: block; margin-bottom: 5px; 
+}
+.p-rarity.rare { color: #3498db; }
+.p-rarity.epic { color: #9b59b6; }
+.p-rarity.legendary { color: #ffd700; text-shadow: 0 0 10px rgba(255,215,0,0.4); }
+
+.p-header h2 { font-size: 2.5rem; margin: 0; color: #fff; line-height: 1.1; }
+.p-type { color: #aaa; font-size: 0.9rem; margin-top: 5px; display: block; }
+
+.p-body { flex: 1; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 20px; }
+.p-body p { color: #ccc; font-size: 1rem; line-height: 1.7; }
+
+.p-footer { margin-top: 30px; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+
+.p-price { display: flex; flex-direction: column; align-items: flex-start; }
+.p-cost { font-size: 1.5rem; font-weight: 800; font-family: 'Montserrat'; }
+.p-cost.gold { color: #ffd700; }
+.p-cost.shard { color: #00f3ff; }
+
+.btn-buy-big {
+    flex: 1;
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    padding: 15px;
+    border-radius: 12px;
+    font-weight: 800;
+    font-size: 1rem;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: 0.3s;
+    box-shadow: 0 10px 30px rgba(88, 101, 242, 0.3);
+}
+.btn-buy-big:hover {
+    background: #fff; color: #000;
+    transform: translateY(-3px);
+}
+
+/* Намек на клик в карточке */
+.tap-hint {
+    font-size: 0.7rem; color: #555; text-transform: uppercase; font-weight: 700; letter-spacing: 1px;
+}
+
+/* Адаптив */
+@media (max-width: 800px) {
+    .preview-box { flex-direction: column; max-height: 90vh; overflow-y: auto; }
+    .preview-left { height: 250px; padding: 20px; }
+    .preview-visual-container { height: 100%; }
+    .preview-right { padding: 25px; }
+    .p-header h2 { font-size: 1.8rem; }
+}

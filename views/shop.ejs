@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <%- include('partials/head', { title: 'Магазин | Дача Зейна' }) %>
+    <link rel="stylesheet" href="/css/shop.css">
+</head>
+<body>
+    <%- include('partials/navbar') %>
+
+    <div class="shop-wrapper">
+        <header class="shop-header">
+            <h1><span class="text-gradient">Marketplace</span></h1>
+            <p>Инвестируй в свой статус и возможности.</p>
+            
+            <div class="shop-tabs-container">
+                <div class="shop-tabs">
+                    <button class="tab-btn active" onclick="filterShop('all', this)"><i class="fas fa-th-large"></i> Все</button>
+                    <button class="tab-btn" onclick="filterShop('Лутбокс', this)"><i class="fas fa-box-open"></i> Лутбоксы</button>
+                    <button class="tab-btn" onclick="filterShop('Расходник', this)"><i class="fas fa-bolt"></i> Бусты</button>
+                    <button class="tab-btn" onclick="filterShop('Украшение', this)"><i class="fas fa-paint-brush"></i> Косметика</button>
+                    <button class="tab-btn btn-premium-tab" onclick="filterShop('ПремиумView', this)"><i class="fas fa-gem"></i> Премиум</button>
+                </div>
+            </div>
+        </header>
+
+        <div class="items-grid" id="itemsGrid">
+            <% items.forEach((item, index) => { 
+                // ИСПРАВЛЕНО: Теперь корректно скрывает 'Доступ к Премиум'
+                if (item.category.includes('Премиум')) return;
+
+                let rarity = 'common';
+                if (item.price.stars >= 5000 || item.price.shards >= 50) rarity = 'legendary';
+                else if (item.price.stars >= 1000 || item.price.shards >= 20) rarity = 'epic';
+                else if (item.price.stars >= 300 || item.price.shards >= 5) rarity = 'rare';
+            %>
+                <div class="item-card <%= rarity %>" 
+                     onclick="openPreview(this)"
+                     data-id="<%= item.itemId %>"
+                     data-name="<%= item.name %>"
+                     data-desc="<%= item.description || 'Описание отсутствует.' %>"
+                     data-type="<%= item.category %>"
+                     data-rarity="<%= rarity %>"
+                     data-image="<%= item.imageUrl_web || '' %>"
+                     data-emoji="<%= item.emoji || '📦' %>"
+                     data-stars="<%= item.price.stars || 0 %>"
+                     data-shards="<%= item.price.shards || 0 %>"
+                     data-aos="fade-up" 
+                     data-aos-delay="<%= index * 50 %>">
+                    
+                    <% if (rarity === 'legendary') { %>
+                        <div class="rarity-badge legendary">LEGENDARY</div>
+                    <% } %>
+
+                    <div class="item-visual">
+                        <div class="item-glow"></div>
+                        <% if (item.imageUrl_web) { %>
+                            <img src="<%= item.imageUrl_web %>" class="item-img" alt="<%= item.name %>">
+                        <% } else { %>
+                            <div class="item-emoji"><%= item.emoji || '📦' %></div>
+                        <% } %>
+                    </div>
+                    
+                    <div class="item-content">
+                        <div class="item-header">
+                            <h3><%= item.name %></h3>
+                            <span class="item-type"><%= item.category %></span>
+                        </div>
+                        
+                        <div class="item-footer">
+                            <div class="price-tag">
+                                <% if (item.price.stars > 0) { %>
+                                    <span class="cost gold"><%= item.price.stars.toLocaleString() %> ⭐</span>
+                                <% } %>
+                                <% if (item.price.shards > 0) { %>
+                                    <span class="cost shard"><%= item.price.shards %> ✨</span>
+                                <% } %>
+                            </div>
+                            <span class="tap-hint">Нажми для просмотра</span>
+                        </div>
+                    </div>
+                </div>
+            <% }) %>
+        </div>
+
+        <div id="premiumDashboard" style="display: none;" data-aos="zoom-in">
+             <div class="premium-status-card <%= profile.premiumType ? 'is-active' : 'is-inactive' %>">
+                <div class="psc-content">
+                    <h2>Ваш Премиум Статус</h2>
+                    <% if (profile.premiumType) { %>
+                        <div class="status-badge active"><i class="fas fa-check-circle"></i> АКТИВЕН</div>
+                        <p class="status-desc">
+                            Тип: <strong style="color: #fff; text-transform: capitalize;"><%= profile.premiumType === 'permanent' ? 'Навсегда' : 'Временный' %></strong>
+                            <% if (profile.premiumType === 'temporary' && profile.premiumRoleExpiresAt) { %>
+                                <br>Истекает: <span><%= new Date(profile.premiumRoleExpiresAt).toLocaleDateString() %></span>
+                            <% } %>
+                        </p>
+                    <% } else { %>
+                        <div class="status-badge inactive"><i class="fas fa-times-circle"></i> НЕ АКТИВЕН</div>
+                        <p class="status-desc">У вас нет активной подписки. Выберите план ниже, чтобы получить преимущества.</p>
+                    <% } %>
+                </div>
+                <div class="psc-visual"><i class="fas fa-gem"></i></div>
+            </div>
+
+            <div class="premium-benefits">
+                <div class="benefit-item"><div class="ben-icon gold"><i class="fas fa-ticket-alt"></i></div><div class="ben-text"><h4>Золотой билет</h4><p>Ежедневный шанс на победу в розыгрышах.</p></div></div>
+                <div class="benefit-item"><div class="ben-icon star"><i class="fas fa-star"></i></div><div class="ben-text"><h4>+10% к Звездам</h4><p>Пассивный буст заработка валюты.</p></div></div>
+                <div class="benefit-item"><div class="ben-icon purple"><i class="fas fa-paint-brush"></i></div><div class="ben-text"><h4>Косметика</h4><p>Доступ к эксклюзивным рамкам и фонам.</p></div></div>
+                <div class="benefit-item"><div class="ben-icon red"><i class="fas fa-shield-alt"></i></div><div class="ben-text"><h4>Мягкие наказания</h4><p>Срок мута от бота сокращается на 25%.</p></div></div>
+            </div>
+
+            <div class="premium-plans">
+                <div class="plan-card"><div class="plan-header"><h3>14 Дней</h3><span class="plan-cost">6 ✨</span></div><button class="btn-plan" onclick="buyItem('premium_14d', 'Премиум (14 дней)')">Купить</button></div>
+                <div class="plan-card featured"><div class="best-value">POPULAR</div><div class="plan-header"><h3>30 Дней</h3><span class="plan-cost">10 ✨</span></div><button class="btn-plan" onclick="buyItem('premium_30d', 'Премиум (30 дней)')">Купить</button></div>
+                <div class="plan-card legendary"><div class="plan-header"><h3>Навсегда</h3><span class="plan-cost">70 ✨</span></div><button class="btn-plan" onclick="buyItem('premium_perm', 'Премиум (Навсегда)')">Купить</button></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="preview-overlay" id="previewModal" onclick="if(event.target === this) closePreview()">
+        <div class="preview-box">
+            <button class="close-btn" onclick="closePreview()"><i class="fas fa-times"></i></button>
+            <div class="preview-left">
+                <div class="preview-visual-container" id="pVisualContainer"></div>
+            </div>
+            <div class="preview-right">
+                <div class="p-header">
+                    <span class="p-rarity" id="pRarity">COMMON</span>
+                    <h2 id="pName">Item Name</h2>
+                    <span class="p-type" id="pType">Category</span>
+                </div>
+                <div class="p-body">
+                    <p id="pDesc">Description goes here...</p>
+                </div>
+                <div class="p-footer">
+                    <div class="p-price" id="pPrice"></div>
+                    <button class="btn-buy-big" id="pBuyBtn">КУПИТЬ СЕЙЧАС</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <%- include('partials/footer') %>
+
+    <script>
+        // --- ИСПРАВЛЕННАЯ ФУНКЦИЯ ФИЛЬТРАЦИИ ---
+        function filterShop(category, btn) {
+            const itemsGrid = document.getElementById('itemsGrid');
+            const premiumDash = document.getElementById('premiumDashboard');
+            const buttons = document.querySelectorAll('.tab-btn');
+
+            // 1. Переключаем активную кнопку (только если btn передан)
+            if (btn) {
+                buttons.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+            }
+
+            // 2. Логика Премиум Дашборда
+            if (category === 'ПремиумView') {
+                itemsGrid.style.display = 'none';
+                premiumDash.style.display = 'block';
+                // Обновляем анимации для появившегося блока
+                if (typeof AOS !== 'undefined') setTimeout(() => AOS.refresh(), 100);
+                return;
+            } else {
+                premiumDash.style.display = 'none';
+                itemsGrid.style.display = 'grid';
+            }
+
+            // 3. Фильтрация карточек
+            const cards = document.querySelectorAll('.item-card');
+            
+            cards.forEach(card => {
+                const rawCat = card.getAttribute('data-category') || '';
+                const cat = rawCat.trim();
+
+                let isMatch = false;
+                
+                if (category === 'all') {
+                    isMatch = true;
+                } else if (cat.includes(category)) {
+                    isMatch = true;
+                }
+
+                if (isMatch) {
+                    // Сбрасываем стиль display, чтобы вернулся flex из CSS
+                    card.style.display = '';
+                    
+                    // Перезапуск анимации
+                    card.classList.remove('aos-animate');
+                    setTimeout(() => card.classList.add('aos-animate'), 50);
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+
+            if (typeof AOS !== 'undefined') setTimeout(() => AOS.refresh(), 100);
+        }
+
+        // --- ПРЕДПРОСМОТР ---
+        const previewModal = document.getElementById('previewModal');
+        
+        function openPreview(card) {
+            const id = card.getAttribute('data-id');
+            const name = card.getAttribute('data-name');
+            const desc = card.getAttribute('data-desc');
+            const type = card.getAttribute('data-type');
+            const rarity = card.getAttribute('data-rarity');
+            const img = card.getAttribute('data-image');
+            const emoji = card.getAttribute('data-emoji');
+            const stars = parseInt(card.getAttribute('data-stars'));
+            const shards = parseInt(card.getAttribute('data-shards'));
+
+            document.getElementById('pName').innerText = name;
+            document.getElementById('pDesc').innerText = desc;
+            document.getElementById('pType').innerText = type;
+            
+            const rarityEl = document.getElementById('pRarity');
+            rarityEl.innerText = rarity.toUpperCase();
+            rarityEl.className = `p-rarity ${rarity}`;
+
+            const visualContainer = document.getElementById('pVisualContainer');
+            visualContainer.className = `preview-visual-container ${rarity}`;
+            if (img) {
+                visualContainer.innerHTML = `<img src="${img}" class="p-img">`;
+            } else {
+                visualContainer.innerHTML = `<div class="p-emoji">${emoji}</div>`;
+            }
+
+            const priceContainer = document.getElementById('pPrice');
+            priceContainer.innerHTML = '';
+            if (stars > 0) priceContainer.innerHTML += `<span class="p-cost gold">${stars.toLocaleString()} ⭐</span>`;
+            if (shards > 0) priceContainer.innerHTML += `<span class="p-cost shard">${shards} ✨</span>`;
+
+            const buyBtn = document.getElementById('pBuyBtn');
+            buyBtn.onclick = () => buyItem(id, name);
+
+            previewModal.classList.add('active');
+        }
+
+        function closePreview() {
+            previewModal.classList.remove('active');
+        }
+
+        // --- ПОКУПКА ---
+        async function buyItem(itemId, itemName) {
+            closePreview(); 
+
+            let qty = 1;
+            if (!itemId.startsWith('premium_')) {
+                 const input = prompt(`Введите количество для "${itemName}":`, "1");
+                 if (input === null) return;
+                 qty = parseInt(input);
+                 if (!qty || qty < 1) {
+                     if (typeof Modal !== 'undefined') Modal.alert("Ошибка", "Некорректное число", "error");
+                     else alert("Некорректное число");
+                     return;
+                 }
+            }
+
+            if (typeof Modal !== 'undefined') {
+                const confirmed = await Modal.confirm("Подтверждение", `Купить <b>${qty > 1 ? qty + 'x ' : ''}${itemName}</b>?`);
+                if (!confirmed) return;
+            } else {
+                if(!confirm(`Купить ${itemName}?`)) return;
+            }
+
+            try {
+                const res = await fetch('/api/shop/buy', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ itemId, quantity: qty })
+                });
+                const result = await res.json();
+
+                if (result.success) {
+                    if (typeof Modal !== 'undefined') await Modal.alert("Успешно!", result.message, "success");
+                    else alert(result.message);
+                    location.reload(); 
+                } else {
+                    if (typeof Modal !== 'undefined') Modal.alert("Ошибка", result.error, "error");
+                    else alert(result.error);
+                }
+            } catch (e) {
+                if (typeof Modal !== 'undefined') Modal.alert("Ошибка", "Ошибка соединения", "error");
+                else alert("Ошибка соединения");
+            }
+        }
+    </script>
+    
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>AOS.init();</script>
+</body>
+</html>

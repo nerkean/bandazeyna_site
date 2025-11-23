@@ -1,0 +1,244 @@
+/* public/css/profile.css */
+
+/* --- LAYOUT --- */
+.profile-wrapper {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 120px 20px 40px; /* Отступ сверху */
+}
+
+/* --- HEADER (BANNER + INFO) --- */
+.profile-header {
+    height: 320px;
+    border-radius: 24px;
+    background-size: cover;
+    background-position: center;
+    background-color: #1a1c24; /* Фолбек цвет */
+    position: relative;
+    margin-bottom: 40px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+}
+
+/* Затемнение снизу, чтобы текст читался */
+.profile-header-overlay {
+    position: absolute;
+    bottom: 0; left: 0; width: 100%; height: 100%;
+    background: linear-gradient(to top, #050505 0%, rgba(5,5,5,0.9) 30%, transparent 100%);
+    display: flex;
+    align-items: flex-end;
+    padding: 40px;
+    gap: 30px;
+}
+
+/* Аватар + Рамка */
+.avatar-wrapper {
+    position: relative;
+    width: 150px; height: 150px;
+    flex-shrink: 0;
+}
+
+.avatar-big {
+    width: 100%; height: 100%;
+    border-radius: 50%;
+    border: 4px solid #050505;
+    background: #000;
+    object-fit: cover;
+}
+
+/* Рамка поверх аватарки */
+.avatar-frame {
+    position: absolute;
+    top: -18%; left: -18%; /* Рамка обычно чуть больше аватара */
+    width: 136%; height: 136%;
+    pointer-events: none;
+    z-index: 2;
+}
+
+/* Информация */
+.profile-identity { flex: 1; padding-bottom: 10px; }
+
+.profile-identity h1 {
+    margin: 0; font-size: 3rem; line-height: 1;
+    color: #fff; font-weight: 900;
+    text-shadow: 0 5px 20px rgba(0,0,0,0.5);
+}
+
+.user-title {
+    color: #ffd700; font-size: 0.9rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 1px;
+    background: rgba(255, 215, 0, 0.1); border: 1px solid rgba(255, 215, 0, 0.3);
+    padding: 4px 12px; border-radius: 6px;
+    margin-top: 10px; display: inline-block;
+}
+
+.badges { margin-top: 15px; display: flex; gap: 10px; flex-wrap: wrap; }
+
+.badge {
+    font-size: 0.8rem; padding: 6px 12px; border-radius: 8px;
+    background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1);
+    display: flex; align-items: center; gap: 6px; font-weight: 600; color: #ccc;
+}
+/* --- PREMIUM BADGE (HOLOGRAPHIC) --- */
+.badge.premium {
+    /* Градиент: Фиолетовый -> Розовый -> Голубой -> Фиолетовый */
+    background: linear-gradient(90deg, #8e2de2, #ff0080, #00b4db, #8e2de2);
+    background-size: 300% 100%; /* Увеличиваем фон для анимации */
+    
+    color: #fff; /* Белый текст */
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    font-weight: 800; /* Жирный шрифт */
+    text-shadow: 0 1px 2px rgba(0,0,0,0.3); /* Тень текста для читаемости */
+    
+    /* Свечение вокруг */
+    box-shadow: 0 0 15px rgba(255, 0, 128, 0.4);
+    
+    /* Запуск анимации */
+    animation: premiumShimmer 4s linear infinite;
+}
+
+
+/* Сама анимация движения градиента */
+@keyframes premiumShimmer {
+    0% { background-position: 0% 50%; }
+    100% { background-position: 100% 50%; }
+}
+.badge.rep { background: rgba(46, 204, 113, 0.1); color: #2ecc71; border-color: rgba(46, 204, 113, 0.3); }
+.badge.tax-warning { background: rgba(231, 76, 60, 0.2); color: #ff6b6b; border-color: rgba(231, 76, 60, 0.4); }
+
+/* --- DASHBOARD GRID --- */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: 320px 1fr 320px;
+    gap: 30px; align-items: start;
+}
+
+/* Адаптив */
+@media (max-width: 1200px) {
+    .dashboard-grid { grid-template-columns: 1fr 1fr; }
+    .col-right { grid-column: span 2; }
+}
+@media (max-width: 800px) {
+    .dashboard-grid { grid-template-columns: 1fr; }
+    .col-right { grid-column: auto; }
+    .profile-header { height: auto; padding-top: 100px; }
+    .profile-header-overlay { flex-direction: column; align-items: center; text-align: center; background: #050505; position: relative; }
+    .avatar-wrapper { margin-top: -80px; }
+}
+
+/* --- CARDS --- */
+.card {
+    background: #12141a;
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 20px; padding: 25px; margin-bottom: 25px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2); transition: 0.3s;
+}
+.card:hover {
+    border-color: rgba(255,255,255,0.1);
+    transform: translateY(-3px);
+    box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+}
+
+.glow-card { border-color: rgba(88, 101, 242, 0.2); }
+.glow-card:hover { box-shadow: 0 0 30px rgba(88, 101, 242, 0.15); }
+
+.card h3 {
+    margin-bottom: 20px; font-size: 1.1rem; color: #fff;
+    border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 15px;
+    display: flex; align-items: center; gap: 10px; text-transform: uppercase; letter-spacing: 0.05em;
+}
+.card h3 i { color: var(--primary); }
+
+/* Stats Rows */
+.stat-row { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 0.95rem; color: var(--text-muted); }
+.stat-row .val { font-weight: 700; color: #fff; font-family: 'Montserrat', sans-serif; }
+.stat-row .val.gold { color: #ffd700; text-shadow: 0 0 10px rgba(255, 215, 0, 0.3); }
+.stat-row .val.shard { color: #00bfff; text-shadow: 0 0 10px rgba(0, 191, 255, 0.3); }
+.stat-row.total { margin-top: 15px; padding-top: 15px; border-top: 1px dashed rgba(255,255,255,0.1); font-size: 1.1rem; }
+
+/* Graph */
+.chart-container { position: relative; height: 250px; width: 100%; }
+
+/* Marriage */
+.marriage-info {
+    display: flex; align-items: center; gap: 15px;
+    background: linear-gradient(135deg, rgba(233,30,99,0.1), transparent);
+    padding: 15px; border-radius: 12px; border: 1px solid rgba(233, 30, 99, 0.2);
+}
+.heart-icon { font-size: 1.5rem; color: #e91e63; animation: pulse 2s infinite; }
+.small-date { font-size: 0.8rem; color: #9ca3af; margin-top: 2px; }
+
+/* Table */
+.simple-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+.simple-table th { text-align: left; color: var(--text-muted); padding: 10px; text-transform: uppercase; font-size: 0.8rem; }
+.simple-table td { padding: 12px 10px; border-top: 1px solid rgba(255,255,255,0.05); color: #fff; }
+.ticker-cell { font-weight: 800; color: var(--primary); font-family: 'JetBrains Mono', monospace; }
+
+/* Quests */
+.quest-item { margin-bottom: 15px; }
+.quest-header { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 0.85rem; font-weight: 700; color: #fff; }
+.progress-bar-bg { height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden; }
+.progress-bar-fill { height: 100%; background: var(--grad-main); border-radius: 3px; }
+
+/* Inventory Grid */
+.inventory-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.inv-item {
+    background: rgba(255,255,255,0.03); border-radius: 12px; aspect-ratio: 1/1;
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+    border: 1px solid rgba(255,255,255,0.05); transition: 0.2s; position: relative;
+}
+.inv-item:hover { background: rgba(255,255,255,0.08); border-color: var(--primary); }
+.inv-icon { font-size: 1.5rem; margin-bottom: 5px; }
+.inv-qty { font-size: 0.7rem; background: rgba(0,0,0,0.6); padding: 2px 6px; border-radius: 4px; position: absolute; bottom: 5px; right: 5px; }
+.inv-more { background: rgba(88, 101, 242, 0.1); color: var(--primary); font-weight: 700; display: flex; justify-content: center; align-items: center; border-radius: 12px; }
+
+/* Achievements */
+.achievements-list { display: flex; flex-wrap: wrap; gap: 8px; }
+.ach-tag {
+    background: rgba(255, 215, 0, 0.1); border: 1px solid rgba(255, 215, 0, 0.2);
+    color: #ffd700; padding: 5px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: 600;
+}
+
+/* Utility */
+.full-width { width: 100%; display: flex; margin-top: 15px; }
+.text-muted { color: var(--text-muted); font-size: 0.9rem; text-align: center; padding: 20px; }
+.danger-zone { border-color: rgba(231, 76, 60, 0.3); }
+.danger-zone h3 i { color: #e74c3c; }
+
+@keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+
+/* Кнопка редактирования на баннере */
+.btn-edit {
+    position: absolute;
+    bottom: 40px;
+    right: 40px;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 700;
+    cursor: pointer;
+    backdrop-filter: blur(10px);
+    transition: 0.3s;
+    display: flex; align-items: center; gap: 8px;
+}
+
+.btn-edit:hover {
+    background: rgba(255,255,255,0.2);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+
+/* Адаптив для кнопки */
+@media (max-width: 800px) {
+    .btn-edit {
+        position: relative;
+        bottom: auto; right: auto;
+        margin-top: 20px;
+        width: 100%;
+        justify-content: center;
+    }
+}
