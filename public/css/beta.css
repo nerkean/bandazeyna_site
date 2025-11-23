@@ -1,5 +1,3 @@
-/* public/css/beta.css - SITE STYLE */
-
 :root {
     --primary: #5865F2;
     --accent: #A020F0;
@@ -15,17 +13,16 @@ body {
     background-color: var(--bg-dark);
     color: var(--text-main);
     font-family: 'Raleway', sans-serif;
-    min-height: 100vh; /* Было height: 100vh */
+    min-height: 100vh; 
     display: flex;
     align-items: center;
     justify-content: center;
-    overflow-y: auto; /* Разрешаем вертикальный скролл */
+    overflow-y: auto;
     overflow-x: hidden;
     position: relative;
-    padding: 40px 0; /* Отступы сверху и снизу, чтобы карточка не прилипала */
+    padding: 40px 0;
 }
 
-/* --- ФОН (КАК НА САЙТЕ) --- */
 .bg-glow {
     position: absolute; top: -20%; left: 50%; transform: translateX(-50%);
     width: 600px; height: 600px;
@@ -42,7 +39,6 @@ body {
     z-index: 0; pointer-events: none;
 }
 
-/* --- КАРТОЧКА ВХОДА --- */
 .login-wrapper {
     position: relative; z-index: 10;
     width: 100%; display: flex; justify-content: center; padding: 20px;
@@ -62,14 +58,12 @@ body {
     transform-style: preserve-3d;
 }
 
-/* Неоновая полоска сверху */
 .login-card::before {
     content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 4px;
     background: linear-gradient(90deg, var(--primary), var(--accent));
     box-shadow: 0 0 20px var(--primary);
 }
 
-/* Хедер карточки */
 .card-header { margin-bottom: 25px; }
 
 .logo-icon {
@@ -100,7 +94,6 @@ body {
     line-height: 1.6; margin-bottom: 30px;
 }
 
-/* Форма */
 .login-form {
     display: flex; flex-direction: column; gap: 15px;
 }
@@ -121,7 +114,7 @@ input {
     background: #0b0c10;
     border: 1px solid rgba(255,255,255,0.1);
     border-radius: 12px;
-    padding: 14px 14px 14px 45px; /* Отступ под иконку */
+    padding: 14px 14px 14px 45px; 
     color: #fff;
     font-family: 'Montserrat', sans-serif;
     font-size: 0.95rem;
@@ -131,7 +124,6 @@ input {
 
 input::placeholder { color: #4b5563; font-weight: 500; }
 
-/* Фокус на инпуте */
 input:focus {
     border-color: var(--primary);
     background: rgba(88, 101, 242, 0.05);
@@ -142,7 +134,6 @@ input:focus + .input-icon, .input-group:focus-within .input-icon {
     color: var(--primary);
 }
 
-/* Ошибка */
 .error-message {
     background: rgba(231, 76, 60, 0.1);
     color: #e74c3c;
@@ -152,7 +143,6 @@ input:focus + .input-icon, .input-group:focus-within .input-icon {
     border: 1px solid rgba(231, 76, 60, 0.2);
 }
 
-/* Кнопка */
 .btn-submit {
     background: linear-gradient(135deg, #5865F2 0%, #7289da 100%);
     color: #fff;
@@ -172,7 +162,6 @@ input:focus + .input-icon, .input-group:focus-within .input-icon {
     box-shadow: 0 8px 25px rgba(88, 101, 242, 0.5);
 }
 
-/* Футер карточки */
 .card-footer {
     margin-top: 25px;
     font-size: 0.8rem; color: #555;
@@ -180,63 +169,58 @@ input:focus + .input-icon, .input-group:focus-within .input-icon {
     padding-top: 15px;
 }
 
-/* --- ALERT TICKER (TOP BAR) --- */
 .alert-ticker {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 40px;
-    background: rgba(40, 0, 0, 0.9); /* Темно-красный фон */
+    background: rgba(40, 0, 0, 0.9); 
     border-bottom: 1px solid #ff0000;
     display: flex;
     align-items: center;
     z-index: 1000;
-    overflow: hidden; /* Скрываем то, что выходит за рамки */
+    overflow: hidden;
     box-shadow: 0 0 20px rgba(255, 0, 0, 0.5);
 }
 
 .ticker-content {
-    white-space: nowrap; /* Текст в одну линию */
+    white-space: nowrap;
     color: #ff4444;
     font-weight: 800;
     font-size: 0.9rem;
     text-transform: uppercase;
     letter-spacing: 2px;
-    padding-left: 100%; /* Начало за правой границей экрана */
-    animation: marquee 20s linear infinite; /* Бесконечная анимация */
+    padding-left: 100%; 
+    animation: marquee 20s linear infinite; 
     display: flex;
     align-items: center;
     gap: 20px;
 }
 
 .ticker-content i {
-    color: #fff; /* Белые иконки радиации */
-    animation: blink 1s infinite; /* Мигание иконок */
+    color: #fff;
+    animation: blink 1s infinite;
 }
 
-/* Анимация движения */
 @keyframes marquee {
     0% { transform: translateX(0); }
-    100% { transform: translateX(-100%); } /* Сдвиг влево на всю длину */
+    100% { transform: translateX(-100%); }
 }
 
 @keyframes blink {
     50% { opacity: 0.5; }
 }
 
-/* --- MOBILE RESPONSIVE --- */
 @media (max-width: 768px) {
-    /* Разрешаем скролл на телефонах, чтобы клавиатура не перекрывала контент */
     body {
         overflow-y: auto; 
-        display: block; /* Убираем flex центрирование всего body */
+        display: block; 
         height: auto;
         min-height: 100vh;
         padding-bottom: 40px;
     }
 
-    /* Тикер чуть меньше */
     .alert-ticker {
         height: 35px;
     }
@@ -245,43 +229,37 @@ input:focus + .input-icon, .input-group:focus-within .input-icon {
         letter-spacing: 1px;
     }
 
-    /* Контейнер входа */
     .login-wrapper {
-        padding-top: 80px; /* Отступ сверху, чтобы не прилипало к тикеру */
+        padding-top: 80px; 
         padding-left: 15px;
         padding-right: 15px;
         display: flex;
         flex-direction: column;
         justify-content: center;
-        min-height: 80vh; /* Центрируем визуально */
+        min-height: 80vh; 
     }
 
-    /* Карточка */
     .login-card {
-        padding: 30px 20px; /* Меньше отступы внутри */
+        padding: 30px 20px; 
         border-radius: 16px;
     }
 
-    /* Лого и текст */
     .logo-icon { font-size: 2.5rem; margin-bottom: 10px; }
     .login-card h1 { font-size: 1.5rem; }
     .badge-beta { font-size: 0.6rem; padding: 3px 8px; }
     .login-desc { font-size: 0.85rem; margin-bottom: 25px; }
 
-    /* Инпуты (Важно: 16px шрифт, чтобы iPhone не зумил страницу при вводе) */
     input {
         padding: 12px 12px 12px 40px;
         font-size: 16px; 
     }
     .input-icon { font-size: 0.9rem; left: 12px; }
 
-    /* Кнопка */
     .btn-submit {
         font-size: 0.9rem;
         padding: 12px;
     }
 
-    /* Фон (чуть уменьшаем свечение, чтобы не слепило) */
     .bg-glow {
         width: 100%;
         height: 400px;
@@ -289,11 +267,9 @@ input:focus + .input-icon, .input-group:focus-within .input-icon {
     }
 }
 
-/* --- ДОПОЛНЕНИЯ ДЛЯ ЗАЯВКИ --- */
-
 .login-card.wide {
     max-width: 550px;
-    padding: 30px; /* Уменьшили паддинг */
+    padding: 30px; 
 }
 
 .login-card.wide .requirements-box {
@@ -302,12 +278,12 @@ input:focus + .input-icon, .input-group:focus-within .input-icon {
 }
 
 .login-card.wide .input-group {
-    margin-bottom: 12px; /* Уменьшили отступ между полями */
+    margin-bottom: 12px; 
 }
 
 .logo-icon.small { font-size: 2rem; margin-bottom: 10px; }
 
-/* Блок требований */
+
 .requirements-box {
     background: rgba(46, 204, 113, 0.05);
     border: 1px solid rgba(46, 204, 113, 0.2);
@@ -330,7 +306,6 @@ input:focus + .input-icon, .input-group:focus-within .input-icon {
 .requirements-box li i { color: #2ecc71; }
 .requirements-box li b { color: #fff; }
 
-/* Текстовое поле */
 textarea {
     width: 100%;
     background: #0b0c10;
@@ -346,7 +321,6 @@ textarea {
 }
 textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(88, 101, 242, 0.1); }
 
-/* Успешная отправка */
 .success-message {
     background: rgba(46, 204, 113, 0.1);
     color: #2ecc71;
@@ -379,8 +353,8 @@ textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(88, 10
 }
 
 .login-card.wide {
-    max-width: 480px; /* Узкая */
-    padding: 25px 30px; /* Меньше отступы */
+    max-width: 480px; 
+    padding: 25px 30px;
     margin-top: 20px;
 }
 
@@ -399,18 +373,18 @@ textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(88, 10
 }
 
 .login-card.wide .input-group {
-    margin-bottom: 10px; /* Сжимаем отступы между полями */
+    margin-bottom: 10px; 
 }
 
 .login-card.wide input {
-    padding: 10px 10px 10px 40px; /* Компактные поля */
+    padding: 10px 10px 10px 40px; 
     font-size: 0.9rem;
     height: 40px;
 }
 
 .login-card.wide textarea {
     padding: 10px;
-    height: 70px; /* Низкое текстовое поле */
+    height: 70px; 
     font-size: 0.9rem;
 }
 
@@ -424,9 +398,8 @@ textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(88, 10
     font-size: 0.8rem;
 }
 
-/* Адаптив для маленьких экранов */
 @media (max-height: 800px) {
     .login-wrapper {
-        align-items: flex-start; /* Чтобы верх не обрезался */
+        align-items: flex-start; 
     }
 }

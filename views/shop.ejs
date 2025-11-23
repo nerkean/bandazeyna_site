@@ -25,7 +25,6 @@
 
         <div class="items-grid" id="itemsGrid">
             <% items.forEach((item, index) => { 
-                // ИСПРАВЛЕНО: Теперь корректно скрывает 'Доступ к Премиум'
                 if (item.category.includes('Премиум')) return;
 
                 let rarity = 'common';
@@ -83,11 +82,14 @@
         </div>
 
         <div id="premiumDashboard" style="display: none;" data-aos="zoom-in">
-             <div class="premium-status-card <%= profile.premiumType ? 'is-active' : 'is-inactive' %>">
+            
+            <div class="premium-status-card <%= profile.premiumType ? 'is-active' : 'is-inactive' %>">
                 <div class="psc-content">
                     <h2>Ваш Премиум Статус</h2>
                     <% if (profile.premiumType) { %>
-                        <div class="status-badge active"><i class="fas fa-check-circle"></i> АКТИВЕН</div>
+                        <div class="status-badge active">
+                            <i class="fas fa-check-circle"></i> АКТИВЕН
+                        </div>
                         <p class="status-desc">
                             Тип: <strong style="color: #fff; text-transform: capitalize;"><%= profile.premiumType === 'permanent' ? 'Навсегда' : 'Временный' %></strong>
                             <% if (profile.premiumType === 'temporary' && profile.premiumRoleExpiresAt) { %>
@@ -95,24 +97,86 @@
                             <% } %>
                         </p>
                     <% } else { %>
-                        <div class="status-badge inactive"><i class="fas fa-times-circle"></i> НЕ АКТИВЕН</div>
+                        <div class="status-badge inactive">
+                            <i class="fas fa-times-circle"></i> НЕ АКТИВЕН
+                        </div>
                         <p class="status-desc">У вас нет активной подписки. Выберите план ниже, чтобы получить преимущества.</p>
                     <% } %>
                 </div>
-                <div class="psc-visual"><i class="fas fa-gem"></i></div>
+                <div class="psc-visual">
+                    <i class="fas fa-gem"></i>
+                </div>
             </div>
 
             <div class="premium-benefits">
-                <div class="benefit-item"><div class="ben-icon gold"><i class="fas fa-ticket-alt"></i></div><div class="ben-text"><h4>Золотой билет</h4><p>Ежедневный шанс на победу в розыгрышах.</p></div></div>
-                <div class="benefit-item"><div class="ben-icon star"><i class="fas fa-star"></i></div><div class="ben-text"><h4>+10% к Звездам</h4><p>Пассивный буст заработка валюты.</p></div></div>
-                <div class="benefit-item"><div class="ben-icon purple"><i class="fas fa-paint-brush"></i></div><div class="ben-text"><h4>Косметика</h4><p>Доступ к эксклюзивным рамкам и фонам.</p></div></div>
-                <div class="benefit-item"><div class="ben-icon red"><i class="fas fa-shield-alt"></i></div><div class="ben-text"><h4>Мягкие наказания</h4><p>Срок мута от бота сокращается на 25%.</p></div></div>
+                <div class="benefit-item">
+                    <div class="ben-icon gold"><i class="fas fa-ticket-alt"></i></div>
+                    <div class="ben-text">
+                        <h4>Золотой билет</h4>
+                        <p>Ежедневный шанс на победу в розыгрышах.</p>
+                    </div>
+                </div>
+                <div class="benefit-item">
+                    <div class="ben-icon star"><i class="fas fa-star"></i></div>
+                    <div class="ben-text">
+                        <h4>+10% к Звездам</h4>
+                        <p>Пассивный буст заработка валюты.</p>
+                    </div>
+                </div>
+                <div class="benefit-item">
+                    <div class="ben-icon purple"><i class="fas fa-paint-brush"></i></div>
+                    <div class="ben-text">
+                        <h4>Косметика</h4>
+                        <p>Доступ к эксклюзивным рамкам и фонам.</p>
+                    </div>
+                </div>
+                <div class="benefit-item">
+                    <div class="ben-icon red"><i class="fas fa-shield-alt"></i></div>
+                    <div class="ben-text">
+                        <h4>Мягкие наказания</h4>
+                        <p>Срок мута от бота сокращается на 25%.</p>
+                    </div>
+                </div>
             </div>
 
             <div class="premium-plans">
-                <div class="plan-card"><div class="plan-header"><h3>14 Дней</h3><span class="plan-cost">6 ✨</span></div><button class="btn-plan" onclick="buyItem('premium_14d', 'Премиум (14 дней)')">Купить</button></div>
-                <div class="plan-card featured"><div class="best-value">POPULAR</div><div class="plan-header"><h3>30 Дней</h3><span class="plan-cost">10 ✨</span></div><button class="btn-plan" onclick="buyItem('premium_30d', 'Премиум (30 дней)')">Купить</button></div>
-                <div class="plan-card legendary"><div class="plan-header"><h3>Навсегда</h3><span class="plan-cost">70 ✨</span></div><button class="btn-plan" onclick="buyItem('premium_perm', 'Премиум (Навсегда)')">Купить</button></div>
+                <div class="plan-card">
+                    <div class="plan-header">
+                        <h3>14 Дней</h3>
+                        <span class="plan-cost">6 ✨</span>
+                    </div>
+                    <ul class="plan-features">
+                        <li><i class="fas fa-check"></i> Все бонусы</li>
+                        <li><i class="fas fa-check"></i> Тест-драйв</li>
+                    </ul>
+                    <button class="btn-plan" onclick="buyItem('premium_14d', 'Премиум (14 дней)')">Купить</button>
+                </div>
+
+                <div class="plan-card featured">
+                    <div class="best-value">POPULAR</div>
+                    <div class="plan-header">
+                        <h3>30 Дней</h3>
+                        <span class="plan-cost">10 ✨</span>
+                    </div>
+                    <ul class="plan-features">
+                        <li><i class="fas fa-check"></i> Все бонусы</li>
+                        <li><i class="fas fa-check"></i> Оптимальный выбор</li>
+                    </ul>
+                    <button class="btn-plan" onclick="buyItem('premium_30d', 'Премиум (30 дней)')">Купить</button>
+                </div>
+
+                <div class="plan-card legendary">
+                    <div class="plan-header">
+                        <h3>Навсегда</h3>
+                        <span class="plan-cost">70 ✨</span>
+                    </div>
+                    <ul class="plan-features">
+                        <li><i class="fas fa-check"></i> Все бонусы</li>
+                        <li><i class="fas fa-check"></i> Плати один раз</li>
+                        <li><i class="fas fa-crown"></i> Вечный статус</li>
+                    </ul>
+                    <button class="btn-plan" onclick="buyItem('premium_perm', 'Премиум (Навсегда)')">Купить</button>
+                </div>
             </div>
         </div>
     </div>
@@ -143,23 +207,19 @@
     <%- include('partials/footer') %>
 
     <script>
-        // --- ИСПРАВЛЕННАЯ ФУНКЦИЯ ФИЛЬТРАЦИИ ---
-        function filterShop(category, btn) {
+        function filterShop(category, btnElement) {
             const itemsGrid = document.getElementById('itemsGrid');
             const premiumDash = document.getElementById('premiumDashboard');
             const buttons = document.querySelectorAll('.tab-btn');
 
-            // 1. Переключаем активную кнопку (только если btn передан)
-            if (btn) {
+            if (btnElement) {
                 buttons.forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
+                btnElement.classList.add('active');
             }
 
-            // 2. Логика Премиум Дашборда
             if (category === 'ПремиумView') {
                 itemsGrid.style.display = 'none';
                 premiumDash.style.display = 'block';
-                // Обновляем анимации для появившегося блока
                 if (typeof AOS !== 'undefined') setTimeout(() => AOS.refresh(), 100);
                 return;
             } else {
@@ -167,26 +227,17 @@
                 itemsGrid.style.display = 'grid';
             }
 
-            // 3. Фильтрация карточек
             const cards = document.querySelectorAll('.item-card');
-            
             cards.forEach(card => {
                 const rawCat = card.getAttribute('data-category') || '';
                 const cat = rawCat.trim();
 
                 let isMatch = false;
-                
-                if (category === 'all') {
-                    isMatch = true;
-                } else if (cat.includes(category)) {
-                    isMatch = true;
-                }
+                if (category === 'all') isMatch = true;
+                else if (cat.includes(category)) isMatch = true;
 
                 if (isMatch) {
-                    // Сбрасываем стиль display, чтобы вернулся flex из CSS
-                    card.style.display = '';
-                    
-                    // Перезапуск анимации
+                    card.style.display = ''; 
                     card.classList.remove('aos-animate');
                     setTimeout(() => card.classList.add('aos-animate'), 50);
                 } else {
@@ -197,7 +248,6 @@
             if (typeof AOS !== 'undefined') setTimeout(() => AOS.refresh(), 100);
         }
 
-        // --- ПРЕДПРОСМОТР ---
         const previewModal = document.getElementById('previewModal');
         
         function openPreview(card) {
@@ -242,7 +292,6 @@
             previewModal.classList.remove('active');
         }
 
-        // --- ПОКУПКА ---
         async function buyItem(itemId, itemName) {
             closePreview(); 
 
@@ -286,33 +335,6 @@
                 else alert("Ошибка соединения");
             }
         }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            const urlParams = new URLSearchParams(window.location.search);
-            const category = urlParams.get('category');
-
-            if (category) {
-                // Находим кнопку, соответствующую категории
-                // Хак: ищем по тексту onclick, так как у нас нет ID у кнопок
-                const buttons = document.querySelectorAll('.tab-btn');
-                let targetBtn = null;
-
-                buttons.forEach(btn => {
-                    if (btn.getAttribute('onclick').includes(`'${category}'`)) {
-                        targetBtn = btn;
-                    }
-                });
-
-                // Если нашли кнопку - эмулируем клик или вызываем функцию
-                if (targetBtn) {
-                    filterShop(category, targetBtn);
-                } else if (category === 'ПремиумView') {
-                    // Спец. обработка для премиума, если кнопка не нашлась по тексту
-                    const premiumBtn = document.querySelector('.btn-premium-tab');
-                    if (premiumBtn) filterShop('ПремиумView', premiumBtn);
-                }
-            }
-        });
     </script>
     
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
