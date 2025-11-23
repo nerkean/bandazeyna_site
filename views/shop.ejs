@@ -286,6 +286,33 @@
                 else alert("Ошибка соединения");
             }
         }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const category = urlParams.get('category');
+
+            if (category) {
+                // Находим кнопку, соответствующую категории
+                // Хак: ищем по тексту onclick, так как у нас нет ID у кнопок
+                const buttons = document.querySelectorAll('.tab-btn');
+                let targetBtn = null;
+
+                buttons.forEach(btn => {
+                    if (btn.getAttribute('onclick').includes(`'${category}'`)) {
+                        targetBtn = btn;
+                    }
+                });
+
+                // Если нашли кнопку - эмулируем клик или вызываем функцию
+                if (targetBtn) {
+                    filterShop(category, targetBtn);
+                } else if (category === 'ПремиумView') {
+                    // Спец. обработка для премиума, если кнопка не нашлась по тексту
+                    const premiumBtn = document.querySelector('.btn-premium-tab');
+                    if (premiumBtn) filterShop('ПремиумView', premiumBtn);
+                }
+            }
+        });
     </script>
     
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>

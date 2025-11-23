@@ -512,6 +512,21 @@ body {
 .cs-item i { color: #2ecc71; }
 .cs-divider { width: 1px; height: 15px; background: #333; }
 
+.premium-link {
+    color: #FFD700; /* Золотой */
+    font-weight: 800;
+    text-decoration: none;
+    border-bottom: 1px dashed #FFD700;
+    transition: 0.3s;
+    cursor: pointer;
+}
+
+.premium-link:hover {
+    color: #fff;
+    border-bottom-color: #fff;
+    text-shadow: 0 0 10px #FFD700;
+}
+
 /* =========================================
    10. ANIMATIONS & MEDIA QUERIES
    ========================================= */

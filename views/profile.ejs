@@ -8,17 +8,23 @@
 <body>
     <%- include('partials/navbar') %>
 
-    <% 
-        let bannerUrl = '/assets/backgrounds/profile_template.png';
+<% 
+        let bannerStyle = ''; 
+        let headerClass = 'profile-header'; // Базовый класс
+
         if (profile.activeCardBgId) {
+            // Если есть фон - ставим картинку
             const cleanBgId = profile.activeCardBgId.replace('profile_bg_', '');
-            bannerUrl = `/assets/backgrounds/${cleanBgId}.png`; 
+            bannerStyle = `background-image: url('/assets/backgrounds/${cleanBgId}.png');`;
+        } else {
+            // Если нет фона - добавляем класс для CSS-паттерна
+            headerClass += ' default-bg';
         }
     %>
 
     <div class="profile-wrapper">
         
-        <header class="profile-header" style="background-image: url('<%= bannerUrl %>');">
+        <header class="<%= headerClass %>" style="<%= bannerStyle %>">
             <div class="profile-header-overlay">
                 <div class="avatar-wrapper">
                     <% if (profile.activeAvatarFrameId) { %>
@@ -40,7 +46,9 @@
                     <% } %>
                     <div class="badges">
                         <% if (profile.premiumType) { %>
-                            <span class="badge premium"><i class="fas fa-gem"></i> Premium</span>
+                            <a href="/shop?category=ПремиумView" class="badge premium" title="Управление подпиской">
+                                <i class="fas fa-gem"></i> Premium
+                            </a>
                         <% } %>
                         <% if (profile.isTaxDelinquent) { %>
                             <span class="badge tax-warning"><i class="fas fa-exclamation-triangle"></i> Должник</span>
