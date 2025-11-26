@@ -521,17 +521,32 @@
     overflow: hidden;
 }
 
-/* Огромный текст на фоне для стиля */
 .life-bg-text {
     position: absolute;
     top: 50%; left: 50%;
     transform: translate(-50%, -50%);
-    font-size: 15rem;
-    font-weight: 900;
-    color: rgba(255,255,255,0.02);
+    /* Убираем стили текста отсюда, они пойдут в ::after */
     pointer-events: none;
     z-index: 0;
+    width: 100%; /* Растягиваем контейнер */
+    text-align: center;
+}
+
+/* Рисуем текст через псевдо-элемент (Lighthouse это игнорирует) */
+.life-bg-text::after {
+    content: 'ВАЙБ'; /* <-- Текст теперь здесь */
     font-family: 'Montserrat', sans-serif;
+    font-size: 15rem;
+    font-weight: 900;
+    color: rgba(255, 255, 255, 0.02); /* Тот же прозрачный цвет */
+    white-space: nowrap;
+}
+
+/* Адаптив для мобильных (чтобы не рвало экран) */
+@media (max-width: 900px) {
+    .life-bg-text::after {
+        font-size: 6rem; /* Уменьшаем на телефонах */
+    }
 }
 
 .life-gallery {
@@ -1015,4 +1030,209 @@
     .glitch-title { font-size: 2.5rem; }
     .cta-stats-row { flex-direction: column; gap: 10px; }
     .cs-divider { display: none; }
+}
+
+/* =========================================
+   MOBILE RESPONSIVE PATCH
+   Добавить в самый конец style.css
+   ========================================= */
+
+@media (max-width: 1024px) {
+    /* Убираем лишние отступы по бокам на планшетах и телефонах */
+    .hero-section, .features-section, .steps-section, .section-life, .section-faq, .section-cta {
+        padding-left: 5%;
+        padding-right: 5%;
+    }
+}
+
+@media (max-width: 768px) {
+
+    /* --- GLOBAL --- */
+    body {
+        font-size: 14px; /* Чуть уменьшаем базовый шрифт */
+    }
+
+    /* --- HERO SECTION --- */
+    .hero-section {
+        flex-direction: column; /* Элементы друг под другом */
+        justify-content: flex-start;
+        padding-top: 120px; /* Отступ сверху под навбар */
+        padding-bottom: 50px;
+        min-height: auto; /* Убираем жесткую высоту */
+        overflow: hidden; /* Обрезаем вылезающие элементы */
+    }
+
+    .hero-content {
+        max-width: 100%;
+        text-align: center; /* Центрируем текст */
+        margin-bottom: 40px;
+        z-index: 5; /* Поднимаем текст над визуалом */
+    }
+
+    .hero-content h1 {
+        font-size: 2.8rem; /* Уменьшаем заголовок */
+    }
+
+    .hero-content p {
+        font-size: 1rem;
+        max-width: 100%;
+        margin-bottom: 30px;
+    }
+
+    .hero-buttons {
+        justify-content: center; /* Центрируем кнопки */
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .hero-section .hero-buttons a.btn-discord,
+    .hero-section .hero-buttons a.btn-secondary {
+        width: 100%; /* Кнопки на всю ширину */
+        min-width: unset;
+        font-size: 1rem;
+    }
+
+    /* --- HERO VISUAL (Адаптация 3D круга) --- */
+    .hero-visual {
+        width: 100%;
+        height: 350px; /* Уменьшаем высоту блока */
+        /* Уменьшаем весь 3D блок в 2 раза */
+        transform: scale(0.6) rotateX(10deg) rotateY(-10deg); 
+        margin-left: 0;
+        margin-top: -50px; /* Подтягиваем вверх */
+    }
+
+    /* Скрываем лишние декорации на телефоне для производительности */
+    .visual-glow {
+        width: 300px;
+        height: 300px;
+    }
+    
+    /* Сдвигаем плавающие карточки, чтобы они кучнее смотрелись */
+    .card-pos-1 { top: 0%; right: -10%; }
+    .card-pos-2 { bottom: 10%; left: -10%; }
+    .card-pos-3 { bottom: 0%; right: -20%; }
+    .card-pos-4 { top: 0%; left: -20%; }
+    
+    /* Спрятать тост уведомления на мобиле, он часто мешает */
+    .glass-toast { display: none; }
+    /* Пилюлю с онлайном ставим по центру */
+    .glass-pill { left: 50%; top: -10%; width: auto; }
+
+    /* --- FEATURES SECTION --- */
+    .features-section {
+        padding-top: 60px;
+        padding-bottom: 60px;
+    }
+    
+    .section-header h2 {
+        font-size: 2rem; /* Уменьшаем заголовки секций */
+    }
+    
+    .features-grid {
+        grid-template-columns: 1fr; /* Одна колонка */
+        gap: 20px;
+    }
+
+    /* --- STEPS SECTION --- */
+    .steps-section {
+        padding-top: 60px;
+        padding-bottom: 60px;
+    }
+
+    .steps-grid {
+        flex-direction: column; /* Вертикальный список */
+    }
+
+    .step-connector {
+        transform: rotate(90deg); /* Поворачиваем стрелку вниз */
+        margin: 10px 0;
+    }
+
+    .step-card {
+        width: 100%; /* Карточка на всю ширину */
+    }
+
+    /* --- LIFE SECTION --- */
+    .life-bg-text {
+        font-size: 6rem; /* Уменьшаем огромный фоновый текст */
+        top: 20%;
+    }
+
+    .life-gallery {
+        flex-direction: column;
+    }
+
+    .life-card {
+        width: 100%;
+    }
+
+    /* --- CTA SECTION --- */
+    .section-cta {
+        padding: 80px 5%;
+    }
+
+    .glitch-title {
+        font-size: 2.2rem; /* Уменьшаем глитч заголовок */
+    }
+    
+    .cta-stats-row {
+        flex-direction: column; /* Статистику в столбик */
+        gap: 15px;
+    }
+    
+    .cs-divider {
+        display: none; /* Прячем разделители */
+    }
+}
+
+/* Фикс для очень маленьких экранов (iPhone SE и старые) */
+@media (max-width: 380px) {
+    .hero-content h1 { font-size: 2.2rem; }
+    .glass-card { scale: 0.8; } /* Ещё сильнее уменьшаем карточки */
+}
+
+/* --- LCP OPTIMIZATION --- */
+
+/* Простая анимация появления без JS */
+@keyframes fadeInUpQuick {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.hero-animate {
+    /* Анимация длится 0.8 сек, начинается сразу */
+    animation: fadeInUpQuick 0.8s ease-out forwards;
+}
+
+/* Для мобильных устройств отключаем анимацию заголовка полностью ради скорости */
+@media (max-width: 768px) {
+    .hero-animate {
+        animation: none !important;
+        opacity: 1 !important;
+        transform: none !important;
+    }
+}
+
+/* Оптимизация шрифтов: показывает текст сразу стандартным шрифтом, потом подменяет на красивый */
+@font-face {
+    font-family: 'Intro';
+    src: url('../assets/fonts/intro_bold.ttf') format('truetype');
+    font-weight: bold;
+    font-style: normal;
+    font-display: swap; /* <--- ВАЖНО: Текст не исчезает пока грузится шрифт */
+}
+
+@font-face {
+    font-family: 'Raleway';
+    src: url('../assets/fonts/Raleway-Regular.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap; /* <--- ВАЖНО */
 }

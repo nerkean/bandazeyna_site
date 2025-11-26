@@ -8,6 +8,7 @@ import { checkAuth } from '../middleware/checkAuth.js';
 import ApplicationSubmission from '../models/ApplicationSubmission.js';
 import crypto from 'crypto';
 import BetaUser from '../models/BetaUser.js';
+import Feedback from '../models/Feedback.js';
 
 const router = express.Router();
 
@@ -37,6 +38,38 @@ router.post('/admin/application', checkAuth, async (req, res) => {
                 assignedToDiscordId: app.uid
             });
 
+            try {
+                // Формируем красивое сообщение
+                const messageText = `
+**🎉 Поздравляем! Ваша заявка на бета-тест сайта одобрена**
+
+Вы получили доступ к закрытому разделу сайта
+🔗 **Вход:** https://bandazeyna.com/beta-login
+👤 **Логин:** ||\`${app.discordUsername}\`||
+🔑 **Пароль:** ||\`${generatedPassword}\`||
+
+**В скором времени 
+
+⚠️ **Напомним о самом главном правиле: нельзя делиться информацией и материалом который находится на сайте. Мы хотим сохранить интригу для пользователей чтобы получить самые четсные эмоции. За нарушение этого правила вы можете получить бан на неопределенный срок или потерять доступ к сайту**
+                `.trim();
+
+                // Стучимся к боту на порт 3001 (или тот, что указал в боте)
+                // Если бот и сайт на одной машине — localhost. Если нет — IP сервера бота.
+                await fetch('http://localhost:3001/api/send-dm', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        userId: app.uid, // ID пользователя из Discord
+                        message: messageText
+                    })
+                });
+                
+                console.log('📨 Запрос на отправку ЛС отправлен боту.');
+
+            } catch (botError) {
+                console.error('⚠️ Не удалось связаться с ботом для отправки ЛС:', botError);
+                // Не прерываем выполнение, просто логируем ошибку
+            }
         } else {
             app.status = 'rejected';
         }
@@ -49,6 +82,49 @@ router.post('/admin/application', checkAuth, async (req, res) => {
     } catch (e) {
         console.error(e);
         res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// Отправка отзыва (Обновленная версия)
+router.post('/feedback', checkAuth, async (req, res) => {
+    const { r_design, r_tech, r_idea, comment } = req.body;
+
+    // Преобразуем строки в числа
+    const design = parseInt(r_design);
+    const tech = parseInt(r_tech);
+    const idea = parseInt(r_idea);
+
+    // Проверка валидности оценок
+    if (!design || !tech || !idea) {
+        return res.status(400).json({ error: 'Пожалуйста, оцените все пункты!' });
+    }
+    
+    if (comment.trim().length < 5) {
+        return res.status(400).json({ error: 'Напишите хотя бы пару слов в комментарии.' });
+    }
+
+    try {
+        // Проверка на повторный отзыв
+        const existing = await Feedback.findOne({ userId: req.user.id });
+        if (existing) {
+            return res.status(400).json({ error: 'Вы уже оставляли отзыв! Спасибо.' });
+        }
+
+        await Feedback.create({
+            userId: req.user.id,
+            username: req.user.username,
+            ratings: {
+                design: design,
+                tech: tech,
+                idea: idea
+            },
+            comment: comment.trim()
+        });
+
+        res.json({ success: true });
+    } catch (e) {
+        console.error(e);
+        res.status(500).json({ error: 'Ошибка сервера' });
     }
 });
 // Торговля акциями

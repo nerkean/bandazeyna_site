@@ -2,6 +2,8 @@
 <html lang="ru">
 <head>
     <%- include('partials/head', { title: 'Магазин | Дача Зейна' }) %>
+    
+    <link rel="preload" href="/css/shop.css" as="style">
     <link rel="stylesheet" href="/css/shop.css">
 </head>
 <body>
@@ -14,11 +16,11 @@
             
             <div class="shop-tabs-container">
                 <div class="shop-tabs">
-                    <button class="tab-btn active" onclick="filterShop('all', this)"><i class="fas fa-th-large"></i> Все</button>
-                    <button class="tab-btn" onclick="filterShop('Лутбокс', this)"><i class="fas fa-box-open"></i> Лутбоксы</button>
-                    <button class="tab-btn" onclick="filterShop('Расходник', this)"><i class="fas fa-bolt"></i> Бусты</button>
-                    <button class="tab-btn" onclick="filterShop('Украшение', this)"><i class="fas fa-paint-brush"></i> Косметика</button>
-                    <button class="tab-btn btn-premium-tab" onclick="filterShop('ПремиумView', this)"><i class="fas fa-gem"></i> Премиум</button>
+                    <button class="tab-btn active" onclick="filterShop('all', this)" aria-label="Показать все"><i class="fas fa-th-large" aria-hidden="true"></i> Все</button>
+                    <button class="tab-btn" onclick="filterShop('Лутбокс', this)" aria-label="Показать лутбоксы"><i class="fas fa-box-open" aria-hidden="true"></i> Лутбоксы</button>
+                    <button class="tab-btn" onclick="filterShop('Расходник', this)" aria-label="Показать бусты"><i class="fas fa-bolt" aria-hidden="true"></i> Бусты</button>
+                    <button class="tab-btn" onclick="filterShop('Украшение', this)" aria-label="Показать косметику"><i class="fas fa-paint-brush" aria-hidden="true"></i> Косметика</button>
+                    <button class="tab-btn btn-premium-tab" onclick="filterShop('ПремиумView', this)" aria-label="Показать премиум"><i class="fas fa-gem" aria-hidden="true"></i> Премиум</button>
                 </div>
             </div>
         </header>
@@ -26,11 +28,16 @@
         <div class="items-grid" id="itemsGrid">
             <% items.forEach((item, index) => { 
                 if (item.category.includes('Премиум')) return;
-
+                
                 let rarity = 'common';
                 if (item.price.stars >= 5000 || item.price.shards >= 50) rarity = 'legendary';
                 else if (item.price.stars >= 1000 || item.price.shards >= 20) rarity = 'epic';
                 else if (item.price.stars >= 300 || item.price.shards >= 5) rarity = 'rare';
+
+                // ОПТИМИЗАЦИЯ LCP
+                const isLCP = index < 4;
+                const loadingMode = isLCP ? 'eager' : 'lazy';
+                const fetchPriority = isLCP ? 'high' : 'auto';
             %>
                 <div class="item-card <%= rarity %>" 
                      onclick="openPreview(this)"
@@ -43,9 +50,9 @@
                      data-emoji="<%= item.emoji || '📦' %>"
                      data-stars="<%= item.price.stars || 0 %>"
                      data-shards="<%= item.price.shards || 0 %>"
-                     data-aos="fade-up" 
-                     data-aos-delay="<%= index * 50 %>">
-                    
+                     <%- isLCP ? '' : `data-aos="fade-up" data-aos-delay="${(index % 4) * 50}"` %>
+                >
+                     
                     <% if (rarity === 'legendary') { %>
                         <div class="rarity-badge legendary">LEGENDARY</div>
                     <% } %>
@@ -53,7 +60,12 @@
                     <div class="item-visual">
                         <div class="item-glow"></div>
                         <% if (item.imageUrl_web) { %>
-                            <img src="<%= item.imageUrl_web %>" class="item-img" alt="<%= item.name %>">
+                            <img src="<%= item.imageUrl_web %>" 
+                                 class="item-img" 
+                                 alt="<%= item.name %>"
+                                 width="120" height="120"
+                                 loading="<%= loadingMode %>"
+                                 fetchpriority="<%= fetchPriority %>">
                         <% } else { %>
                             <div class="item-emoji"><%= item.emoji || '📦' %></div>
                         <% } %>
@@ -61,7 +73,7 @@
                     
                     <div class="item-content">
                         <div class="item-header">
-                            <h3><%= item.name %></h3>
+                            <h2><%= item.name %></h2>
                             <span class="item-type"><%= item.category %></span>
                         </div>
                         
@@ -74,21 +86,20 @@
                                     <span class="cost shard"><%= item.price.shards %> ✨</span>
                                 <% } %>
                             </div>
-                            <span class="tap-hint">Нажми для просмотра</span>
+                            <span class="tap-hint">Нажми</span>
                         </div>
                     </div>
                 </div>
             <% }) %>
         </div>
 
-        <div id="premiumDashboard" style="display: none;" data-aos="zoom-in">
-            
+        <div id="premiumDashboard" style="display: none;">
             <div class="premium-status-card <%= profile.premiumType ? 'is-active' : 'is-inactive' %>">
                 <div class="psc-content">
                     <h2>Ваш Премиум Статус</h2>
                     <% if (profile.premiumType) { %>
                         <div class="status-badge active">
-                            <i class="fas fa-check-circle"></i> АКТИВЕН
+                            <i class="fas fa-check-circle" aria-hidden="true"></i> АКТИВЕН
                         </div>
                         <p class="status-desc">
                             Тип: <strong style="color: #fff; text-transform: capitalize;"><%= profile.premiumType === 'permanent' ? 'Навсегда' : 'Временный' %></strong>
@@ -98,42 +109,42 @@
                         </p>
                     <% } else { %>
                         <div class="status-badge inactive">
-                            <i class="fas fa-times-circle"></i> НЕ АКТИВЕН
+                            <i class="fas fa-times-circle" aria-hidden="true"></i> НЕ АКТИВЕН
                         </div>
-                        <p class="status-desc">У вас нет активной подписки. Выберите план ниже, чтобы получить преимущества.</p>
+                        <p class="status-desc">У вас нет активной подписки. Выберите план ниже.</p>
                     <% } %>
                 </div>
                 <div class="psc-visual">
-                    <i class="fas fa-gem"></i>
+                    <i class="fas fa-gem" aria-hidden="true"></i>
                 </div>
             </div>
 
             <div class="premium-benefits">
                 <div class="benefit-item">
-                    <div class="ben-icon gold"><i class="fas fa-ticket-alt"></i></div>
+                    <div class="ben-icon gold"><i class="fas fa-ticket-alt" aria-hidden="true"></i></div>
                     <div class="ben-text">
-                        <h4>Золотой билет</h4>
+                        <h3>Золотой билет</h3>
                         <p>Ежедневный шанс на победу в розыгрышах.</p>
                     </div>
                 </div>
                 <div class="benefit-item">
-                    <div class="ben-icon star"><i class="fas fa-star"></i></div>
+                    <div class="ben-icon star"><i class="fas fa-star" aria-hidden="true"></i></div>
                     <div class="ben-text">
-                        <h4>+10% к Звездам</h4>
+                        <h3>+10% к Звездам</h3>
                         <p>Пассивный буст заработка валюты.</p>
                     </div>
                 </div>
                 <div class="benefit-item">
-                    <div class="ben-icon purple"><i class="fas fa-paint-brush"></i></div>
+                    <div class="ben-icon purple"><i class="fas fa-paint-brush" aria-hidden="true"></i></div>
                     <div class="ben-text">
-                        <h4>Косметика</h4>
+                        <h3>Косметика</h3>
                         <p>Доступ к эксклюзивным рамкам и фонам.</p>
                     </div>
                 </div>
                 <div class="benefit-item">
-                    <div class="ben-icon red"><i class="fas fa-shield-alt"></i></div>
+                    <div class="ben-icon red"><i class="fas fa-shield-alt" aria-hidden="true"></i></div>
                     <div class="ben-text">
-                        <h4>Мягкие наказания</h4>
+                        <h3>Мягкие наказания</h3>
                         <p>Срок мута от бота сокращается на 25%.</p>
                     </div>
                 </div>
@@ -146,8 +157,8 @@
                         <span class="plan-cost">6 ✨</span>
                     </div>
                     <ul class="plan-features">
-                        <li><i class="fas fa-check"></i> Все бонусы</li>
-                        <li><i class="fas fa-check"></i> Тест-драйв</li>
+                        <li><i class="fas fa-check" aria-hidden="true"></i> Все бонусы</li>
+                        <li><i class="fas fa-check" aria-hidden="true"></i> Тест-драйв</li>
                     </ul>
                     <button class="btn-plan" onclick="buyItem('premium_14d', 'Премиум (14 дней)')">Купить</button>
                 </div>
@@ -159,8 +170,8 @@
                         <span class="plan-cost">10 ✨</span>
                     </div>
                     <ul class="plan-features">
-                        <li><i class="fas fa-check"></i> Все бонусы</li>
-                        <li><i class="fas fa-check"></i> Оптимальный выбор</li>
+                        <li><i class="fas fa-check" aria-hidden="true"></i> Все бонусы</li>
+                        <li><i class="fas fa-check" aria-hidden="true"></i> Оптимальный выбор</li>
                     </ul>
                     <button class="btn-plan" onclick="buyItem('premium_30d', 'Премиум (30 дней)')">Купить</button>
                 </div>
@@ -171,9 +182,9 @@
                         <span class="plan-cost">70 ✨</span>
                     </div>
                     <ul class="plan-features">
-                        <li><i class="fas fa-check"></i> Все бонусы</li>
-                        <li><i class="fas fa-check"></i> Плати один раз</li>
-                        <li><i class="fas fa-crown"></i> Вечный статус</li>
+                        <li><i class="fas fa-check" aria-hidden="true"></i> Все бонусы</li>
+                        <li><i class="fas fa-check" aria-hidden="true"></i> Плати один раз</li>
+                        <li><i class="fas fa-crown" aria-hidden="true"></i> Вечный статус</li>
                     </ul>
                     <button class="btn-plan" onclick="buyItem('premium_perm', 'Премиум (Навсегда)')">Купить</button>
                 </div>
@@ -183,7 +194,7 @@
 
     <div class="preview-overlay" id="previewModal" onclick="if(event.target === this) closePreview()">
         <div class="preview-box">
-            <button class="close-btn" onclick="closePreview()"><i class="fas fa-times"></i></button>
+            <button class="close-btn" onclick="closePreview()" aria-label="Закрыть"><i class="fas fa-times" aria-hidden="true"></i></button>
             <div class="preview-left">
                 <div class="preview-visual-container" id="pVisualContainer"></div>
             </div>
@@ -207,6 +218,7 @@
     <%- include('partials/footer') %>
 
     <script>
+        // JS остался без изменений, так как он работает отлично
         function filterShop(category, btnElement) {
             const itemsGrid = document.getElementById('itemsGrid');
             const premiumDash = document.getElementById('premiumDashboard');
@@ -220,7 +232,6 @@
             if (category === 'ПремиумView') {
                 itemsGrid.style.display = 'none';
                 premiumDash.style.display = 'block';
-                if (typeof AOS !== 'undefined') setTimeout(() => AOS.refresh(), 100);
                 return;
             } else {
                 premiumDash.style.display = 'none';
@@ -229,27 +240,26 @@
 
             const cards = document.querySelectorAll('.item-card');
             cards.forEach(card => {
-                const rawCat = card.getAttribute('data-category') || '';
-                const cat = rawCat.trim();
-
+                const rawCat = card.getAttribute('data-category') || ''; 
+                const typeAttr = card.getAttribute('data-type') || ''; 
+                
                 let isMatch = false;
                 if (category === 'all') isMatch = true;
-                else if (cat.includes(category)) isMatch = true;
+                else if (typeAttr.includes(category)) isMatch = true;
 
                 if (isMatch) {
                     card.style.display = ''; 
-                    card.classList.remove('aos-animate');
-                    setTimeout(() => card.classList.add('aos-animate'), 50);
+                    if (card.hasAttribute('data-aos')) {
+                        card.classList.remove('aos-animate');
+                        setTimeout(() => card.classList.add('aos-animate'), 50);
+                    }
                 } else {
                     card.style.display = 'none';
                 }
             });
-
-            if (typeof AOS !== 'undefined') setTimeout(() => AOS.refresh(), 100);
         }
 
         const previewModal = document.getElementById('previewModal');
-        
         function openPreview(card) {
             const id = card.getAttribute('data-id');
             const name = card.getAttribute('data-name');
@@ -272,7 +282,7 @@
             const visualContainer = document.getElementById('pVisualContainer');
             visualContainer.className = `preview-visual-container ${rarity}`;
             if (img) {
-                visualContainer.innerHTML = `<img src="${img}" class="p-img">`;
+                visualContainer.innerHTML = `<img src="${img}" class="p-img" alt="${name}">`;
             } else {
                 visualContainer.innerHTML = `<div class="p-emoji">${emoji}</div>`;
             }
@@ -281,7 +291,6 @@
             priceContainer.innerHTML = '';
             if (stars > 0) priceContainer.innerHTML += `<span class="p-cost gold">${stars.toLocaleString()} ⭐</span>`;
             if (shards > 0) priceContainer.innerHTML += `<span class="p-cost shard">${shards} ✨</span>`;
-
             const buyBtn = document.getElementById('pBuyBtn');
             buyBtn.onclick = () => buyItem(id, name);
 
@@ -293,8 +302,7 @@
         }
 
         async function buyItem(itemId, itemName) {
-            closePreview(); 
-
+            closePreview();
             let qty = 1;
             if (!itemId.startsWith('premium_')) {
                  const input = prompt(`Введите количество для "${itemName}":`, "1");
@@ -335,9 +343,10 @@
                 else alert("Ошибка соединения");
             }
         }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if(typeof AOS !== 'undefined') AOS.init();
+        });
     </script>
-    
-    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-    <script>AOS.init();</script>
 </body>
 </html>

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <%- include('partials/head', { title: '404 | Сбой Системы' }) %>
+    <link rel="stylesheet" href="/css/error.css">
+</head>
+<body>
+    <%- include('partials/navbar') %>
+
+    <div class="cyber-bg">
+        <div class="bg-gradient"></div>
+        <div class="bg-noise"></div>
+        <div class="floating-hex hex-1"></div>
+        <div class="floating-hex hex-2"></div>
+        <div class="floating-hex hex-3"></div>
+    </div>
+
+    <div class="error-wrapper">
+        <div class="error-card">
+            <div class="glitch-wrapper">
+                <h1 class="glitch" data-text="404">404</h1>
+            </div>
+            
+            <h2 class="error-title">SYSTEM FAILURE</h2>
+            <p class="error-desc">Вы залетели в неизвестный сектор Улья.<br>Сыграйте в змейку, пока мы калибруем навигацию.</p>
+            
+            <div class="game-border">
+                <div class="game-container">
+                    <canvas id="gameCanvas" width="480" height="320"></canvas>
+                    <div class="game-overlay" id="gameOverlay">
+                        <div class="play-icon-pulse">
+                            <i class="fas fa-play"></i>
+                        </div>
+                        <div class="play-btn" onclick="startGame()">ЗАПУСК СИСТЕМЫ</div>
+                        <p class="pc-hint">Используйте стрелки ⬆️⬇️⬅️➡️</p>
+                        <p class="mobile-hint" style="display:none;">Свайпайте для поворота</p>
+                    </div>
+                    <div class="score-board" id="scoreBoard" style="display: none;">0</div>
+                </div>
+            </div>
+
+            <div class="error-actions">
+                <a href="/" class="btn-home">
+                    <i class="fas fa-home"></i> ВЕРНУТЬСЯ НА БАЗУ
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <%- include('partials/footer') %>
+    
+    <script src="/js/404-game.js"></script>
+    
+    </body>
+</html>

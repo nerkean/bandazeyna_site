@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <%- include('partials/head', { title: 'Оставить отзыв' }) %>
+    <style>
+        :root {
+            --star-color: #4b5563;
+            --star-active: #FFD700;
+            --card-bg: #16181e;
+            --border: rgba(255, 255, 255, 0.08);
+        }
+
+        body { background-color: #0b0d12; font-family: 'Montserrat', sans-serif; }
+
+        .fb-wrapper {
+            max-width: 700px;
+            margin: 120px auto 60px;
+            padding: 0 20px;
+        }
+
+        /* CARD DESIGN */
+        .fb-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Декоративный фон */
+        .fb-card::before {
+            content: '';
+            position: absolute;
+            top: -50%; left: -50%;
+            width: 200%; height: 200%;
+            background: radial-gradient(circle, rgba(88, 101, 242, 0.05) 0%, transparent 60%);
+            pointer-events: none;
+        }
+
+        .fb-header { text-align: center; margin-bottom: 30px; position: relative; z-index: 2; }
+        .fb-header h1 { font-size: 2.5rem; font-weight: 900; color: #fff; margin-bottom: 10px; }
+        .fb-header p { color: #9ca3af; font-size: 1rem; }
+
+        /* RATINGS GRID */
+        .ratings-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            margin-bottom: 30px;
+            position: relative; z-index: 2;
+        }
+
+        .rating-row {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 15px 20px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: 0.3s;
+        }
+        
+        .rating-row:hover { background: rgba(255, 255, 255, 0.06); border-color: rgba(255, 255, 255, 0.1); }
+
+        .rating-label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #fff;
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+        .rating-label i { color: #5865F2; font-size: 1.2rem; }
+
+        /* STARS LOGIC */
+        .star-group {
+            display: flex;
+            flex-direction: row-reverse; /* Важно для CSS-селекторов */
+            gap: 8px;
+        }
+        
+        .star-group input { display: none; }
+        
+        .star-group label {
+            font-size: 2rem;
+            color: var(--star-color);
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        /* Эффекты при наведении и выборе */
+        .star-group label:hover,
+        .star-group label:hover ~ label,
+        .star-group input:checked ~ label {
+            color: var(--star-active);
+            text-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
+            transform: scale(1.1);
+        }
+
+        /* TEXTAREA */
+        .comment-box { position: relative; z-index: 2; }
+        .comment-box label { display: block; color: #fff; font-weight: 700; margin-bottom: 10px; font-size: 1.1rem; }
+        
+        textarea {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 20px;
+            color: #fff;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1rem;
+            resize: vertical;
+            min-height: 120px;
+            transition: 0.3s;
+        }
+        textarea:focus {
+            outline: none;
+            border-color: #5865F2;
+            background: rgba(0, 0, 0, 0.4);
+            box-shadow: 0 0 20px rgba(88, 101, 242, 0.1);
+        }
+
+        /* BUTTON */
+        .btn-submit {
+            width: 100%;
+            margin-top: 30px;
+            background: linear-gradient(45deg, #5865F2, #4752c4);
+            color: white;
+            border: none;
+            padding: 18px;
+            font-size: 1.1rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: 0.3s;
+            position: relative; z-index: 2;
+            box-shadow: 0 10px 30px rgba(88, 101, 242, 0.3);
+        }
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 40px rgba(88, 101, 242, 0.5);
+        }
+
+        /* MOBILE */
+        @media (max-width: 600px) {
+            .rating-row { flex-direction: column; align-items: flex-start; gap: 10px; }
+            .star-group { width: 100%; justify-content: space-between; }
+            .fb-header h1 { font-size: 2rem; }
+        }
+    </style>
+</head>
+<body>
+    <%- include('partials/navbar') %>
+
+    <div class="fb-wrapper">
+        <div class="fb-card">
+            <div class="fb-header">
+                <h1><i class="fas fa-star-half-alt" style="color: #FFD700;"></i> Оценка Beta</h1>
+                <p>Твое мнение поможет сделать Дачу Зейна лучше.</p>
+            </div>
+            
+            <form id="feedbackForm">
+                <div class="ratings-container">
+                    
+                    <div class="rating-row">
+                        <div class="rating-label"><i class="fas fa-palette"></i> Дизайн</div>
+                        <div class="star-group">
+                            <input type="radio" name="r_design" id="d5" value="5"><label for="d5" title="Шедевр">★</label>
+                            <input type="radio" name="r_design" id="d4" value="4"><label for="d4" title="Хорошо">★</label>
+                            <input type="radio" name="r_design" id="d3" value="3"><label for="d3" title="Нормально">★</label>
+                            <input type="radio" name="r_design" id="d2" value="2"><label for="d2" title="Плохо">★</label>
+                            <input type="radio" name="r_design" id="d1" value="1"><label for="d1" title="Ужас">★</label>
+                        </div>
+                    </div>
+
+                    <div class="rating-row">
+                        <div class="rating-label"><i class="fas fa-cogs"></i> Функционал</div>
+                        <div class="star-group">
+                            <input type="radio" name="r_tech" id="t5" value="5"><label for="t5">★</label>
+                            <input type="radio" name="r_tech" id="t4" value="4"><label for="t4">★</label>
+                            <input type="radio" name="r_tech" id="t3" value="3"><label for="t3">★</label>
+                            <input type="radio" name="r_tech" id="t2" value="2"><label for="t2">★</label>
+                            <input type="radio" name="r_tech" id="t1" value="1"><label for="t1">★</label>
+                        </div>
+                    </div>
+
+                    <div class="rating-row">
+                        <div class="rating-label"><i class="fas fa-lightbulb"></i> Идея & Контент</div>
+                        <div class="star-group">
+                            <input type="radio" name="r_idea" id="i5" value="5"><label for="i5">★</label>
+                            <input type="radio" name="r_idea" id="i4" value="4"><label for="i4">★</label>
+                            <input type="radio" name="r_idea" id="i3" value="3"><label for="i3">★</label>
+                            <input type="radio" name="r_idea" id="i2" value="2"><label for="i2">★</label>
+                            <input type="radio" name="r_idea" id="i1" value="1"><label for="i1">★</label>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="comment-box">
+                    <label><i class="fas fa-comment-dots"></i> Подробный комментарий</label>
+                    <textarea name="comment" placeholder="Расскажи о багах, предложи фичи или просто похвали..." required></textarea>
+                </div>
+                
+                <button type="submit" class="btn-submit">Отправить отзыв <i class="fas fa-paper-plane"></i></button>
+            </form>
+        </div>
+    </div>
+
+    <%- include('partials/footer') %>
+
+    <script>
+        document.getElementById('feedbackForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.querySelector('.btn-submit');
+            
+            // Анимация загрузки
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Отправка...';
+            btn.disabled = true;
+
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData);
+
+            try {
+                const res = await fetch('/api/feedback', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await res.json();
+
+                if (result.success) {
+                    // Успех (можно заменить на красивую модалку, если она у тебя подключена глобально)
+                    alert('🎉 Спасибо! Ваш отзыв сохранен.');
+                    window.location.href = '/profile';
+                } else {
+                    alert('Ошибка: ' + result.error);
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Ошибка соединения с сервером');
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>

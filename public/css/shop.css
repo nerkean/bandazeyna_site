@@ -315,3 +315,143 @@
     .preview-right { padding: 25px; }
     .p-header h2 { font-size: 1.8rem; }
 }
+
+@media (max-width: 768px) {
+    .shop-wrapper {
+        padding-top: 120px;
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+
+    .shop-header h1 {
+        font-size: 2.5rem;
+    }
+
+    /* --- TABS (FIXED: MULTI-ROW) --- */
+    .shop-tabs-container {
+        width: 100%;
+        /* Убираем overflow, чтобы кнопки переносились */
+        overflow: visible; 
+    }
+
+    .shop-tabs {
+        display: flex;
+        /* Разрешаем перенос строк */
+        flex-wrap: wrap; 
+        justify-content: center; /* Центрируем кнопки */
+        gap: 10px;
+        width: 100%;
+        padding-bottom: 0;
+    }
+
+    .tab-btn {
+        white-space: nowrap; 
+        /* Разрешаем кнопкам сжиматься или растягиваться по необходимости */
+        flex: 1 1 auto; 
+        font-size: 0.85rem;
+        padding: 10px 15px;
+        min-width: 100px; /* Минимальная ширина для удобства */
+    }
+
+    /* --- PREMIUM DASHBOARD --- */
+    .premium-status-card {
+        flex-direction: column;
+        text-align: center;
+        padding: 30px 20px;
+        gap: 20px;
+    }
+
+    .psc-visual i {
+        font-size: 6rem; 
+    }
+
+    .premium-benefits {
+        grid-template-columns: 1fr; /* Одна колонка для бонусов */
+    }
+
+    .premium-plans {
+        flex-direction: column; /* Планы вертикально */
+    }
+
+    .plan-card {
+        width: 100%;
+    }
+
+    .plan-card.featured {
+        transform: none; /* Убираем увеличение на мобиле */
+    }
+
+    /* --- PREVIEW MODAL (MOBILE) --- */
+    .preview-box {
+        flex-direction: column;
+        width: 95%;
+        height: auto;
+        max-height: 85vh;
+        overflow-y: auto; 
+    }
+
+    .preview-left {
+        height: 200px; 
+        padding: 20px;
+        border-right: none;
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .preview-visual-container {
+        height: 100%;
+    }
+    
+    .preview-visual-container::before {
+        width: 150px; height: 150px; 
+    }
+
+    .preview-right {
+        padding: 25px 20px;
+    }
+
+    .p-header h2 {
+        font-size: 1.8rem;
+    }
+
+    .p-footer {
+        flex-direction: column;
+        gap: 15px;
+        align-items: stretch; 
+    }
+
+    .btn-buy-big {
+        width: 100%;
+    }
+}
+
+/* =========================================
+   ACCESSIBILITY FIXES (100/100)
+   Добавить в конец public/css/shop.css
+   ========================================= */
+
+/* 1. FIX CONTRAST: "Нажми для просмотра" */
+.tap-hint {
+    /* Было #555 (слишком темно), стало #9ca3af (читаемый серый) */
+    color: #9ca3af !important; 
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+/* 2. FIX HEADINGS: Стили для H2 в карточках (бывшие H3) */
+.item-header h2 {
+    font-size: 1.1rem; /* Размер оставляем компактным */
+    color: #fff;
+    font-weight: 800;
+    margin: 0;
+    line-height: 1.3;
+    font-family: 'Montserrat', sans-serif;
+}
+
+/* 3. FIX HEADINGS: Стили для H3 в бенефитах (бывшие H4) */
+.ben-text h3 {
+    color: #fff;
+    margin-bottom: 5px;
+    font-size: 1rem;
+    font-weight: 700;
+    font-family: 'Montserrat', sans-serif;
+}

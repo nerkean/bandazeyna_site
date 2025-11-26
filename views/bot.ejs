@@ -2,19 +2,19 @@
 <html lang="ru">
 <head>
     <%- include('partials/head', { title: 'Система Организатор | Дача Зейна' }) %>
+<link rel="preload" href="/css/bot.css" as="style">
     <link rel="stylesheet" href="/css/bot.css">
-    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
 </head>
 <body>
     <%- include('partials/navbar') %>
 
     <!-- 1. HERO SECTION -->
     <section class="bot-hero">
-        <div class="hero-content" data-aos="fade-right">
-            <div class="sys-badge">
-                <span class="dot green"></span> СИСТЕМА ОНЛАЙН
-            </div>
-            <h1><span class="text-gradient">ОРГАНИЗАТОР</span></h1>
+        <div class="hero-content">
+    <div class="sys-badge">
+        <span class="dot green"></span> СИСТЕМА ОНЛАЙН
+    </div>
+    <h1 class="animate-appear"><span class="text-gradient">ОРГАНИЗАТОР</span></h1>
             <p class="hero-desc">
                 Эксклюзивная разработка для нашего сервера. "Организатор" — это не просто бот, а экосистема, которая делает наше общение интересным, экономику живой, а ивенты — честными.
             </p>
@@ -194,7 +194,12 @@
                     <div class="hub-profile">
                         <div class="hub-banner"></div>
                         <div class="hub-avatar">
-                            <img src="https://cdn.discordapp.com/embed/avatars/0.png">
+                           <img 
+    src="assets/img/avatars/default_avatar.png" 
+    alt="User Avatar" 
+    width="80" height="80"
+    loading="lazy"
+>
                             <div class="hub-status"></div>
                         </div>
                         <div class="hub-identity">
@@ -408,7 +413,7 @@
             <div class="cta-buttons">
                 <a href="https://discord.gg/bandazeyna" target="_blank" class="btn-primary big glow-btn">
                     <span class="btn-icon"><i class="fab fa-discord"></i></span>
-                    <span>Вступить</span>
+                    <span>Присоединится к серверу</span>
                 </a>
             </div>
             
@@ -430,9 +435,17 @@
 
     <%- include('partials/footer') %>
 
-    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-    <script>
-        AOS.init({ duration: 800, once: true, offset: 80 });
-    </script>
+<script>
+    // Ждем загрузки (так как скрипт в head имеет defer)
+    document.addEventListener('DOMContentLoaded', () => {
+        // Проверяем, загрузился ли AOS
+        if (typeof AOS !== 'undefined') {
+            AOS.init({ duration: 800, once: true, offset: 80 });
+        }
+
+        // Эффект печати в консоли (если он нужен)
+        // Можно добавить сюда логику для typing-line
+    });
+</script>
 </body>
 </html>

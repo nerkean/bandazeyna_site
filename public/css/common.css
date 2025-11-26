@@ -1,12 +1,20 @@
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800;900&family=Raleway:wght@400;500;600;700&display=swap');
+/* --- 1. VARIABLES & RESET --- */
+
+/* УДАЛЕНО: @import url(...) 
+   Шрифты теперь грузятся через head.ejs (preload), 
+   чтобы не блокировать отрисовку страницы.
+*/
 
 :root {
     /* Colors */
     --bg-dark: #050505;
     --bg-card: #0f1115;
+    
     --primary: #5865F2; /* Discord Blue */
     --primary-hover: #4752c4;
+    
     --accent: #00d4ff; /* Neon Cyan */
+    
     --text-main: #ffffff;
     --text-muted: #9CA3AF;
     
@@ -19,14 +27,17 @@
     --glass-blur: blur(16px);
 }
 
-/* --- 2. RESET & BASE --- */
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 body {
     background-color: var(--bg-dark);
     color: var(--text-main);
-    font-family: 'Raleway', sans-serif;
+    
+    /* ИЗМЕНЕНИЕ: Используем Montserrat для всего сайта */
+    /* Это экономит трафик, так как не нужно грузить Raleway */
+    font-family: 'Montserrat', sans-serif;
     font-weight: 500; 
+    
     line-height: 1.7;
     font-size: 16px;
     overflow-x: hidden;
@@ -51,11 +62,11 @@ ul { list-style: none; }
 ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--primary); }
 
-/* --- NAVBAR & HEADER (UPDATED) --- */
+/* --- NAVBAR & HEADER --- */
 .navbar {
-     font-family: 'Montserrat', sans-serif;
+    font-family: 'Montserrat', sans-serif;
     position: fixed; top: 0; left: 0; width: 100%;
-    height: 100px; /* Увеличили высоту (было 80px) */
+    height: 100px; 
     padding: 0 5%;
     display: flex; justify-content: space-between; align-items: center;
     z-index: 1000; 
@@ -63,31 +74,28 @@ ul { list-style: none; }
     background: transparent; 
 }
 
+/* При скролле */
 .navbar.scrolled {
     background: rgba(5, 5, 5, 0.95);
     backdrop-filter: blur(15px);
     border-bottom: 1px solid rgba(255,255,255,0.05);
-    height: 80px; /* При скролле чуть компактнее */
+    height: 80px; 
     box-shadow: 0 4px 20px rgba(0,0,0,0.5);
 }
 
-/* Логотип (Градиентная снежинка) */
+/* Логотип */
 .logo {
     font-size: 1.5rem; font-weight: 900; 
     text-transform: uppercase; letter-spacing: -0.02em;
-    /* Градиент применяется ко всему блоку */
     background: var(--grad-main); 
     -webkit-background-clip: text; 
-    -webkit-text-fill-color: transparent;
     background-clip: text;
     color: transparent;
-    
     display: flex; align-items: center; gap: 10px;
     z-index: 1002;
     text-decoration: none;
 }
 
-/* Важно: заставляем иконку наследовать прозрачный цвет заливки, чтобы виден был градиент */
 .logo i { 
     background: inherit;
     -webkit-background-clip: text;
@@ -114,11 +122,12 @@ ul { list-style: none; }
 
 .nav-balance-group {
     display: flex;
-    gap: 10px; /* Отступ между валютами */
+    gap: 10px; 
 }
 
+/* Используем JetBrains Mono для цифр, если он загружен в head.ejs */
 .nav-balance {
-    font-family: 'Montserrat', sans-serif;
+    font-family: 'Montserrat', sans-serif; /* Или 'JetBrains Mono', если хочешь моноширинные цифры */
     font-weight: 800; 
     height: 40px;
     padding: 0 14px;
@@ -131,39 +140,22 @@ ul { list-style: none; }
     border: 1px solid rgba(255,255,255,0.1);
 }
 
-/* Звезды */
 .nav-balance.stars {
     color: #ffd700;
     background: rgba(255, 215, 0, 0.1);
     border-color: rgba(255, 215, 0, 0.2);
 }
 
-/* Осколки */
 .nav-balance.shards {
     color: #00f3ff;
     background: rgba(0, 243, 255, 0.1);
     border-color: rgba(0, 243, 255, 0.2);
 }
 
-/* Мобильный адаптив для баланса */
-@media (max-width: 900px) {
-    .nav-balance-group {
-        flex-direction: column; /* На мобилке друг под другом */
-        width: 100%;
-        gap: 10px;
-    }
-
-    .nav-balance {
-        width: 100%;
-        height: 50px;
-        font-size: 1.1rem;
-    }
-}
-
-/* Кнопка-иконка (Инвентарь) */
+/* Кнопка-иконка */
 .btn-icon {
     min-width: 40px; height: 40px;
-    padding: 0 10px; /* Базовый паддинг */
+    padding: 0 10px; 
     border-radius: 10px;
     background: rgba(255, 255, 255, 0.08);
     border: 1px solid rgba(255,255,255,0.05);
@@ -176,8 +168,6 @@ ul { list-style: none; }
     background: rgba(255,255,255,0.15); color: #fff; 
     border-color: rgba(255,255,255,0.2); transform: translateY(-2px); 
 }
-
-/* Скрываем текст "Инвентарь" на ПК */
 .mobile-text { display: none; }
 
 /* Кнопка профиля */
@@ -217,7 +207,13 @@ ul { list-style: none; }
 /* --- MOBILE RESPONSIVE --- */
 @media (max-width: 900px) {
     .mobile-menu-btn { display: flex; }
-
+    
+    .nav-balance-group {
+        flex-direction: column; 
+        width: 100%;
+        gap: 10px;
+    }
+    
     .nav-menu {
         position: fixed; top: 0; left: 0; width: 100%; height: 100vh;
         background: rgba(5, 5, 5, 0.98); backdrop-filter: blur(20px);
@@ -232,23 +228,13 @@ ul { list-style: none; }
 
     .auth { flex-direction: column; gap: 20px; width: 100%; justify-content: center; }
     
-    /* Мобильные кнопки */
-    .nav-balance { font-size: 1.2rem; height: 50px; padding: 0 30px; border-radius: 15px; }
+    .nav-balance { font-size: 1.2rem; height: 50px; padding: 0 30px; border-radius: 15px; width: 100%; }
     
-    /* Инвентарь на мобилке: широкий и с текстом */
     .btn-icon { 
-        width: auto; /* Авто ширина */
-        height: 60px; 
-        padding: 0 30px; /* Паддинг как у профиля */
-        border-radius: 60px; /* Круглые края как у профиля */
-        font-size: 1.2rem; 
+        width: auto; height: 60px; padding: 0 30px; 
+        border-radius: 60px; font-size: 1.2rem; 
     }
-    .mobile-text { 
-        display: inline; /* Показываем текст */
-        font-weight: 700; 
-        color: #fff;
-        font-family: 'Montserrat', sans-serif;
-    }
+    .mobile-text { display: inline; font-weight: 700; color: #fff; font-family: 'Montserrat', sans-serif; }
     
     .btn-profile { height: 60px; padding: 0 30px 0 5px; border-radius: 60px; }
     .btn-profile img { width: 50px; height: 50px; }
@@ -257,16 +243,16 @@ ul { list-style: none; }
     .btn-discord { height: 50px; padding: 0 40px; font-size: 1.1rem; }
 }
 
+/* --- FOOTER --- */
 .cyber-footer {
     position: relative;
     background: #050505;
     padding: 80px 0 30px;
     overflow: hidden;
     border-top: 1px solid rgba(255, 255, 255, 0.05);
-    margin-top: auto; /* Чтобы футер всегда был внизу */
+    margin-top: auto; 
 }
 
-/* Паттерн сот (Honeycomb) на фоне */
 .footer-hex-bg {
     position: absolute;
     top: 0; left: 0; width: 100%; height: 100%;
@@ -276,11 +262,10 @@ ul { list-style: none; }
         radial-gradient(circle at 0% 100%, transparent 10px, #ffffff 11px, #ffffff 12px, transparent 13px),
         radial-gradient(circle at 100% 0%, transparent 10px, #ffffff 11px, #ffffff 12px, transparent 13px),
         radial-gradient(circle at 0% 0%, transparent 10px, #ffffff 11px, #ffffff 12px, transparent 13px);
-    background-size: 60px 60px; /* Размер сот */
+    background-size: 60px 60px; 
     pointer-events: none;
 }
 
-/* Свечение сверху */
 .footer-glow-top {
     position: absolute;
     top: 0; left: 50%; transform: translateX(-50%);
@@ -305,7 +290,6 @@ ul { list-style: none; }
     margin-bottom: 60px;
 }
 
-/* Колонка бренда */
 .f-logo {
     font-family: 'Montserrat', sans-serif;
     font-weight: 900;
@@ -326,7 +310,6 @@ ul { list-style: none; }
     max-width: 300px;
 }
 
-/* Соц-кнопки */
 .f-socials { display: flex; gap: 15px; }
 
 .social-btn {
@@ -348,7 +331,6 @@ ul { list-style: none; }
     color: #fff;
 }
 
-/* Ссылки */
 .f-col h4 {
     color: #fff;
     font-size: 1.1rem;
@@ -371,7 +353,6 @@ ul { list-style: none; }
     transform: translateX(5px);
 }
 
-/* Статус системы */
 .system-status {
     background: rgba(255,255,255,0.03);
     border: 1px solid rgba(255,255,255,0.05);
@@ -405,7 +386,6 @@ ul { list-style: none; }
     font-family: monospace;
 }
 
-/* Низ футера */
 .footer-bottom {
     border-top: 1px solid rgba(255,255,255,0.05);
     padding-top: 30px;
@@ -418,93 +398,47 @@ ul { list-style: none; }
 
 .made-by { font-weight: 500; }
 
-/* --- MOBILE FOOTER (COMPACT & CLEAN) --- */
 @media (max-width: 900px) {
-    .cyber-footer {
-        padding: 50px 0 30px; /* Чуть меньше отступы сверху */
-    }
+    .cyber-footer { padding: 50px 0 30px; }
 
     .footer-top {
-        /* Магия Grid: делаем 2 колонки для ссылок */
         grid-template-columns: 1fr 1fr; 
-        gap: 40px 20px; /* Отступы: 40px вертикально, 20px горизонтально */
-        text-align: left; /* Возвращаем выравнивание ссылок влево */
+        gap: 40px 20px; 
+        text-align: left; 
     }
 
-    /* 1. Блок бренда (Лого + Описание) на всю ширину */
     .brand-col {
-        grid-column: 1 / -1; /* Растянуть на все колонки */
+        grid-column: 1 / -1; 
         text-align: center;
-        display: flex; 
-        flex-direction: column; 
-        align-items: center;
-        border-bottom: 1px solid rgba(255,255,255,0.05); /* Разделитель */
+        display: flex; flex-direction: column; align-items: center;
+        border-bottom: 1px solid rgba(255,255,255,0.05); 
         padding-bottom: 30px;
         margin-bottom: 10px;
     }
     
-    .f-desc { 
-        max-width: 100%; 
-        margin: 0 auto 25px; 
-        opacity: 0.7; 
-        font-size: 0.9rem; 
-    }
+    .f-desc { max-width: 100%; margin: 0 auto 25px; opacity: 0.7; font-size: 0.9rem; }
     
-    .f-socials { 
-        justify-content: center; 
-        gap: 20px; /* Кнопки пошире друг от друга */
-        width: 100%; 
-    }
+    .f-socials { justify-content: center; gap: 20px; width: 100%; }
 
-    /* 2. Колонки ссылок (Навигация и Полезное) */
-    .links-col {
-        /* Они автоматически встанут в 2 колонки благодаря grid-template-columns: 1fr 1fr */
-        padding-left: 10px;
-    }
+    .links-col { padding-left: 10px; }
 
     .links-col h4 {
-        font-size: 1rem;
-        color: #fff;
-        margin-bottom: 20px;
-        border-left: 3px solid var(--primary); /* Акцентная полоска слева */
+        font-size: 1rem; color: #fff; margin-bottom: 20px;
+        border-left: 3px solid var(--primary); 
         padding-left: 10px;
     }
 
-    .links-col a {
-        margin: 0 0 15px 0; /* Больше отступ для удобного нажатия пальцем */
-        font-size: 0.95rem;
-        display: block;
-    }
+    .links-col a { margin: 0 0 15px 0; font-size: 0.95rem; display: block; }
 
-    /* Отключаем сдвиг при наведении на тачскринах (это иногда глючит) */
     .links-col a:hover { transform: none; color: #fff; }
 
-    /* 3. Статус системы на всю ширину */
-    .status-col {
-        grid-column: 1 / -1;
-        margin-top: 10px;
-    }
+    .status-col { grid-column: 1 / -1; margin-top: 10px; }
 
-    .system-status {
-        background: rgba(255,255,255,0.03);
-        padding: 20px;
-    }
+    .system-status { background: rgba(255,255,255,0.03); padding: 20px; }
 
-    .status-row {
-        justify-content: space-between; /* Текст по краям (Бот ... Online) */
-        font-size: 0.9rem;
-    }
+    .status-row { justify-content: space-between; font-size: 0.9rem; }
 
-    .ping-text {
-        text-align: center;
-        margin-top: 15px;
-        font-size: 0.75rem;
-        opacity: 0.4;
-    }
+    .ping-text { text-align: center; margin-top: 15px; font-size: 0.75rem; opacity: 0.4; }
 
-    .footer-bottom {
-        margin-top: 30px;
-        font-size: 0.75rem;
-        opacity: 0.5;
-    }
+    .footer-bottom { margin-top: 30px; font-size: 0.75rem; opacity: 0.5; }
 }

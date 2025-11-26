@@ -8,13 +8,14 @@ import { getShopItems, getItemDefinition } from '../utils/itemDefinitions.js';
 import { getQuestDefinition } from '../utils/questDefinitions.js';
 import { getAchievementDefinition } from '../utils/achievementDefinitions.js';
 import ApplicationSubmission from '../models/ApplicationSubmission.js';
+import Feedback from '../models/Feedback.js';
 
 const router = express.Router();
 
 // Главная
 router.get('/', async (req, res) => {
     try {
-        const totalUsers = await UserProfile.countDocuments({ guildId: process.env.GUILD_ID });
+        const totalUsers = await UserProfile.estimatedDocumentCount({ guildId: process.env.GUILD_ID });
         const economyStats = await UserProfile.aggregate([
             { $match: { guildId: process.env.GUILD_ID } },
             { $group: { _id: null, totalStars: { $sum: "$stars" } } }
@@ -41,10 +42,19 @@ router.get('/', async (req, res) => {
 
 router.get('/profile', checkAuth, async (req, res) => {
     try {
-        // --- ИСПРАВЛЕНИЕ: Добавлено .lean() ---
         const userProfile = await UserProfile.findOne({ userId: req.user.id, guildId: process.env.GUILD_ID }).lean();
-        
         if (!userProfile) return res.render('error', { message: "Профиль не найден." });
+
+        // --- ОБОГАЩЕНИЕ ИНВЕНТАРЯ (НОВОЕ) ---
+        if (userProfile.inventory) {
+            userProfile.inventory = userProfile.inventory.map(slot => {
+                const def = getItemDefinition(slot.itemId);
+                return { 
+                    ...slot, 
+                    details: def || { name: slot.itemId, emoji: '📦', description: 'Неизвестный предмет' } 
+                };
+            });
+        }
 
         const stocks = await Stock.find({}).lean();
         const stockMap = new Map(stocks.map(s => [s.ticker, s.currentPrice]));
@@ -56,21 +66,16 @@ router.get('/profile', checkAuth, async (req, res) => {
                 const currentPrice = stockMap.get(p.ticker) || 0;
                 const value = p.quantity * currentPrice;
                 portfolioValue += value;
-                // Теперь ...p сработает корректно, так как объект "чистый" (JSON)
                 return { ...p, currentPrice, value };
             });
         }
 
-        // Логика квестов
+        // Квесты и Достижения
         const enrichedQuests = (userProfile.activeQuests || []).map(q => ({
-            ...q, 
-            details: getQuestDefinition(q.questId) || { name: q.questId }
+            ...q, details: getQuestDefinition(q.questId) || { name: q.questId }
         }));
-        
-        // Логика достижений
         const enrichedAchievements = (userProfile.achievements || []).map(ach => ({
-            ...ach, 
-            details: getAchievementDefinition(ach.achievementId) || { medalEmoji: '🏅' }
+            ...ach, details: getAchievementDefinition(ach.achievementId) || { medalEmoji: '🏅' }
         }));
 
         let frameUrl = null;
@@ -85,7 +90,6 @@ router.get('/profile', checkAuth, async (req, res) => {
             partnerName = partner ? partner.username : "Неизвестно";
         }
 
-        // Создаем targetUser для совместимости с шаблоном
         const targetUser = {
             id: req.user.id,
             username: req.user.username,
@@ -93,11 +97,7 @@ router.get('/profile', checkAuth, async (req, res) => {
         };
 
         res.render('profile', { 
-            user: req.user,          
-            targetUser: targetUser,  
-            profile: userProfile, 
-            isOwner: true,           
-            partnerName,
+            user: req.user, targetUser, profile: userProfile, isOwner: true, partnerName,
             netWorth: userProfile.stars + portfolioValue,
             portfolioValue, portfolioDetails, activeFrameUrl: frameUrl,
             quests: enrichedQuests, achievements: enrichedAchievements
@@ -108,34 +108,35 @@ router.get('/profile', checkAuth, async (req, res) => {
     }
 });
 
-// 2. Публичный профиль (исправленный)
 router.get('/profile/:userId', async (req, res) => {
     try {
         const targetId = req.params.userId;
-        
-const profile = await UserProfile.findOne({ userId: targetId, guildId: process.env.GUILD_ID }).lean();
+        const profile = await UserProfile.findOne({ userId: targetId, guildId: process.env.GUILD_ID }).lean();
         
         if (!profile) {
-            return res.status(404).render('error', { 
-                message: 'Профиль не найден', 
-                user: req.user // Для навбара
+            return res.status(404).render('error', { message: 'Профиль не найден', user: req.user });
+        }
+
+        // --- ОБОГАЩЕНИЕ ИНВЕНТАРЯ (НОВОЕ) ---
+        if (profile.inventory) {
+            profile.inventory = profile.inventory.map(slot => {
+                const def = getItemDefinition(slot.itemId);
+                return { 
+                    ...slot, 
+                    details: def || { name: slot.itemId, emoji: '📦', description: 'Неизвестный предмет' } 
+                };
             });
         }
 
-        // 2. Определяем, кто смотрит
-        const viewer = req.user; // Тот, кто залогинен в браузере
+        const viewer = req.user; 
         const isOwner = viewer && viewer.id === targetId;
 
-        // 3. Собираем данные TARGET USER (Чей профиль)
-        // ХАК: Если мы смотрим свой же профиль, берем аватар из сессии (он свежий). 
-        // Если чужой - берем из базы (надеемся, что бот его сохранил).
         const targetUser = {
             id: profile.userId,
             username: (isOwner ? viewer.username : profile.username) || 'Неизвестный',
             avatar: (isOwner ? viewer.avatar : profile.avatar) || null
         };
 
-        // 4. РАСЧЕТ ЭКОНОМИКИ (То, чего не хватало)
         const stocks = await Stock.find({}).lean();
         const stockMap = new Map(stocks.map(s => [s.ticker, s.currentPrice]));
         
@@ -151,38 +152,24 @@ const profile = await UserProfile.findOne({ userId: targetId, guildId: process.e
         }
         const netWorth = profile.stars + portfolioValue;
 
-        // 5. КВЕСТЫ И ДОСТИЖЕНИЯ (То, что пропало)
         const quests = (profile.activeQuests || []).map(q => ({
-            ...q.toObject ? q.toObject() : q, 
-            details: getQuestDefinition(q.questId) || { name: q.questId, description: '...' }
+            ...q, details: getQuestDefinition(q.questId) || { name: q.questId, description: '...' }
         }));
 
         const achievements = (profile.achievements || []).map(ach => ({
-            ...ach.toObject ? ach.toObject() : ach, 
-            details: getAchievementDefinition(ach.achievementId) || { medalEmoji: '🏅', name: ach.achievementId, description: '...' }
+            ...ach, details: getAchievementDefinition(ach.achievementId) || { medalEmoji: '🏅', name: ach.achievementId }
         }));
 
-        // 6. СЕМЬЯ
         let partnerName = "Нет";
         if (profile.marriedTo) {
-            const partner = await UserProfile.findOne({ userId: profile.marriedTo });
+            const partner = await UserProfile.findOne({ userId: profile.marriedTo }).lean();
             partnerName = partner ? partner.username : "Неизвестно";
         }
 
-        // 7. РЕНДЕР
         res.render('profile', {
-            user: viewer,       // Кто смотрит (для Навбара)
-            targetUser: targetUser, // Чей профиль (для Шапки)
-            profile: profile,   // Данные БД
-            isOwner: isOwner,   // Владелец ли это?
-            
-            // Восстановленные данные:
-            portfolioValue,
-            netWorth,
-            portfolioDetails,
-            quests,
-            achievements,
-            partnerName
+            user: viewer, targetUser, profile, isOwner,   
+            portfolioValue, netWorth, portfolioDetails,
+            quests, achievements, partnerName
         });
 
     } catch (e) {
@@ -225,103 +212,164 @@ router.get('/market', checkAuth, async (req, res) => {
     }
 });
 
-// Лидерборд (с подсчетом моего ранга)
+// --- УМНЫЙ КЭШ (HTML + DATA) ---
+const lbCache = {
+    html: null,       // Готовая HTML страница для гостей
+    lastHtmlUpdate: 0,// Время последнего обновления HTML
+    data: new Map(),  // Данные для авторизованных юзеров
+    ttl: 60 * 1000    // 1 минута жизни
+};
+
 router.get('/leaderboard', async (req, res) => {
     try {
         const sortType = req.query.sort || 'stars';
-        const period = req.query.period || 'all'; // Для messages/voice
+        const period = req.query.period || 'all';
         const page = parseInt(req.query.page) || 1;
-        const limit = 50;
-        const skip = (page - 1) * limit;
+        const limit = 20;
+        const now = Date.now();
 
-        let dbField = 'stars';
-        let title = 'Топ богачей';
-        let valueSuffix = '⭐';
-
-        const map = {
-            'stars': ['stars', 'Топ богачей', '⭐'],
-            'rep': ['reputation', 'Самые уважаемые', '👍'],
-            'messages': ['totalMessages', 'Топ писателей', 'сообщ.'], // Или messagesLast7Days и т.д. в зависимости от period
-            'voice': ['totalVoiceTime', 'Топ говорунов', 'мин.']
-        };
-        
-        // Логика выбора поля в зависимости от периода (если нужно)
-        if (sortType === 'messages') {
-            if (period === '1d') dbField = 'messagesToday';
-            else if (period === '7d') dbField = 'messagesLast7Days';
-            else if (period === '30d') dbField = 'messagesLast30Days';
-            else dbField = 'totalMessages';
-            title = 'Топ писателей'; valueSuffix = 'сообщ.';
-        } else if (sortType === 'voice') {
-            if (period === '1d') dbField = 'voiceTimeToday';
-            else if (period === '7d') dbField = 'voiceLast7Days';
-            else if (period === '30d') dbField = 'voiceLast30Days';
-            else dbField = 'totalVoiceTime';
-            title = 'Топ говорунов'; valueSuffix = 'мин.';
-        } else if (map[sortType]) {
-            [dbField, title, valueSuffix] = map[sortType];
+        // 🚀 ТУРБО-РЕЖИМ ДЛЯ ГОСТЕЙ (Lighthouse)
+        // Если пользователь не вошел и параметры стандартные — отдаем готовый HTML
+        // Это обходит EJS рендеринг полностью = 5-10ms TTFB
+        if (!req.user && sortType === 'stars' && page === 1 && lbCache.html && (now - lbCache.lastHtmlUpdate < lbCache.ttl)) {
+            // console.log('🚀 Serving cached HTML'); // Можно раскомментировать для проверки
+            return res.send(lbCache.html);
         }
 
-        const filter = { guildId: process.env.GUILD_ID, [dbField]: { $gt: 0 } };
-        const totalPlayers = await UserProfile.countDocuments(filter);
+        // --- ПОДГОТОВКА ДАННЫХ (Как раньше, но теперь используем это для генерации кэша) ---
         
-        // Топ игроков
-        const leaders = await UserProfile.find(filter)
-            .sort({ [dbField]: -1 })
-            .skip(skip)
-            .limit(limit)
-            .lean();
+        // Ключ для кэша данных (для авторизованных или других страниц)
+        const cacheKey = `${sortType}_${period}_${page}`;
+        
+        let viewData = null;
 
-        // --- ЛОГИКА ПОИСКА МОЕГО РАНГА ---
-        let myRank = null;
-        let myValue = null;
-
-        if (req.user) {
-            // 1. Получаем мой профиль
-            const myProfile = await UserProfile.findOne({ userId: req.user.id, guildId: process.env.GUILD_ID }).lean();
-            
-            if (myProfile) {
-                const myScore = myProfile[dbField] || 0;
-                myValue = (sortType === 'voice') ? Math.round(myScore / 60) : myScore.toLocaleString(); // Форматируем
-
-                // 2. Считаем сколько людей имеют больше очков, чем я
-                const countBetter = await UserProfile.countDocuments({ 
-                    guildId: process.env.GUILD_ID, 
-                    [dbField]: { $gt: myScore } 
-                });
-                myRank = countBetter + 1;
+        // Проверяем кэш данных (Data Cache)
+        if (lbCache.data.has(cacheKey)) {
+            const cached = lbCache.data.get(cacheKey);
+            if (now - cached.timestamp < lbCache.ttl) {
+                viewData = cached.payload;
             }
         }
 
+        // Если данных нет в памяти — идем в базу
+        if (!viewData) {
+            let dbField = 'stars';
+            let valueSuffix = '⭐';
+
+            if (sortType === 'messages') {
+                dbField = period === 'all' ? 'totalMessages' : 
+                          (period === '1d' ? 'messagesToday' : 
+                          (period === '7d' ? 'messagesLast7Days' : 'messagesLast30Days'));
+                valueSuffix = 'сообщ.';
+            } else if (sortType === 'voice') {
+                dbField = period === 'all' ? 'totalVoiceTime' : 
+                          (period === '1d' ? 'voiceTimeToday' : 
+                          (period === '7d' ? 'voiceLast7Days' : 'voiceLast30Days'));
+                valueSuffix = '';
+            } else if (sortType === 'rep') {
+                dbField = 'reputation';
+                valueSuffix = 'реп.';
+            }
+
+            // Запросы к БД
+            const [leaders, totalPlayers] = await Promise.all([
+                UserProfile.find({ [dbField]: { $gt: 0 } })
+                    .sort({ [dbField]: -1 })
+                    .skip((page - 1) * limit)
+                    .limit(limit)
+                    .select(`userId username avatar activeTitle ${dbField}`)
+                    .lean(),
+                UserProfile.estimatedDocumentCount() 
+            ]);
+
+            viewData = { leaders, totalPages: Math.ceil(totalPlayers / limit), dbField, valueSuffix };
+
+            // Сохраняем данные
+            lbCache.data.set(cacheKey, { timestamp: now, payload: viewData });
+        }
+
+        // Персональные данные
+        let myRank = null;
+        let myValue = 0;
+        const formatVoice = (seconds) => {
+            const h = Math.floor(seconds / 3600);
+            const m = Math.floor((seconds % 3600) / 60);
+            return `${h}ч ${m}м`;
+        };
+
+        if (req.user) {
+            const myProfile = await UserProfile.findOne({ userId: req.user.id }).select(viewData.dbField).lean();
+            if (myProfile) {
+                myValue = myProfile[viewData.dbField];
+                if (sortType === 'voice') myValue = formatVoice(myValue);
+                else if (sortType === 'stars') myValue = Math.floor(myValue).toLocaleString();
+                myRank = await UserProfile.countDocuments({ [viewData.dbField]: { $gt: myProfile[viewData.dbField] } }) + 1;
+            }
+        }
+
+        // 🔥 РЕНДЕРИНГ И СОХРАНЕНИЕ HTML 🔥
+        // Мы используем res.render с колбэком, чтобы получить HTML строку
         res.render('leaderboard', {
-            user: req.user, leaders, sortType, period,
-            title, dbField, valueSuffix, 
-            formatVoice: (sec) => Math.round(sec / 60),
-            currentPage: page, totalPages: Math.ceil(totalPlayers / limit), startRank: skip + 1,
-            
-            // Передаем данные о моем ранге
-            myRank, myValue
+            user: req.user,
+            profile: req.user ? await UserProfile.findOne({ userId: req.user.id }).select('stars shards').lean() : null,
+            leaders: viewData.leaders,
+            totalPages: viewData.totalPages,
+            dbField: viewData.dbField,
+            valueSuffix: viewData.valueSuffix,
+            currentPage: page,
+            sortType,
+            period,
+            startRank: (page - 1) * limit + 1,
+            myRank,
+            myValue,
+            formatVoice
+        }, (err, html) => {
+            if (err) {
+                console.error(err);
+                return res.status(500).send('Error rendering');
+            }
+
+            // Если это стандартный запрос гостя — сохраняем HTML в кэш!
+            if (!req.user && sortType === 'stars' && page === 1) {
+                lbCache.html = html;
+                lbCache.lastHtmlUpdate = now;
+            }
+
+            res.send(html);
         });
 
-    } catch (e) {
-        console.error("LB Error:", e);
-        res.status(500).send("Ошибка топа");
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Ошибка сервера');
     }
 });
 
-router.get('/admin/applications', checkAuth, async (req, res) => {
-    // ПРОВЕРКА: Разрешаем только конкретным ID (замени на свой ID)
-    const ADMIN_IDS = ['438744415734071297']; 
+router.get('/feedback', checkAuth, (req, res) => {
+    res.render('feedback', { 
+        user: req.user,
+        profile: null // или подгрузи профиль, если нужно в навбаре
+    });
+});
+
+router.get('/admin', checkAuth, async (req, res) => {
+    const ADMIN_IDS = ['438744415734071297']; // Твой ID
     if (!ADMIN_IDS.includes(req.user.id)) return res.redirect('/');
 
     try {
-        // Берем все заявки, новые сверху
-        const apps = await ApplicationSubmission.find().sort({ createdAt: -1 }).lean();
-        
-        res.render('admin-applications', { applications: apps });
+        // Грузим и заявки, и отзывы параллельно
+        const [applications, feedbacks] = await Promise.all([
+            ApplicationSubmission.find().sort({ createdAt: -1 }),
+            Feedback.find().sort({ createdAt: -1 })
+        ]);
+
+        res.render('admin-applications', { 
+            user: req.user, 
+            applications: applications,
+            feedbacks: feedbacks // <--- Передаем отзывы в шаблон
+        });
     } catch (e) {
         console.error(e);
-        res.send("Ошибка");
+        res.status(500).send('Server Error');
     }
 });
 

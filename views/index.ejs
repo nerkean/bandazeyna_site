@@ -2,30 +2,36 @@
 <html lang="ru">
 <head>
     <%- include('partials/head', { title: 'Дача Зейна | Bee Swarm Simulator' }) %>
+    
+    <link rel="preload" href="/css/style.css" as="style">
     <link rel="stylesheet" href="/css/style.css">
-    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    
+    <link rel="stylesheet" href="https://unpkg.com/aos@2.3.1/dist/aos.css" media="print" onload="this.media='all'">
+    <noscript>
+        <link rel="stylesheet" href="https://unpkg.com/aos@2.3.1/dist/aos.css">
+    </noscript>
 </head>
 <body>
     <%- include('partials/navbar') %>
 
     <section class="hero-section">
-        <div class="hero-content" data-aos="fade-right" data-aos-duration="1000">
-            <div class="hero-tag">Roblox • BSS Community #1</div>
-            <h1><span class="highlight">Дача Зейна</span> - не просто сервер</h1>
-            <p class="fade-in delay-1">
-                Крупнейшее сообщество по <b>Bee Swarm Simulator</b>. 
-                Тысячи игроков, актуальные гайды, поиск тиммейтов
-                и уникальная экономика сервера.
-            </p>
-            <div class="hero-buttons fade-in delay-2">
-                <a href="https://discord.gg/bandazeyna" target="_blank" class="btn-discord big">
-                    <i class="fab fa-discord"></i> Вступить в Улей
-                </a>
-                <a href="/bot" class="btn-secondary big">
-                    <i class="fas fa-robot"></i> О боте сервера
-                </a>
-            </div>
-        </div>
+        <div class="hero-content hero-animate">
+    <div class="hero-tag">Roblox • BSS Community #1</div>
+    <h1><span class="highlight">Дача Зейна</span> - не просто сервер</h1>
+    <p>
+        Крупнейшее сообщество по <b>Bee Swarm Simulator</b>. 
+        Тысячи игроков, актуальные гайды, поиск тиммейтов
+        и уникальная экономика сервера.
+    </p>
+    <div class="hero-buttons">
+        <a href="https://discord.gg/bandazeyna" target="_blank" class="btn-discord big">
+            <i class="fab fa-discord"></i> Вступить в Улей
+        </a>
+        <a href="/bot" class="btn-secondary big">
+            <i class="fas fa-robot"></i> О боте сервера
+        </a>
+    </div>
+</div>
 
         <div class="hero-visual">
             <div class="visual-glow"></div>
@@ -65,8 +71,8 @@
             </div>
             <div class="glass-pill pill-float">
                 <div class="avatar-stack">
-                    <img src="https://cdn.discordapp.com/embed/avatars/1.png" alt="">
-                    <img src="https://cdn.discordapp.com/embed/avatars/2.png" alt="">
+                    <img src="assets/img/avatars/1.png" alt="">
+                    <img src="assets/img/avatars/2.png" alt="">
                     <span class="online-dot"></span>
                 </div>
                 <span><%= stats.users %> Online</span>
@@ -206,7 +212,7 @@
     </section>
 
    <section class="section-life">
-        <div class="life-bg-text">ВАЙБ</div>
+        <div class="life-bg-text"></div>
         
         <div class="section-header" data-aos="fade-up">
             <h2>Больше, чем просто игра</h2>
@@ -362,9 +368,14 @@
 
     <%- include('partials/footer') %>
 
-    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <script>
-        AOS.init({ once: true, offset: 100 });
+        document.addEventListener('DOMContentLoaded', () => {
+        AOS.init({ 
+            once: true, 
+            offset: 100,
+            duration: 800 // Можно добавить плавности
+        });
+    });
 
         function toggleFaq(element) {
             // Закрываем другие открытые (Аккордеон эффект) - Опционально, если хочешь чтобы только один был открыт

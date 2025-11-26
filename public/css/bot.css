@@ -570,3 +570,252 @@ body {
     .cta-content h2 { font-size: 2.5rem; }
     .orb { opacity: 0.2; }
 }
+
+/* =========================================
+   MOBILE RESPONSIVE PATCH (BOT PAGE)
+   Добавить в конец public/css/bot.css
+   ========================================= */
+
+@media (max-width: 1024px) {
+    /* Убираем огромные отступы планшетов */
+    .bot-hero, .features-section, .showcase-section, .cta-section {
+        padding-left: 5%;
+        padding-right: 5%;
+    }
+}
+
+@media (max-width: 768px) {
+    
+    /* --- 1. HERO SECTION --- */
+    .bot-hero {
+        flex-direction: column;
+        padding-top: 120px; /* Отступ под навбар */
+        gap: 40px;
+        text-align: center;
+    }
+
+    .hero-content {
+        max-width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .hero-content h1 {
+        font-size: 3rem; /* Чуть меньше */
+    }
+
+    .hero-actions {
+        flex-direction: column;
+        width: 100%;
+        gap: 15px;
+    }
+
+    .hero-actions .btn-primary, 
+    .hero-actions .btn-secondary {
+        width: 100%;
+        justify-content: center;
+    }
+
+    /* Консоль монитора */
+    .system-monitor-wrapper {
+        width: 100%;
+        margin-top: 20px;
+    }
+
+    .system-monitor {
+        width: 100%;
+    }
+
+    /* --- 2. FEATURES GRID --- */
+    .features-grid {
+        grid-template-columns: 1fr; /* Одна колонка */
+        gap: 20px;
+    }
+
+    /* --- 3. SHOWCASE SECTIONS (Общее) --- */
+    .showcase-container {
+        flex-direction: column; /* Текст над картинкой */
+        gap: 40px;
+    }
+
+    /* Для секций, где картинка была слева (reverse), 
+       делаем column-reverse, чтобы картинка была сверху (или снизу, как хочешь)
+       Обычно лучше: Текст -> Картинка.
+    */
+    .showcase-container.reverse {
+        flex-direction: column; 
+    }
+
+    .showcase-text {
+        text-align: center;
+        padding-right: 0; /* Убираем отступ справа */
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .feature-list {
+        text-align: left; /* Список фич оставляем слева */
+    }
+
+    /* --- 4. MARKET TERMINAL (Finance) --- */
+    .cyber-terminal {
+        width: 100%; /* Растягиваем на ширину */
+    }
+    
+    .ct-ticker-tape .tape-content {
+        animation-duration: 10s; /* Быстрее бегущая строка */
+    }
+
+    /* График SVG - делаем адаптивным */
+    .ct-svg {
+        width: 100%;
+        height: auto;
+    }
+
+    /* --- 5. SOCIAL HUB (Card) --- */
+    .visual-card.social-hub {
+        width: 100%;
+        padding: 20px;
+    }
+
+    .hub-stats {
+        gap: 15px; /* Меньше зазоры */
+    }
+
+    /* --- 6. MINING DASHBOARD (Центральный блок) --- */
+    .mining-dashboard {
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .md-card.large {
+        width: 100%; /* Карточки на всю ширину */
+    }
+
+    .md-plus {
+        transform: rotate(90deg); /* Плюс поворачиваем вертикально */
+        margin: 10px 0;
+    }
+
+    .md-result-block {
+        width: 100%;
+    }
+
+    /* --- 7. CTA SECTION --- */
+    .cta-content h2.glitch-text {
+        font-size: 2.2rem;
+    }
+
+    .cta-stats {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .cs-divider { display: none; }
+}
+
+/* --- SUPER SMALL SCREENS (iPhone SE) --- */
+@media (max-width: 380px) {
+    .hero-content h1 { font-size: 2.5rem; }
+    .hub-stats { flex-direction: column; gap: 10px; }
+}
+
+@media (max-width: 768px) {
+    /* 1. Исправляем вылезающий терминал */
+    .cyber-terminal {
+        width: 100% !important;
+        max-width: 100vw; /* Не шире экрана */
+        overflow: hidden; /* Обрезаем всё лишнее */
+        box-sizing: border-box;
+        margin: 0;
+    }
+
+    /* Адаптируем SVG график */
+    .ct-graph-area {
+        width: 100%;
+        overflow: hidden;
+    }
+    
+    .ct-svg {
+        width: 100%;
+        height: auto; /* Сохраняем пропорции */
+    }
+
+    /* Бегущая строка */
+    .ct-ticker-tape {
+        width: 100%;
+        overflow: hidden; /* Важно, чтобы текст не растягивал блок */
+    }
+    
+    /* Уменьшаем размер текста в терминале на мобилках */
+    .tape-content span {
+        font-size: 0.8rem;
+        margin-right: 15px;
+    }
+    
+    .graph-overlay-info strong {
+        font-size: 1.2rem;
+    }
+
+    /* 2. Фикс отступов секции */
+    .showcase-visual {
+        width: 100%;
+        padding: 0;
+        overflow: hidden; /* Страховка */
+    }
+}
+
+/* 3. Легкая CSS анимация для заголовка (Замена AOS для LCP) */
+/* Это не скрывает элемент изначально (opacity: 1), поэтому LCP засчитывается */
+@keyframes fadeInUpSimple {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-appear {
+    animation: fadeInUpSimple 0.8s ease-out forwards;
+}
+
+.animate-appear.delay-1 {
+    animation-delay: 0.2s;
+}
+
+/* =========================================
+   ACCESSIBILITY CONTRAST FIX (100/100)
+   Добавить в конец public/css/bot.css
+   ========================================= */
+
+/* 1. Заголовок окна (win-title) */
+/* Раньше был темно-серым, делаем светло-серым */
+.win-title {
+    color: #e2e8f0 !important; /* Почти белый */
+    font-weight: 600; /* Жирность повышает читаемость */
+    text-shadow: 0 1px 3px rgba(0,0,0,0.9); /* Тень отделяет текст от фона */
+}
+
+/* 2. Подписи в мониторе (SERVER, STATUS) */
+/* m-label был слишком тусклым */
+.m-label {
+    color: #cbd5e1 !important; /* Светлый серо-голубой */
+    opacity: 1 !important; /* Убираем прозрачность, если была */
+}
+
+/* 3. Таймкоды в консоли ([SYS], [LOG]) */
+/* span.time часто делают темно-зеленым или серым, что плохо видно на черном */
+.console-output .time {
+    color: #a0aec0 !important; /* Светлый серый */
+    font-weight: bold;
+}
+
+/* 4. Общий текст консоли (на всякий случай) */
+.console-output p {
+    color: #f8fafc; /* Белый текст на черном фоне — идеальный контраст */
+}
+
+/* 5. Значения в мониторе (Дача Зейна, Защищен) */
+.m-val {
+    color: #fff !important;
+    text-shadow: 0 0 10px rgba(255,255,255,0.3);
+}

@@ -10,6 +10,7 @@ import BetaUser from './models/BetaUser.js';
 import ApplicationSubmission from './models/ApplicationSubmission.js';
 import MongoStore from 'connect-mongo';
 import { Strategy as DiscordStrategy } from 'passport-discord';
+import compression from 'compression';
 
 // Импорт роутеров
 import pagesRouter from './routes/pages.js';
@@ -21,28 +22,41 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 
-// 1. База данных
+// 1. БАЗОВЫЕ НАСТРОЙКИ (Сжатие и Статика)
+// Сначала сжимаем всё
+app.use(compression());
+
+// Настраиваем view engine
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
+
+// !!! ВАЖНО: Статика ДОЛЖНА быть здесь, одна и с кэшем.
+// Это самое быстрое действие, не нужно ждать сессий и БД для отдачи CSS.
+app.use(express.static(path.join(__dirname, 'public'), {
+    maxAge: '7d', // Кэшировать на 7 дней
+    etag: false   // Отключаем ETag для экономии ресурсов (опционально)
+}));
+
+// Парсинг тела запросов
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// 2. БАЗА ДАННЫХ
 mongoose.connect(process.env.MONGODB_URI)
     .then(() => console.log('🌍 Сайт подключен к MongoDB'))
     .catch(err => console.error('Ошибка БД:', err));
-
-// 2. Настройки Express
-app.set('view engine', 'ejs');
-app.set('views', path.join(__dirname, 'views'));
-app.use(express.static(path.join(__dirname, 'public')));
-app.use(express.json());
 
 app.use(session({
     secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
     store: MongoStore.create({ 
-        mongoUrl: process.env.MONGODB_URI // Сессии будут храниться в Базе Данных
+        mongoUrl: process.env.MONGODB_URI 
     }),
     cookie: { 
-        maxAge: 1000 * 60 * 60 * 24 * 7, // 7 дней (чтобы не логиниться каждый день)
+        maxAge: 1000 * 60 * 60 * 24 * 7, 
         httpOnly: true,
-        // secure: true // РАСКОММЕНТИРОВАТЬ, когда подключите HTTPS (SSL сертификат)
+        // secure: true 
     }
 }));
 
@@ -164,6 +178,13 @@ app.use(async (req, res, next) => {
 app.use('/auth', authRouter); // Все пути в auth.js будут начинаться с /auth
 app.use('/api', apiRouter);   // Все пути в api.js будут начинаться с /api
 app.use('/', pagesRouter);    // Остальные страницы
+
+app.use((req, res) => {
+    res.status(404).render('404', { 
+        user: req.user, // Чтобы навбар работал
+        profile: null // Чтобы не было ошибок в навбаре, если там есть проверки
+    });
+});
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`🚀 Сайт запущен: http://localhost:${PORT}`));

@@ -36,14 +36,29 @@
                     <span class="mobile-text">Инвентарь</span>
                 </a>
                 
-                <a href="/profile" class="btn-profile">
-                    <% if (user.avatar) { %>
-                        <img src="https://cdn.discordapp.com/avatars/<%= user.id %>/<%= user.avatar %>.png" alt="">
-                    <% } else { %>
-                        <img src="https://cdn.discordapp.com/embed/avatars/0.png" alt="">
-                    <% } %>
-                    <span>Профиль</span>
-                </a>
+              <a href="/profile" class="btn-profile">
+    <% if (user.avatar) { %>
+        <img 
+            src="https://cdn.discordapp.com/avatars/<%= user.id %>/<%= user.avatar %>.png?size=64" 
+            alt="User Avatar"
+            width="32" 
+            height="32"
+            loading="lazy"
+            decoding="async"
+            crossorigin="anonymous"
+        >
+    <% } else { %>
+        <img 
+            src="assets/img/avatars/default_avatar.png" 
+            alt="Default Avatar"
+            width="32" 
+            height="32"
+            loading="lazy"
+            decoding="async"
+        >
+    <% } %>
+    <span>Профиль</span>
+</a>
 
             <% } else { %>
                 <a href="/auth/discord" class="btn-discord">
