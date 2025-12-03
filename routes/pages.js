@@ -16,65 +16,6 @@ import cache from '../utils/cache.js';
 
 const router = express.Router();
 
-router.get('/sitemap.xml', async (req, res) => {
-    try {
-        const cacheKey = 'sitemap_xml';
-        const cachedSitemap = cache.get(cacheKey);
-        
-        if (cachedSitemap) {
-            res.header('Content-Type', 'application/xml');
-            return res.send(cachedSitemap);
-        }
-
-        const baseUrl = 'https://bandazeyna.com';
-        const urls = [
-            { url: '/', changefreq: 'daily', priority: 1.0 },
-            { url: '/market', changefreq: 'hourly', priority: 0.9 },
-            { url: '/shop', changefreq: 'weekly', priority: 0.8 },
-            { url: '/leaderboard', changefreq: 'daily', priority: 0.8 },
-            { url: '/wiki', changefreq: 'weekly', priority: 0.8 },
-            { url: '/giveaways', changefreq: 'daily', priority: 0.7 },
-            { url: '/bot', changefreq: 'monthly', priority: 0.6 },
-            { url: '/terms', changefreq: 'yearly', priority: 0.3 },
-            { url: '/privacy', changefreq: 'yearly', priority: 0.3 },
-        ];
-
-        try {
-            const articles = await Article.find({ isPublished: true }).select('slug updatedAt').lean();
-            articles.forEach(art => {
-                urls.push({
-                    url: `/wiki/${art.slug}`,
-                    changefreq: 'monthly',
-                    priority: 0.7,
-                    lastmod: art.updatedAt ? new Date(art.updatedAt).toISOString() : new Date().toISOString()
-                });
-            });
-        } catch (err) {
-            console.error("Sitemap Wiki Error:", err);
-        }
-
-        const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${urls.map(u => `  <url>
-    <loc>${baseUrl}${u.url}</loc>
-    <changefreq>${u.changefreq}</changefreq>
-    <priority>${u.priority.toFixed(1)}</priority>${u.lastmod ? `
-    <lastmod>${u.lastmod}</lastmod>` : ''}
-  </url>`).join('\n')}
-</urlset>`;
-
-        const finalSitemap = sitemap.trim();
-
-        cache.set(cacheKey, finalSitemap, 3600);
-        res.header('Content-Type', 'application/xml');
-        res.send(finalSitemap);
-
-    } catch (e) {
-        console.error(e);
-        res.status(500).end();
-    }
-});
-
 router.get('/', async (req, res) => {
     try {
         const statsCacheKey = 'home_stats';
