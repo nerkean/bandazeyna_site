@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <%- include('partials/head', { title: title }) %>
+    <style>
+        :root { --bg: #050505; --text: #ddd; --primary: #5865F2; }
+        body { background: var(--bg); color: var(--text); font-family: 'Montserrat', sans-serif; }
+
+        /* [FIX] Расширил контейнер, уменьшил паддинг сверху */
+        .article-wrapper { 
+            max-width: 1000px; 
+            margin: 0 auto; 
+            padding: 120px 20px 100px;
+            
+            /* [FIX] ЭТА СТРОКА ИСПРАВЛЯЕТ ФУТЕР */
+            /* Она заставляет блок "обнять" плавающую картинку до конца */
+            display: flow-root; 
+        }
+
+        .crumbs { margin-bottom: 20px; font-size: 0.9rem; color: #888; }
+        .crumbs a { color: var(--primary); text-decoration: none; }
+
+        /* HEADER */
+        .art-header {
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding-bottom: 25px; margin-bottom: 30px;
+        }
+
+        .art-h1 { 
+            font-size: 3rem; font-weight: 900; color: #fff; 
+            margin-bottom: 15px; line-height: 1.1; 
+        }
+
+        .art-meta { 
+            display: flex; flex-wrap: wrap; gap: 15px; 
+            font-size: 0.9rem; color: #888; align-items: center; 
+            margin-top: 15px;
+        }
+        
+        /* [FIX] Тег теперь не на всю ширину */
+        .art-tag { 
+            background: rgba(88, 101, 242, 0.15); 
+            color: #fff; border: 1px solid rgba(88, 101, 242, 0.3);
+            padding: 4px 12px; border-radius: 6px; 
+            font-size: 0.75rem; text-transform: uppercase; font-weight: 700; letter-spacing: 1px;
+            width: fit-content; /* Ключевое исправление */
+            display: inline-block;
+        }
+
+        .meta-item { display: flex; align-items: center; gap: 6px; }
+
+        /* --- CONTENT --- */
+        .content { 
+            font-size: 1.1rem; line-height: 1.7; color: #ccc; 
+            min-height: 300px;
+            width: 100%; /* Используем всю ширину */
+        }
+
+        /* Картинка справа */
+        .art-embedded-image {
+            float: right; 
+            width: 400px; 
+            max-width: 100%; 
+            margin: 5px 0 20px 30px; 
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            background: rgba(255,255,255,0.02);
+            object-fit: contain;
+        }
+
+        /* Типографика */
+        .content h2 { 
+            font-size: 1.8rem; color: #fff; margin: 35px 0 20px; font-weight: 800; 
+            border-left: 4px solid #5865F2; padding-left: 15px; 
+        }
+        .content > h2:first-child { margin-top: 0; }
+
+        .content h3 { font-size: 1.4rem; color: #fff; margin: 25px 0 15px; font-weight: 700; }
+        .content p { margin-bottom: 20px; }
+        
+        .content ul, .content ol { margin-bottom: 20px; padding-left: 20px; }
+        .content li { margin-bottom: 8px; }
+        
+        .content img:not(.art-embedded-image) { 
+            max-width: 100%; border-radius: 12px; margin: 20px 0; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3); 
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        
+        .content code { 
+            background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; 
+            font-family: 'JetBrains Mono'; color: #FFD700; font-size: 0.9em;
+        }
+        
+        .content blockquote { 
+            border-left: 4px solid var(--primary); 
+            margin: 25px 0; padding: 15px 25px; 
+            font-style: italic; color: #fff; 
+            background: linear-gradient(90deg, rgba(88, 101, 242, 0.1), transparent);
+            border-radius: 0 12px 12px 0;
+        }
+
+        /* RELATED */
+        .related-box { margin-top: 80px; padding-top: 30px; border-top: 1px solid rgba(255,255,255,0.1); clear: both; }
+        .rel-title { font-size: 1.4rem; color: #fff; margin-bottom: 20px; font-weight: 800; }
+        .rel-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; }
+        .rel-card { 
+            background: #12141a; padding: 20px; border-radius: 12px; 
+            display: flex; align-items: center; gap: 15px; 
+            transition: 0.3s; border: 1px solid rgba(255,255,255,0.05); text-decoration: none; 
+        }
+        .rel-card:hover { transform: translateY(-3px); border-color: var(--primary); background: #161922; }
+        .rel-card i { font-size: 1.5rem; color: var(--primary); }
+        .rel-card span { font-weight: 700; color: #fff; font-size: 1rem; }
+
+        @media (max-width: 900px) {
+            .art-h1 { font-size: 2rem; }
+            .art-embedded-image { float: none; width: 100%; margin: 0 0 20px 0; }
+        }
+    </style>
+</head>
+<body>
+    <%- include('partials/navbar') %>
+
+    <div class="article-wrapper">
+        <div class="crumbs">
+            <a href="/">Главная</a> / <a href="/wiki">Вики</a> / <%= article.category %>
+        </div>
+
+        <header class="art-header">
+            <div class="art-tag"><%= article.category.toUpperCase() %></div>
+            
+            <h1 class="art-h1"><%= article.title %></h1>
+            
+            <div class="art-meta">
+                <div class="meta-item">
+                    <i class="far fa-user-circle"></i> <%= article.author %>
+                </div>
+                <div class="meta-item">
+                    <i class="far fa-calendar-alt"></i> <%= new Date(article.createdAt).toLocaleDateString() %>
+                </div>
+                <div class="meta-item">
+                    <i class="far fa-eye"></i> <%= article.views %>
+                </div>
+            </div>
+
+            <p style="margin-top: 15px; color: #999; font-size: 1rem; line-height: 1.5; max-width: 800px;">
+                <%= article.description %>
+            </p>
+        </header>
+
+        <div class="content">
+            <% if (article.image) { %>
+                <img src="<%= article.image %>" alt="<%= article.title %>" class="art-embedded-image">
+            <% } %>
+            <%- article.content %>
+        </div>
+
+        <% if (related && related.length > 0) { %>
+        <div class="related-box">
+            <h3 class="rel-title">Смотрите также</h3>
+            <div class="rel-grid">
+                <% related.forEach(r => { %>
+                    <a href="/wiki/<%= r.slug %>" class="rel-card">
+                        <i class="<%= r.icon %>"></i>
+                        <span><%= r.title %></span>
+                    </a>
+                <% }) %>
+            </div>
+        </div>
+        <% } %>
+    </div>
+
+    <%- include('partials/footer') %>
+</body>
+</html>

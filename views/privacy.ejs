@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <%- include('partials/head', { title: 'Политика конфиденциальности | Дача Зейна' }) %>
+    <link rel="stylesheet" href="/css/legal.css">
+</head>
+<body>
+    <%- include('partials/navbar') %>
+
+    <div class="legal-wrapper">
+        <div class="legal-header">
+            <h1>Политика <span class="text-gradient">Конфиденциальности</span></h1>
+            <p>Мы уважаем ваши данные. Вот что мы о вас знаем.</p>
+        </div>
+
+        <div class="legal-card">
+            <div class="legal-section">
+                <h2><i class="fas fa-database"></i> 1. Какие данные мы собираем</h2>
+                <p>Мы собираем минимально необходимый набор данных для работы игровых механик:</p>
+                <div class="data-grid">
+                    <div class="data-item">
+                        <i class="fab fa-discord"></i>
+                        <span><b>Discord ID & Username</b><br>Для идентификации вашего профиля.</span>
+                    </div>
+                    <div class="data-item">
+                        <i class="fas fa-image"></i>
+                        <span><b>Аватар</b><br>Для отображения в профиле и топах.</span>
+                    </div>
+                    <div class="data-item">
+                        <i class="fas fa-chart-line"></i>
+                        <span><b>Игровая статистика</b><br>Баланс, инвентарь, сообщения, история сделок.</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="legal-section">
+                <h2><i class="fas fa-server"></i> 2. Как мы используем данные</h2>
+                <p>Ваши данные используются исключительно внутри экосистемы "Дача Зейна" для:</p>
+                <ul>
+                    <li>Отображения вашего профиля и статистики.</li>
+                    <li>Работы экономики (магазин, биржа, переводы).</li>
+                    <li>Выдачи наград за активность.</li>
+                </ul>
+                <p class="highlight-box">Мы <b>никогда</b> не передаем ваши данные третьим лицам, рекламным сетям или другим организациям.</p>
+            </div>
+
+            <div class="legal-section">
+                <h2><i class="fas fa-cookie-bite"></i> 3. Cookies</h2>
+                <p>Мы используем файлы cookie только для одной цели: <b>поддержание вашей авторизации</b> на сайте. Никаких трекеров или аналитики.</p>
+            </div>
+
+            <div class="legal-section">
+                <h2><i class="fas fa-trash-alt"></i> 4. Удаление данных</h2>
+                <p>Вы имеете полное право на забвение. Если вы хотите удалить свой профиль и все связанные с ним данные:</p>
+                <ol>
+                    <li>Зайдите на наш Discord сервер.</li>
+                    <li>Откройте тикет в канале <b>#тикеты</b>.</li>
+                    <li>Напишите запрос на удаление данных (GDPR Request).</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+
+    <%- include('partials/footer') %>
+</body>
+</html>

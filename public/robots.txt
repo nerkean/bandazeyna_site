@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /auth/
+Disallow: /profile/*
+Disallow: /inventory
+Disallow: /deposit
+Disallow: /messages
+
+Sitemap: https://bandazeyna.com/sitemap.xml

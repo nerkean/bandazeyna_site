@@ -5,14 +5,17 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import session from 'express-session';
 import passport from 'passport';
+import { createServer } from 'http';
+import { Server } from 'socket.io';
 import UserProfile from './models/UserProfile.js';
-import BetaUser from './models/BetaUser.js';
-import ApplicationSubmission from './models/ApplicationSubmission.js';
 import MongoStore from 'connect-mongo';
 import { Strategy as DiscordStrategy } from 'passport-discord';
 import compression from 'compression';
+import helmet from 'helmet'; 
+import rateLimit from 'express-rate-limit';
+import crypto from 'crypto';
+import minify from 'express-minify';
 
-// Импорт роутеров
 import pagesRouter from './routes/pages.js';
 import apiRouter from './routes/api.js';
 import authRouter from './routes/auth.js';
@@ -21,110 +24,124 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
+app.set('trust proxy', 1);
+const httpServer = createServer(app);
 
-// 1. БАЗОВЫЕ НАСТРОЙКИ (Сжатие и Статика)
-// Сначала сжимаем всё
+const apiLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, 
+    max: 100, 
+    message: { error: 'Слишком много запросов. Подождите 15 минут.' },
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+
+const authLimiter = rateLimit({
+    windowMs: 60 * 60 * 1000, 
+    max: 20,
+    message: 'Слишком много попыток входа.'
+});
+
+const io = new Server(httpServer, {
+    cors: { origin: "*", methods: ["GET", "POST"] }
+});
+
 app.use(compression());
+app.use(minify());
 
-// Настраиваем view engine
-app.set('view engine', 'ejs');
-app.set('views', path.join(__dirname, 'views'));
+app.use((req, res, next) => {
+    res.locals.nonce = crypto.randomBytes(16).toString('base64');
+    next();
+});
 
-// !!! ВАЖНО: Статика ДОЛЖНА быть здесь, одна и с кэшем.
-// Это самое быстрое действие, не нужно ждать сессий и БД для отдачи CSS.
-app.use(express.static(path.join(__dirname, 'public'), {
-    maxAge: '7d', // Кэшировать на 7 дней
-    etag: false   // Отключаем ETag для экономии ресурсов (опционально)
+app.use(helmet({
+    contentSecurityPolicy: {
+        directives: {
+            defaultSrc: ["'self'"],
+            scriptSrc: [
+                "'self'",
+                "https://cdn.jsdelivr.net",
+                "https://cdnjs.cloudflare.com", 
+                "https://unpkg.com",
+                (req, res) => `'nonce-${res.locals.nonce}'`
+            ],
+            scriptSrcAttr: ["'unsafe-inline'"], 
+            styleSrc: [
+                "'self'", 
+                "'unsafe-inline'", 
+                "https://fonts.googleapis.com", 
+                "https://unpkg.com"
+            ],
+            imgSrc: ["'self'", "data:", "https:", "blob:", "https://cdn.discordapp.com", "https://i.ibb.co"],
+            connectSrc: ["'self'", "https://discord.com", "ws:", "wss:", "https://cdn.jsdelivr.net", "https://unpkg.com"], 
+            fontSrc: ["'self'", "https://fonts.gstatic.com"],
+            objectSrc: ["'none'"],
+            upgradeInsecureRequests: [],
+        },
+    },
+    crossOriginEmbedderPolicy: false, 
 }));
 
-// Парсинг тела запросов
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
+app.use(express.static(path.join(__dirname, 'public'), { maxAge: '7d', etag: false }));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// 2. БАЗА ДАННЫХ
-mongoose.connect(process.env.MONGODB_URI)
-    .then(() => console.log('🌍 Сайт подключен к MongoDB'))
-    .catch(err => console.error('Ошибка БД:', err));
+app.use((req, res, next) => {
+    req.io = io;
+    next();
+});
 
-app.use(session({
+mongoose.connect(process.env.MONGODB_URI)
+    .then(() => console.log('🌍 MongoDB Connected'))
+    .catch(err => console.error('DB Error:', err));
+
+const sessionMiddleware = session({
     secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
-    store: MongoStore.create({ 
-        mongoUrl: process.env.MONGODB_URI 
-    }),
+    store: MongoStore.create({ mongoUrl: process.env.MONGODB_URI }),
     cookie: { 
-        maxAge: 1000 * 60 * 60 * 24 * 7, 
+        maxAge: 1000 * 60 * 60 * 24 * 30, 
         httpOnly: true,
-        // secure: true 
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax' 
     }
-}));
+});
 
+app.use(sessionMiddleware);
 app.use(passport.initialize());
 app.use(passport.session());
 
-app.use(express.urlencoded({ extended: true }));
+const wrap = middleware => (socket, next) => middleware(socket.request, {}, next);
+io.use(wrap(sessionMiddleware));
+io.use(wrap(passport.initialize()));
+io.use(wrap(passport.session()));
 
-app.get('/beta-login', (req, res) => {
-    if (req.session.hasBetaAccess) return res.redirect('/');
-    res.render('beta-login');
-});
-
-app.post('/beta-login', async (req, res) => {
-    const { username, password } = req.body;
-    
-    // Ищем пользователя в базе
-    const user = await BetaUser.findOne({ username, password });
-    
-    if (user) {
-        req.session.hasBetaAccess = true; // Ставим "галочку" в сессии
-        req.session.save(() => {
-            res.redirect('/');
+const onlineUsers = new Set();
+io.on('connection', (socket) => {
+    const user = socket.request.user;
+    if (user && user.id) {
+        const userId = user.id;
+        socket.join(userId);
+        onlineUsers.add(userId);
+        socket.broadcast.emit('user_status', { userId, status: 'online' });
+        
+        socket.on('disconnect', () => {
+            const socketsInRoom = io.sockets.adapter.rooms.get(userId);
+            if (!socketsInRoom || socketsInRoom.size === 0) {
+                onlineUsers.delete(userId);
+                socket.broadcast.emit('user_status', { userId, status: 'offline', lastSeen: new Date() });
+            }
         });
-    } else {
-        res.render('beta-login', { error: 'Неверный логин или пароль' });
     }
 });
 
-app.get('/beta-apply', (req, res) => {
-    res.render('beta-application');
+app.get('/api/users/status/:userId', (req, res) => {
+    res.json({ isOnline: onlineUsers.has(req.params.userId) });
 });
 
-app.post('/beta-apply', async (req, res) => {
-    try {
-        const { discordUsername, uid, reason } = req.body;
-        
-        // Создаем заявку
-        await ApplicationSubmission.create({
-            discordUsername,
-            uid,
-            reason
-        });
-        
-        // Рендерим страницу с успехом
-        res.render('beta-application', { success: true });
-    } catch (e) {
-        console.error(e);
-        res.render('beta-application', { error: 'Ошибка при отправке. Попробуйте позже.' });
-    }
-});
-
-// 3. Middleware защиты
-app.use((req, res, next) => {
-    const whiteList = [
-        '/beta-login', 
-        '/beta-apply', // <--- ВАЖНО: Добавили в белый список
-        '/css/', '/js/', '/img/', '/assets/', '/fonts/', 
-        '/auth/discord'
-    ];
-
-    if (whiteList.some(path => req.path.startsWith(path))) return next();
-    if (req.session.hasBetaAccess) return next();
-
-    res.redirect('/beta-login');
-});
-
-// --- Конфигурация Passport ---
 passport.use(new DiscordStrategy({
     clientID: process.env.DISCORD_CLIENT_ID,
     clientSecret: process.env.DISCORD_CLIENT_SECRET,
@@ -132,59 +149,41 @@ passport.use(new DiscordStrategy({
     scope: ['identify']
 }, async (accessToken, refreshToken, profile, done) => {
     try {
-        // При каждом входе обновляем данные пользователя в базе
         await UserProfile.findOneAndUpdate(
             { userId: profile.id, guildId: process.env.GUILD_ID },
             {
-                // Обновляем актуальные данные из Discord
                 username: profile.username,
                 avatar: profile.avatar, 
-                // Если профиля не было, эти поля создадутся
-                $setOnInsert: { 
-                    stars: 100, // Стартовый бонус (опционально)
-                    joinedAt: new Date() 
-                }
+                $setOnInsert: { stars: 100, joinedAt: new Date() }
             },
             { upsert: true, new: true, setDefaultsOnInsert: true }
         );
-
-        // Возвращаем профиль в сессию
         return done(null, profile);
-    } catch (err) {
-        console.error("Ошибка при сохранении профиля:", err);
-        return done(err, null);
-    }
+    } catch (err) { return done(err, null); }
 }));
 
-passport.serializeUser((user, done) => done(null, {
-    id: user.id, username: user.username, avatar: user.avatar, discriminator: user.discriminator
-}));
-
+passport.serializeUser((user, done) => done(null, { id: user.id, username: user.username, avatar: user.avatar }));
 passport.deserializeUser((obj, done) => done(null, obj));
 
-// 4. Глобальные переменные (Ping, Status)
 app.use(async (req, res, next) => {
     const start = Date.now();
     try {
         if (mongoose.connection.readyState === 1) await mongoose.connection.db.admin().ping();
         res.locals.systemStatus = { online: true, ping: Date.now() - start };
-    } catch (e) {
-        res.locals.systemStatus = { online: false, ping: 999 };
-    }
+    } catch (e) { res.locals.systemStatus = { online: false, ping: 999 }; }
     next();
 });
 
-// 5. Подключение Маршрутов
-app.use('/auth', authRouter); // Все пути в auth.js будут начинаться с /auth
-app.use('/api', apiRouter);   // Все пути в api.js будут начинаться с /api
-app.use('/', pagesRouter);    // Остальные страницы
+app.use('/auth', authLimiter, authRouter); 
+app.use('/api', apiLimiter, apiRouter);   
+app.use('/', pagesRouter);    
 
-app.use((req, res) => {
-    res.status(404).render('404', { 
-        user: req.user, // Чтобы навбар работал
-        profile: null // Чтобы не было ошибок в навбаре, если там есть проверки
-    });
+app.use((req, res) => { res.status(404).render('404', { user: req.user }); });
+
+app.use((err, req, res, next) => {
+    console.error('[Server Error]', err);
+    res.status(500).render('500', { user: req.user, error: process.env.NODE_ENV === 'development' ? err : null });
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`🚀 Сайт запущен: http://localhost:${PORT}`));
+httpServer.listen(PORT, () => console.log(`🚀 Сайт запущен (Production Mode): http://localhost:${PORT}`));

@@ -10,11 +10,20 @@
     </div>
     
     <div class="nav-menu" id="navMenu">
+        
         <div class="nav-links">
-            <a href="/bot" class="nav-item"><i class="fas fa-robot"></i> О Боте</a>
-            <a href="/leaderboard" class="nav-item"><i class="fas fa-trophy"></i> Топ</a>
+            <a href="/wrapped" class="nav-item nav-wrapped">
+                <i class="fas fa-star"></i> ИТОГИ 2025
+            </a>
+
             <a href="/market" class="nav-item"><i class="fas fa-chart-line"></i> Биржа</a>
             <a href="/shop" class="nav-item"><i class="fas fa-store"></i> Магазин</a>
+            
+            <a href="/giveaways" class="nav-item highlight-gold"><i class="fas fa-gift"></i> Халява</a>
+            
+            <a href="/wiki" class="nav-item"><i class="fas fa-book"></i> Вики</a>
+            
+            <a href="/leaderboard" class="nav-item desktop-hide-sm"><i class="fas fa-trophy"></i> Топ</a>
         </div>
 
         <div class="auth">
@@ -23,42 +32,46 @@
                 <% if (typeof profile !== 'undefined' && profile) { %>
                     <div class="nav-balance-group">
                         <div class="nav-balance stars" title="Звезды">
-                            <%= Math.floor(profile.stars).toLocaleString() %> ⭐
+                            <span class="nb-icon">⭐</span>
+                            <span class="nb-val"><%= Math.floor(profile.stars).toLocaleString() %></span>
                         </div>
                         <div class="nav-balance shards" title="Осколки">
-                            <%= Math.floor(profile.shards).toLocaleString() %> ✨
+                            <span class="nb-icon">✨</span>
+                            <span class="nb-val"><%= Math.floor(profile.shards).toLocaleString() %></span>
                         </div>
                     </div>
                 <% } %>
 
-                <a href="/inventory" class="btn-icon" title="Инвентарь">
-                    <i class="fas fa-briefcase"></i>
-                    <span class="mobile-text">Инвентарь</span>
-                </a>
-                
-              <a href="/profile" class="btn-profile">
-    <% if (user.avatar) { %>
-        <img 
-            src="https://cdn.discordapp.com/avatars/<%= user.id %>/<%= user.avatar %>.png?size=64" 
-            alt="User Avatar"
-            width="32" 
-            height="32"
-            loading="lazy"
-            decoding="async"
-            crossorigin="anonymous"
-        >
-    <% } else { %>
-        <img 
-            src="assets/img/avatars/default_avatar.png" 
-            alt="Default Avatar"
-            width="32" 
-            height="32"
-            loading="lazy"
-            decoding="async"
-        >
-    <% } %>
-    <span>Профиль</span>
-</a>
+                <div class="profile-dropdown-wrapper">
+                    <div class="profile-trigger" onclick="toggleDropdown()">
+                        <% if (user.avatar) { %>
+                            <img src="/img/proxy/avatar/<%= user.id %>/<%= user.avatar %>" alt="Ava">
+                        <% } else { %>
+                            <img src="/assets/img/avatars/default_avatar.png" alt="Ava">
+                        <% } %>
+                        <span class="trigger-name"><%= user.username %></span>
+                        <i class="fas fa-chevron-down trigger-arrow"></i>
+                    </div>
+
+                    <div class="profile-dropdown" id="profileDropdown">
+                        <div class="dropdown-header">
+                            <span class="role-badge">Игрок</span>
+                        </div>
+                        
+                        <div class="dropdown-grid">
+                            <a href="/profile/<%= user.id %>" class="dd-item"><i class="fas fa-user-circle"></i> Профиль</a>
+                            <a href="/inventory" class="dd-item"><i class="fas fa-briefcase"></i> Инвентарь</a>
+                            <a href="/deposit" class="dd-item"><i class="fas fa-university"></i> Банк</a>
+                            <a href="/daily" class="dd-item"><i class="fas fa-calendar-check"></i> Дейли</a>
+                        </div>
+
+                        <div class="dropdown-footer">
+                            <a href="/auth/logout" class="dd-logout" onclick="confirmLogout(event)">
+                                <i class="fas fa-sign-out-alt"></i> Выйти
+                            </a>
+                        </div>
+                    </div>
+                </div>
 
             <% } else { %>
                 <a href="/auth/discord" class="btn-discord">
@@ -69,20 +82,62 @@
     </div>
 </nav>
 
-<script>
+<div id="navOverlay" onclick="closeAllMenus()"></div>
+
+<script nonce="<%= nonce %>">
     function toggleMobileMenu() {
         const menu = document.getElementById('navMenu');
         const btn = document.querySelector('.mobile-menu-btn');
+        const overlay = document.getElementById('navOverlay');
+        
         menu.classList.toggle('active');
         btn.classList.toggle('open');
+        overlay.classList.toggle('active');
+        document.getElementById('profileDropdown')?.classList.remove('active');
+    }
+
+    function toggleDropdown() {
+        const dd = document.getElementById('profileDropdown');
+        const arrow = document.querySelector('.trigger-arrow');
+        const overlay = document.getElementById('navOverlay');
+        
+        dd.classList.toggle('active');
+        arrow.classList.toggle('rotate');
+        overlay.classList.toggle('active-desktop');
+    }
+
+    function closeAllMenus() {
+        const menu = document.getElementById('navMenu');
+        const btn = document.querySelector('.mobile-menu-btn');
+        const dd = document.getElementById('profileDropdown');
+        const arrow = document.querySelector('.trigger-arrow');
+        const overlay = document.getElementById('navOverlay');
+
+        menu.classList.remove('active');
+        btn.classList.remove('open');
+        if(dd) dd.classList.remove('active');
+        if(arrow) arrow.classList.remove('rotate');
+        overlay.classList.remove('active');
+        overlay.classList.remove('active-desktop');
     }
 
     window.addEventListener('scroll', () => {
         const navbar = document.querySelector('.navbar');
-        if (window.scrollY > 50) {
-            navbar.classList.add('scrolled');
-        } else {
-            navbar.classList.remove('scrolled');
-        }
+        if (window.scrollY > 50) navbar.classList.add('scrolled');
+        else navbar.classList.remove('scrolled');
     });
+
+    async function confirmLogout(event) {
+        event.preventDefault();
+        if (typeof Modal !== 'undefined') {
+            const confirmed = await Modal.confirm(
+                "Выход из аккаунта", 
+                "Вы уверены, что хотите выйти?", 
+                "warning"
+            );
+            if (confirmed) window.location.href = '/auth/logout';
+        } else {
+            if (confirm("Выйти?")) window.location.href = '/auth/logout';
+        }
+    }
 </script>

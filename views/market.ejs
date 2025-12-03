@@ -1,265 +1,392 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <%- include('partials/head', { title: 'Терминал Биржи | Дача Зейна' }) %>
+    <%- include('partials/head', { title: 'Терминал | Биржа' }) %>
+    
+    <link rel="preload" href="/css/market.css" as="style">
     <link rel="stylesheet" href="/css/market.css">
-    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
-</head>
+    
+    </head>
 <body>
     <%- include('partials/navbar') %>
 
-    <div class="market-wrapper">
-        
-        <aside class="stock-list-panel">
-            <h2><i class="fas fa-chart-pie"></i> Рынок</h2>
-            <div class="stock-table-header">
-                <span>Тикер</span>
-                <span>Цена</span>
-                <span style="text-align: right;">24ч %</span>
-            </div>
-            <div class="stock-list">
-                <% if (typeof stocks !== 'undefined' && stocks.length > 0) { %>
-                    <% stocks.forEach((stock) => { %>
-                        <div class="stock-item" onclick="selectStock('<%= stock.ticker %>', this)">
-                            <div class="stock-info">
-                                <span class="stock-symbol">$<%= stock.ticker %></span>
-                                <span class="name"><%= stock.name %></span>
-                            </div>
-                            <div class="stock-price">
-                                <span class="price"><%= stock.currentPrice.toFixed(2) %></span>
-                            </div>
-                            <span class="change <%= stock.lastChange >= 0 ? 'positive' : 'negative' %>">
-                                <%= (stock.lastChange * 100).toFixed(2) %>%
-                            </span>
-                        </div>
-                    <% }) %>
-                <% } else { %>
-                    <div style="padding: 20px; text-align: center; color: #666;">Рынок пуст</div>
-                <% } %>
-            </div>
-        </aside>
+    <div id="canvas-container" aria-hidden="true"></div>
 
-        <div class="center-column">
+    <div style="margin-top: 100px;"></div>
+    <div class="market-ticker-wrap">
+        <div class="market-ticker">
+            <% for(let i=0; i<2; i++) { %>
+                <% if (typeof stocks !== 'undefined') { %>
+                    <% stocks.forEach(stock => { %>
+                        <span class="mt-item">
+                            <strong>$<%= stock.ticker %></strong>
+                            <span class="mt-val"><%= stock.currentPrice.toFixed(1) %></span>
+                            <span class="mt-change <%= stock.lastChange >= 0 ? 'up' : 'down' %>">
+                                <i class="fas fa-caret-<%= stock.lastChange >= 0 ? 'up' : 'down' %>"></i>
+                                <%= (Math.abs(stock.lastChange) * 100).toFixed(1) %>%
+                            </span>
+                        </span>
+                    <% }) %>
+                <% } %>
+            <% } %>
+        </div>
+    </div>
+
+    <div class="market-container">
+        
+        <header class="market-header">
+            <div class="mh-title">
+                <h1>Market <span style="color: var(--primary);">Terminal</span></h1>
+                <p>Профессиональный инструмент для торговли</p>
+            </div>
             
-            <main class="chart-panel">
-                <div class="chart-header">
-                    <div>
-                        <h2 id="selectedTicker">Выберите акцию</h2>
-                        <span id="selectedName" style="color: var(--text-muted); font-size: 1rem;">---</span>
+            <% if (user) { %>
+                <div class="mh-balance">
+                    <div class="bal-item">
+                        <span class="bal-label">Баланс</span>
+                        <span class="bal-val stars" id="userBalanceDisplay"><%= typeof profile !== 'undefined' ? Math.floor(profile.stars).toLocaleString() : 0 %> ⭐</span>
                     </div>
-                    <h3 id="selectedPrice">---</h3>
+                    <div class="bal-item">
+                        <span class="bal-label">Портфель</span>
+                        <% 
+                            const portfolioVal = (typeof portfolio !== 'undefined') ? portfolio.reduce((sum, p) => {
+                                const s = stocks.find(x => x.ticker === p.ticker);
+                                const price = s ? s.currentPrice : 0;
+                                return sum + (p.quantity * price);
+                            }, 0) : 0;
+                        %>
+                        <span class="bal-val shards" style="color: #aaa;"><%= Math.floor(portfolioVal).toLocaleString() %> ⭐</span>
+                    </div>
+                </div>
+            <% } %>
+        </header>
+
+        <div class="mobile-tabs">
+            <button class="m-tab active" id="btn-tab-list" data-tab="list"><i class="fas fa-list"></i> Акции</button>
+            <button class="m-tab" onclick="switchTab('trade')"><i class="fas fa-chart-line"></i> Терминал</button>
+        </div>
+
+        <div class="terminal-grid">
+            
+            <aside class="stock-sidebar" id="tab-list">
+                <div class="sidebar-search">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="stockSearch" placeholder="Найти тикер..." aria-label="Поиск">
                 </div>
 
-                <div class="chart-wrapper">
-                    <div id="marketChart"></div>
+                <div class="stock-list-wrapper">
+                    <div class="stock-list" id="stockListContainer">
+                        <% if (typeof stocks !== 'undefined' && stocks.length > 0) { %>
+                            <% stocks.forEach((stock) => { %>
+                                <% 
+                                   const colors = ['#e74c3c', '#e67e22', '#f1c40f', '#2ecc71', '#3498db', '#9b59b6', '#34495e', '#16a085'];
+                                   const charCode = stock.ticker.charCodeAt(0) + stock.ticker.charCodeAt(stock.ticker.length-1);
+                                   const color = colors[charCode % colors.length];
+                                   const isSystem = ['VOICE', 'TXT', 'PLAYER'].includes(stock.ticker);
+                                %>
+
+                                <div class="stock-card" onclick="selectStock('<%= stock.ticker %>', this)">
+                                    <div class="stock-icon" style="--icon-bg: <%= color %>;">
+                                        <%= stock.ticker.substring(0, 2) %>
+                                    </div>
+                                    <div class="sc-left">
+                                        <div class="sc-ticker">
+                                            $<%= stock.ticker %>
+                                            <% if (isSystem) { %>
+                                                <span class="sys-badge official"><i class="fas fa-check-circle"></i></span>
+                                            <% } %>
+                                        </div>
+                                        <div class="sc-name"><%= stock.name %></div>
+                                    </div>
+                                    <div class="sc-right">
+                                        <div class="sc-price"><%= stock.currentPrice.toFixed(2) %></div>
+                                        <div class="sc-change <%= stock.lastChange >= 0 ? 'up' : 'down' %>">
+                                            <%= stock.lastChange >= 0 ? '+' : '' %><%= (stock.lastChange * 100).toFixed(2) %>%
+                                        </div>
+                                    </div>
+                                </div>
+                            <% }) %>
+                        <% } else { %>
+                            <div class="empty-market">Рынок пуст</div>
+                        <% } %>
+                    </div>
+                </div>
+            </aside>
+
+            <main class="trade-area" id="tab-trade">
+                <div class="chart-card">
+                    <div class="chart-top-bar">
+                        <div class="ct-info">
+                            <h2 id="selectedTicker">---</h2>
+                            <span id="selectedName">Выберите акцию</span>
+                        </div>
+                        <div class="ct-price">
+                            <span id="selectedPrice">0.00</span>
+                            <span class="currency">⭐</span>
+                        </div>
+                    </div>
+                    <div id="marketChart" class="chart-box"></div>
+                </div>
+
+                <div class="trade-controls" id="tradePanel" style="opacity: 0.5; pointer-events: none;">
+                    <div class="user-position">
+                        <div class="pos-item"><span>На руках:</span><strong id="userShares">0 шт.</strong></div>
+                        <div class="pos-item"><span>Средняя:</span><strong id="userAvgPrice">0.00</strong></div>
+                    </div>
+
+                    <div class="trade-input-section">
+                        <div class="input-wrapper">
+                            <input type="number" id="tradeAmount" placeholder="Кол-во" min="1" value="1">
+                            <span class="input-suffix">шт.</span>
+                        </div>
+                        <div class="quick-amounts">
+                            <button onclick="setAmount(1)">1</button>
+                            <button onclick="setAmount(10)">10</button>
+                            <button onclick="setAmount(100)">100</button>
+                            <button class="max-btn" onclick="setMaxAmount()">MAX</button>
+                        </div>
+                    </div>
+
+                    <div class="trade-right-col">
+                        <div class="trade-summary"><span>Итого:</span><span id="totalPrice">0 ⭐</span></div>
+                        <div class="trade-buttons">
+                            <button class="t-btn buy" onclick="tradeStock('BUY')">КУПИТЬ</button>
+                            <button class="t-btn sell" onclick="tradeStock('SELL')">ПРОДАТЬ</button>
+                        </div>
+                    </div>
                 </div>
             </main>
-
-            <div class="trade-panel" id="tradePanel" style="display: none;">
-                <div class="trade-info">
-                    <div class="user-holding">
-                        <span class="label">В портфеле</span>
-                        <span class="value" id="userShares">0 шт.</span>
-                    </div>
-                    <div class="user-profit">
-                        <span class="label">Средняя цена</span>
-                        <span class="value" id="userAvgPrice">0.00 ⭐</span>
-                    </div>
-                </div>
-                
-                <div class="trade-actions">
-                    <div class="trade-input-group">
-                        <input type="number" id="tradeAmount" value="1" min="1" class="trade-input" placeholder="0">
-                        <span class="trade-label">шт.</span>
-                    </div>
-
-                    <button class="btn-buy" onclick="tradeStock('BUY')">Купить</button>
-                    <button class="btn-sell" onclick="tradeStock('SELL')">Продать</button>
-                </div>
-            </div>
 
         </div>
     </div>
 
     <%- include('partials/footer') %>
 
-    <script>
-        // Данные с сервера
-        const allStocks = <%- typeof stocks !== 'undefined' ? JSON.stringify(stocks) : '[]' %>;
+    <script nonce="<%= nonce %>" src="https://cdn.jsdelivr.net/npm/apexcharts" defer></script>
+    <script nonce="<%= nonce %>" src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" defer></script>
+    <script nonce="<%= nonce %>" src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js" defer></script>
+
+    <script nonce="<%= nonce %>">
+        const allStocks = JSON.parse('<%- JSON.stringify(stocks).replace(/'/g, "\\'").replace(/\\/g, "\\\\") %>');
         const userPortfolio = <%- typeof portfolio !== 'undefined' ? JSON.stringify(portfolio) : '[]' %>;
         
+        function getCurrentBalance() {
+            const text = document.getElementById('userBalanceDisplay').innerText;
+            return parseInt(text.replace(/[^0-9]/g, '')) || 0;
+        }
+
         let chartInstance = null;
         let currentStock = null;
 
-        // Выбор акции
-        function selectStock(ticker, element) {
-            if (element) {
-                document.querySelectorAll('.stock-item').forEach(el => el.classList.remove('active'));
-                element.classList.add('active');
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('stockSearch').addEventListener('input', (e) => {
+                const val = e.target.value.toLowerCase();
+                document.querySelectorAll('.stock-card').forEach(card => {
+                    const text = card.innerText.toLowerCase();
+                    card.style.display = text.includes(val) ? 'flex' : 'none';
+                });
+            });
+
+            document.getElementById('tradeAmount').addEventListener('input', updateCalc);
+
+            document.getElementById('btn-tab-list').addEventListener('click', () => switchTab('list'));
+
+            if(allStocks.length > 0) {
+                if(window.innerWidth > 900) selectStock(allStocks[0].ticker, document.querySelector('.stock-card'));
+                else switchTab('list');
             }
+
+            init3D();
+        });
+
+        function setAmount(n) { document.getElementById('tradeAmount').value = n; updateCalc(); }
+        
+        function setMaxAmount() {
+            if(!currentStock) return;
+            const balance = getCurrentBalance();
+            const maxBuy = Math.floor(balance / currentStock.currentPrice);
+            const userPos = userPortfolio.find(p => p.ticker === currentStock.ticker);
+            const maxSell = userPos ? userPos.quantity : 0;
+            document.getElementById('tradeAmount').value = maxBuy > 0 ? maxBuy : (maxSell > 0 ? maxSell : 1);
+            updateCalc();
+        }
+
+        function updateCalc() {
+            if(!currentStock) return;
+            const qty = parseInt(document.getElementById('tradeAmount').value) || 0;
+            const total = Math.floor(qty * currentStock.currentPrice);
+            document.getElementById('totalPrice').innerText = total.toLocaleString() + ' ⭐';
+        }
+
+        function switchTab(tab) {
+            const list = document.getElementById('tab-list');
+            const trade = document.getElementById('tab-trade');
+            const btns = document.querySelectorAll('.m-tab');
+            btns.forEach(b => b.classList.remove('active'));
+            
+            if (tab === 'list') {
+                list.classList.add('active'); trade.classList.remove('active'); btns[0].classList.add('active');
+            } else {
+                list.classList.remove('active'); trade.classList.add('active'); btns[1].classList.add('active');
+            }
+        }
+
+        function selectStock(ticker, el) {
+            document.querySelectorAll('.stock-card').forEach(c => c.classList.remove('active'));
+            if(el) el.classList.add('active');
 
             const stock = allStocks.find(s => s.ticker === ticker);
-            if (!stock) return;
-
+            if(!stock) return;
             currentStock = stock;
 
-            document.getElementById('selectedTicker').innerText = `$${stock.ticker}`;
+            const isSystem = ['VOICE', 'TXT', 'PLAYER'].includes(ticker);
+            const badgeHtml = isSystem ? `<span class="sys-badge official" title="Официально"><i class="fas fa-check-circle"></i></span>` : '';
+            
+            document.getElementById('selectedTicker').innerHTML = `$${stock.ticker} ${badgeHtml}`;
             document.getElementById('selectedName').innerText = stock.name;
             
-            const priceEl = document.getElementById('selectedPrice');
-            priceEl.innerText = `${stock.currentPrice.toFixed(2)} ⭐`;
-            
-            const isPositive = stock.lastChange >= 0;
-            priceEl.style.color = isPositive ? '#2ecc71' : '#e74c3c';
+            const pEl = document.getElementById('selectedPrice');
+            pEl.innerText = stock.currentPrice.toFixed(2);
+            pEl.className = stock.lastChange >= 0 ? 'up-text' : 'down-text';
 
-            updatePortfolioUI(ticker, stock.currentPrice);
-            renderApexChart(stock, isPositive);
-        }
+            document.getElementById('tradePanel').style.opacity = '1';
+            document.getElementById('tradePanel').style.pointerEvents = 'all';
 
-        // Обновление данных портфеля
-        function updatePortfolioUI(ticker, currentPrice) {
-            const tradePanel = document.getElementById('tradePanel');
-            const userStockData = userPortfolio.find(p => p.ticker === ticker);
-            
-            if (userStockData) {
-                document.getElementById('userShares').innerText = `${userStockData.quantity} шт.`;
-                const avgEl = document.getElementById('userAvgPrice');
-                avgEl.innerText = `${userStockData.avgBuyPrice.toFixed(2)} ⭐`;
-                
-                if (currentPrice > userStockData.avgBuyPrice) avgEl.style.color = '#2ecc71';
-                else if (currentPrice < userStockData.avgBuyPrice) avgEl.style.color = '#e74c3c';
-                else avgEl.style.color = '#fff';
+            const pos = userPortfolio.find(p => p.ticker === ticker);
+            if (pos) {
+                document.getElementById('userShares').innerText = pos.quantity + ' шт.';
+                const profit = stock.currentPrice - pos.avgBuyPrice;
+                const profitPercent = ((profit / pos.avgBuyPrice) * 100).toFixed(1);
+                const sign = profit >= 0 ? '+' : '';
+                const color = profit >= 0 ? '#2ecc71' : '#e74c3c';
+                document.getElementById('userAvgPrice').innerHTML = `${pos.avgBuyPrice.toFixed(1)} <small style="color:${color}">(${sign}${profitPercent}%)</small>`;
             } else {
-                document.getElementById('userShares').innerText = `0 шт.`;
-                document.getElementById('userAvgPrice').innerText = `—`;
-                document.getElementById('userAvgPrice').style.color = '#9CA3AF';
+                document.getElementById('userShares').innerText = '0 шт.';
+                document.getElementById('userAvgPrice').innerText = '---';
             }
-            tradePanel.style.display = 'flex';
+
+            if(window.innerWidth <= 900) switchTab('trade');
+            updateCalc();
+            
+            if (typeof ApexCharts !== 'undefined') renderChart(stock);
         }
 
-        // --- ГРАФИК APEXCHARTS (С ЗУМОМ) ---
-        function renderApexChart(stock, isPositive) {
+        function renderChart(stock) {
             const prices = stock.priceHistory.map(h => h.price);
             const dates = stock.priceHistory.map(h => new Date(h.date).getTime());
-            const mainColor = isPositive ? '#2ecc71' : '#e74c3c';
+            const color = stock.lastChange >= 0 ? '#2ecc71' : '#ef4444';
 
-            const options = {
-                series: [{ name: 'Цена', data: prices }],
-                chart: {
-                    type: 'area',
-                    height: 400,
-                    background: 'transparent',
-                    animations: { enabled: true, easing: 'easeinout', speed: 800 },
-                    
-                    // ВКЛЮЧЕННЫЙ ЗУМ
-                    zoom: {
-                        enabled: true,
-                        type: 'x',
-                        autoScaleYaxis: true
-                    },
-                    toolbar: {
-                        show: true, // Показываем панель инструментов
-                        tools: {
-                            download: false, // Скрываем кнопку скачивания картинки
-                            selection: true,
-                            zoom: true,
-                            zoomin: true,
-                            zoomout: true,
-                            pan: true,
-                            reset: true // Кнопка сброса зума (домик)
-                        },
-                        autoSelected: 'zoom' 
-                    }
-                },
-                theme: { mode: 'dark' },
-                stroke: { curve: 'smooth', width: 3, colors: [mainColor] },
-                fill: {
-                    type: 'gradient',
-                    gradient: {
-                        shadeIntensity: 1, opacityFrom: 0.4, opacityTo: 0.05,
-                        stops: [0, 100],
-                        colorStops: [{ offset: 0, color: mainColor, opacity: 0.4 }, { offset: 100, color: mainColor, opacity: 0 }]
-                    }
-                },
-                dataLabels: { enabled: false },
-                grid: { borderColor: 'rgba(255,255,255,0.05)', strokeDashArray: 4 },
-                xaxis: {
-                    categories: dates,
-                    type: 'datetime',
-                    labels: { show: true, style: { colors: '#6b7280' }, datetimeFormatter: { day: 'dd MMM' } },
-                    axisBorder: { show: false },
-                    axisTicks: { show: false },
-                    tooltip: { enabled: false }
-                },
-                yaxis: {
-                    opposite: true,
-                    labels: { style: { colors: '#9CA3AF', fontFamily: 'Montserrat' }, formatter: (value) => value.toFixed(2) }
-                },
-                tooltip: {
-                    theme: 'dark', x: { format: 'dd MMM HH:mm' }, y: { formatter: (val) => val + " ⭐" }
-                }
-            };
-
-            if (chartInstance) chartInstance.destroy();
-            chartInstance = new ApexCharts(document.querySelector("#marketChart"), options);
-            chartInstance.render();
+            if (chartInstance) {
+                chartInstance.updateOptions({ colors: [color], fill: { gradient: { colorStops: [{ offset: 0, color: color, opacity: 0.4 }, { offset: 100, color: color, opacity: 0 }] } } });
+                chartInstance.updateSeries([{ data: prices }]);
+                chartInstance.updateOptions({ xaxis: { categories: dates } });
+            } else {
+                const options = {
+                    series: [{ name: 'Цена', data: prices }],
+                    chart: { type: 'area', height: 350, background: 'transparent', animations: { enabled: true }, toolbar: { show: false }, zoom: { enabled: false } },
+                    theme: { mode: 'dark' },
+                    stroke: { curve: 'monotoneCubic', width: 3, colors: [color] },
+                    fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.4, opacityTo: 0.05, stops: [0, 100], colorStops: [{ offset: 0, color: color, opacity: 0.4 }, { offset: 100, color: color, opacity: 0 }] } },
+                    dataLabels: { enabled: false },
+                    grid: { borderColor: 'rgba(255,255,255,0.05)', strokeDashArray: 4 },
+                    xaxis: { categories: dates, type: 'datetime', labels: { show: false }, axisBorder: { show: false }, axisTicks: { show: false }, tooltip: { enabled: false } },
+                    yaxis: { opposite: true, labels: { style: { colors: '#b3b3b3', fontFamily: 'JetBrains Mono' }, formatter: (val) => val.toFixed(1) } },
+                    tooltip: { theme: 'dark', x: { format: 'dd MMM HH:mm' }, y: { formatter: (val) => val.toFixed(2) + " ⭐" } }
+                };
+                chartInstance = new ApexCharts(document.querySelector("#marketChart"), options);
+                chartInstance.render();
+            }
         }
 
-      async function tradeStock(action) {
-            // 1. Получаем данные из HTML
-            const tickerText = document.getElementById('selectedTicker').innerText;
-            
-            // Защита: если акция не выбрана
-            if (!currentStock || tickerText === 'Выберите акцию') {
-                Modal.alert("Ошибка", "Сначала выберите акцию из списка!", "error");
-                return;
-            }
-
+        async function tradeStock(action) {
+            const amount = document.getElementById('tradeAmount').value;
             const ticker = currentStock.ticker;
-            const amount = parseInt(document.getElementById('tradeAmount').value);
-
-            // 2. Валидация
-            if (!amount || amount <= 0) { 
-                Modal.alert("Ошибка", "Введите корректное количество!", "error");
-                return; 
-            }
-            
-            // 3. Расчет итоговой цены
             const totalPrice = (currentStock.currentPrice * amount).toFixed(0);
-            const actionText = action === 'BUY' ? 'покупку' : 'продажу';
-            
-            // 4. Модальное окно подтверждения
-            const confirmed = await Modal.confirm(
-                "Подтверждение", 
-                `Вы уверены, что хотите совершить ${actionText} ${amount} акций ${ticker} за ${totalPrice} ⭐?`
-            );
+            const actName = action === 'BUY' ? 'покупку' : 'продажу';
 
-            if (!confirmed) return;
+            if (typeof Modal !== 'undefined') {
+                const ok = await Modal.confirm("Подтверждение", `Совершить ${actName} <b>${amount}</b> акций <b>${ticker}</b> за <b>${totalPrice}</b> ⭐?`);
+                if(!ok) return;
+            } else if(!confirm(`Совершить ${actName}?`)) return;
 
-            // 5. Отправка запроса
             try {
-                const res = await fetch('/api/trade', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ ticker, amount, action })
-                });
-                const result = await res.json();
-                
-                if (result.success) { 
-                    await Modal.alert("Успешно!", result.message, "success");
-                    location.reload(); 
-                } else { 
-                    Modal.alert("Ошибка", result.error, "error"); 
+                const res = await fetch('/api/trade', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ ticker, amount: parseInt(amount), action }) });
+                const data = await res.json();
+                if(data.success) {
+                    if(typeof Modal !== 'undefined') await Modal.alert("Успешно", data.message, "success");
+                    else alert(data.message);
+                    location.reload();
+                } else {
+                    if(typeof Modal !== 'undefined') Modal.alert("Ошибка", data.error, "error");
+                    else alert(data.error);
                 }
-            } catch (e) { 
-                console.error(e);
-                Modal.alert("Ошибка сети", "Не удалось соединиться с сервером.", "error"); 
-            }
+            } catch(e) { console.error(e); }
         }
 
-        // Выбор первой акции при загрузке
-        if (allStocks.length > 0) {
-            selectStock(allStocks[0].ticker, document.querySelector('.stock-item'));
+        function init3D() {
+            if (typeof THREE === 'undefined' || typeof THREE.GLTFLoader === 'undefined') {
+                setTimeout(init3D, 500); return; 
+            }
+            const container = document.getElementById('canvas-container');
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.z = 10;
+
+            const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            container.appendChild(renderer.domElement);
+
+            const ambientLight = new THREE.AmbientLight(0xffffff, 1.5);
+            scene.add(ambientLight);
+            const dirLight = new THREE.DirectionalLight(0xffd700, 3);
+            dirLight.position.set(5, 5, 7);
+            scene.add(dirLight);
+
+            const coins = [];
+            const loader = new THREE.GLTFLoader();
+            
+            loader.load('/assets/models/coin.glb', function (gltf) {
+                const originalCoin = gltf.scene;
+                const isMobile = window.innerWidth < 768;
+                const count = isMobile ? 8 : 20;
+
+                for (let i = 0; i < count; i++) {
+                    const coin = originalCoin.clone();
+                    const x = (Math.random() - 0.5) * 25;
+                    const y = (Math.random() - 0.5) * 15;
+                    const z = -Math.random() * 10;
+                    const scale = Math.random() * 1.0 + 0.5;
+                    
+                    coin.position.set(x, y, z);
+                    coin.scale.set(scale, scale, scale);
+                    coin.rotation.x = Math.PI / 2;
+                    coin.userData = {
+                        rotSpeedX: (Math.random() - 0.5) * 0.02,
+                        rotSpeedZ: (Math.random() - 0.5) * 0.03,
+                        floatOffset: Math.random() * Math.PI * 2
+                    };
+                    scene.add(coin);
+                    coins.push(coin);
+                }
+            }, undefined, (err) => console.log('3D Error (Ignore if no model):', err));
+
+            function animate() {
+                requestAnimationFrame(animate);
+                coins.forEach(coin => {
+                    coin.rotation.z += coin.userData.rotSpeedZ;
+                    coin.rotation.x += coin.userData.rotSpeedX;
+                    coin.position.y += Math.sin(Date.now() * 0.001 + coin.userData.floatOffset) * 0.002;
+                });
+                renderer.render(scene, camera);
+            }
+            animate();
+            
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
         }
     </script>
 </body>

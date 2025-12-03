@@ -65,10 +65,10 @@
                     <span>Фарм</span><strong style="color: #fff;">Активный</strong>
                 </div>
             </div>
-            <div class="glass-card card-float card-pos-4">
-               <div class="card-icon-box blue"><i class="fas fa-book"></i></div>
-               <div><span>Гайды</span><strong style="color: #fff;">Wiki</strong></div>
-            </div>
+            <a href="/wiki" class="glass-card card-float card-pos-4" style="text-decoration: none; cursor: pointer;">
+   <div class="card-icon-box blue"><i class="fas fa-book"></i></div>
+   <div><span>Гайды</span><strong style="color: #fff;">Wiki</strong></div>
+</a>
             <div class="glass-pill pill-float">
                 <div class="avatar-stack">
                     <img src="assets/img/avatars/1.png" alt="">
@@ -77,9 +77,10 @@
                 </div>
                 <span><%= stats.users %> Online</span>
             </div>
-            <div class="glass-toast toast-orbit">
-                <i class="fas fa-gift" style="color: #a020f0;"></i><span>Розыгрыш Robux</span>
-            </div>
+            <a href="/giveaways" class="glass-toast toast-orbit" style="text-decoration: none; cursor: pointer;">
+    <i class="fas fa-gift" style="color: #a020f0;"></i>
+    <span>Розыгрыш Robux</span>
+</a>
         </div>
     </section>
 
@@ -102,12 +103,22 @@
         </div>
         
         <div class="features-grid">
-            <div class="feature-box f-wiki" data-tilt data-tilt-glare data-tilt-max-glare="0.2" data-aos="zoom-in" data-aos-delay="100">
-                <div class="fb-bg"></div>
-                <div class="fb-icon"><i class="fas fa-book-open"></i></div>
-                <h3>База Знаний</h3>
-                <p>Гайды, билды и советы от профи. Узнай, как сделать той или иной улей</p>
-            </div>
+            <div class="feature-box f-wiki" 
+     onclick="window.location.href='/wiki'" 
+     style="cursor: pointer;"
+     data-tilt data-tilt-glare data-tilt-max-glare="0.2" 
+     data-aos="zoom-in" 
+     data-aos-delay="100">
+     
+    <div class="fb-bg"></div>
+    <div class="fb-icon"><i class="fas fa-book-open"></i></div>
+    <h3>База Знаний</h3>
+    <p>Гайды, билды и советы от профи. Узнай, как сделать той или иной улей</p>
+    
+    <div style="margin-top: 15px; color: var(--primary); font-weight: 700; font-size: 0.9rem;">
+        Читать <i class="fas fa-arrow-right"></i>
+    </div>
+</div>
 
             <div class="feature-box f-team" data-tilt data-tilt-glare data-tilt-max-glare="0.2" data-aos="zoom-in" data-aos-delay="200">
                 <div class="fb-bg"></div>
@@ -116,12 +127,20 @@
                 <p>Найди напарника для макро, фарма мёда или стикеров за пару минут.</p>
             </div>
 
-            <div class="feature-box f-event" data-tilt data-tilt-glare data-tilt-max-glare="0.2" data-aos="zoom-in" data-aos-delay="300">
-                <div class="fb-bg"></div>
-                <div class="fb-icon"><i class="fas fa-gift"></i></div>
-                <h3>Ивенты & Розыгрыши</h3>
-                <p>Регулярные раздачи Robux, ваучеров и редких предметов. Халява — это святое.</p>
-            </div>
+            <div class="feature-box f-event" 
+     onclick="window.location.href='/giveaways'" 
+     style="cursor: pointer;" 
+     data-tilt data-tilt-glare data-tilt-max-glare="0.2" 
+     data-aos="zoom-in" data-aos-delay="300">
+     
+    <div class="fb-bg"></div>
+    <div class="fb-icon"><i class="fas fa-gift"></i></div>
+    <h3>Ивенты & Розыгрыши</h3>
+    <p>Регулярные раздачи Robux, ваучеров и редких предметов. Халява — это святое.</p>
+    <div style="margin-top: 15px; font-size: 0.85rem; color: var(--primary); font-weight: 700;">
+        Перейти к раздачам <i class="fas fa-arrow-right"></i>
+    </div>
+</div>
 
             <div class="feature-box f-trade" data-tilt data-tilt-glare data-tilt-max-glare="0.2" data-aos="zoom-in" data-aos-delay="400">
                 <div class="fb-bg"></div>
@@ -368,24 +387,25 @@
 
     <%- include('partials/footer') %>
 
-    <script>
+<script nonce="<%= nonce %>">
         document.addEventListener('DOMContentLoaded', () => {
-        AOS.init({ 
-            once: true, 
-            offset: 100,
-            duration: 800 // Можно добавить плавности
-        });
-    });
-
-        function toggleFaq(element) {
-            // Закрываем другие открытые (Аккордеон эффект) - Опционально, если хочешь чтобы только один был открыт
-            const allFaqs = document.querySelectorAll('.faq-card');
-            allFaqs.forEach(el => {
-                if (el !== element) el.classList.remove('active');
+            AOS.init({ 
+                once: true, 
+                offset: 100,
+                duration: 800 
             });
 
-            element.classList.toggle('active');
-        }
+            const faqCards = document.querySelectorAll('.faq-card');
+            
+            faqCards.forEach(card => {
+                card.addEventListener('click', () => {
+                    faqCards.forEach(otherCard => {
+                        if (otherCard !== card) otherCard.classList.remove('active');
+                    });
+                    card.classList.toggle('active');
+                });
+            });
+        });
     </script>
     
 </body>

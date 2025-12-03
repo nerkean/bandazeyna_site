@@ -1,6 +1,3 @@
-/* public/css/leaderboard.css */
-
-/* --- GENERAL --- */
 .lb-wrapper {
     max-width: 1000px;
     margin: 0 auto;
@@ -12,7 +9,6 @@
 .lb-header h1 { font-size: 3.5rem; font-weight: 900; color: #fff; margin-bottom: 10px; letter-spacing: -1px; }
 .lb-header p { color: #9ca3af; font-size: 1.1rem; }
 
-/* --- FILTERS --- */
 .filters-container {
     margin-top: 40px;
     display: flex;
@@ -48,7 +44,6 @@
     box-shadow: 0 4px 15px rgba(88, 101, 242, 0.4);
 }
 
-/* Time Selector */
 .time-selector {
     display: flex; gap: 5px;
     background: rgba(255,255,255,0.03);
@@ -67,15 +62,14 @@
 .time-selector a:hover { color: #fff; }
 .time-selector a.selected { background: #fff; color: #000; }
 
-/* --- PODIUM (TOP 3) --- */
 .podium-stage {
     display: flex;
     justify-content: center;
     align-items: flex-end;
     gap: 15px;
-    margin-top: 100px; /* Больше отступа сверху */
+    margin-top: 100px;
     margin-bottom: 60px;
-    height: 350px; /* Фикс высоты для колонок */
+    height: 350px;
 }
 
 .my-rank-bar {
@@ -120,11 +114,10 @@
     to { transform: translateX(-50%) translateY(0); opacity: 1; }
 }
 
-/* Адаптив для бара */
 @media (max-width: 600px) {
     .my-rank-bar {
         bottom: 10px;
-        border-radius: 15px; /* Менее круглый на мобилках */
+        border-radius: 15px;
         width: 95%;
     }
 }
@@ -136,7 +129,6 @@
 }
 .podium-column:hover { transform: translateY(-10px); }
 
-/* Аватарки */
 .avatar-box {
     position: relative;
     margin-bottom: 15px;
@@ -161,7 +153,6 @@
 .u-val { font-family: 'JetBrains Mono', monospace; color: #ccc; font-size: 0.9rem; margin-bottom: 15px; }
 .u-val small { font-size: 0.7rem; color: #666; }
 
-/* Столбики (Pillars) */
 .pillar {
     width: 100%;
     border-radius: 15px 15px 0 0;
@@ -169,14 +160,13 @@
     border-top: 4px solid;
     position: relative;
 }
-/* Подсветка под столбиками */
+
 .pillar::after {
     content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100px;
     background: linear-gradient(180deg, var(--glow-color) 0%, transparent 100%);
     opacity: 0.2; pointer-events: none;
 }
 
-/* Цвета мест */
 .gold { --glow-color: #ffd700; z-index: 2; }
 .gold .avatar-box img { border-color: #ffd700; width: 100px; height: 100px; }
 .gold .rank-badge { background: #ffd700; color: #000; border-color: #ffd700; }
@@ -193,7 +183,6 @@
 .bronze .rank-badge { border-color: #cd7f32; }
 .bronze .pillar { height: 70px; border-top-color: #cd7f32; }
 
-/* --- LIST (CARDS) --- */
 .lb-list { display: flex; flex-direction: column; gap: 10px; }
 
 .lb-card {
@@ -212,7 +201,6 @@
     box-shadow: 0 5px 20px rgba(0,0,0,0.3);
 }
 
-/* Подсветка себя */
 .lb-card.me {
     background: rgba(88, 101, 242, 0.1);
     border-color: var(--primary);
@@ -227,7 +215,7 @@
     display: flex; align-items: center; gap: 15px; flex: 1;
 }
 .lb-user img {
-    width: 45px; height: 45px; border-radius: 12px; /* Квадрокруг для списка */
+    width: 45px; height: 45px; border-radius: 12px;
     object-fit: cover;
 }
 
@@ -241,23 +229,20 @@
 .lb-stat strong { font-size: 1.2rem; color: #fff; font-family: 'JetBrains Mono', monospace; }
 .lb-stat span { font-size: 0.8rem; color: #666; margin-left: 5px; }
 
-/* --- PAGINATION --- */
 .pagination {
-    display: inline-flex; /* Чтобы фон облегал кнопки */
+    display: inline-flex;
     justify-content: center;
     align-items: center;
     gap: 10px;
     margin-top: 60px;
     padding: 12px 25px;
     
-    /* Стеклянная капсула */
     background: rgba(21, 23, 30, 0.8);
     backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 50px;
     box-shadow: 0 10px 30px rgba(0,0,0,0.3);
     
-    /* Центрирование самого блока */
     position: relative;
     left: 50%;
     transform: translateX(-50%);
@@ -266,7 +251,7 @@
 .page-btn, .page-num {
     width: 42px; height: 42px;
     display: flex; justify-content: center; align-items: center;
-    border-radius: 50%; /* Круглые кнопки */
+    border-radius: 50%;
     background: transparent;
     color: #9ca3af;
     font-weight: 700;
@@ -275,7 +260,7 @@
     transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
     cursor: pointer;
     border: 1px solid transparent;
-    text-decoration: none; /* Убираем подчеркивание ссылок */
+    text-decoration: none;
 }
 .page-btn:hover, .page-num:hover {
     background: rgba(255, 255, 255, 0.1);
@@ -285,11 +270,10 @@
     box-shadow: 0 5px 15px rgba(0,0,0,0.2);
 }
 
-/* Активная страница (Неон) */
 .page-num.active {
     background: var(--primary);
     color: #fff;
-    box-shadow: 0 0 15px rgba(88, 101, 242, 0.5); /* Свечение */
+    box-shadow: 0 0 15px rgba(88, 101, 242, 0.5);
     border-color: var(--primary);
     transform: scale(1.1);
 }
@@ -299,7 +283,6 @@
     font-size: 1rem;
 }
 
-/* Точки (...) */
 .dots {
     color: #666;
     font-weight: 900;
@@ -307,7 +290,6 @@
     padding: 0 5px;
 }
 
-/* Адаптив */
 @media (max-width: 600px) {
     .pagination {
         width: 100%;
@@ -321,39 +303,31 @@
     }
 }
 
-/* --- RESPONSIVE --- */
 @media (max-width: 768px) {
     .lb-header h1 { font-size: 2.5rem; }
     
     .podium-stage { align-items: center; height: auto; flex-direction: column; gap: 30px; }
     .podium-column { width: 100%; flex-direction: row; padding: 15px; background: #12141a; border-radius: 16px; justify-content: space-between; }
-    .pillar { display: none; } /* Убираем столбики на мобиле */
+    .pillar { display: none; }
     .crown-float { display: none; }
     .avatar-box { margin: 0; }
     .avatar-box img { width: 50px; height: 50px; }
     .u-name { margin: 0 0 0 15px; flex: 1; text-align: left; }
     .u-val { margin: 0; }
     
-    /* Порядок: 1 место сверху */
     .podium-column.gold { order: -1; border: 1px solid #ffd700; background: rgba(255, 215, 0, 0.05); }
 }
 
 @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
 
-/* =========================================
-   MOBILE RESPONSIVE PATCH (LEADERBOARD)
-   Добавить в конец public/css/leaderboard.css
-   ========================================= */
-
 @media (max-width: 768px) {
     
     .lb-wrapper {
-        padding-top: 120px; /* Отступ под шапку */
+        padding-top: 120px;
         padding-left: 15px;
         padding-right: 15px;
     }
 
-    /* --- HEADER & FILTERS --- */
     .lb-header h1 {
         font-size: 2.5rem;
         text-align: center;
@@ -363,28 +337,25 @@
         text-align: center;
     }
 
-    /* Горизонтальный скролл для фильтров (чтобы влезали) */
     .filter-tabs {
         display: flex;
         flex-wrap: nowrap;
         overflow-x: auto;
         gap: 10px;
-        padding-bottom: 10px; /* Место под скроллбар */
+        padding-bottom: 10px;
         -webkit-overflow-scrolling: touch;
-        justify-content: flex-start; /* Выравнивание по левому краю */
+        justify-content: flex-start;
     }
     
-    /* Скрываем текст на маленьких экранах, оставляем иконки (опционально) */
     .tab-text {
         display: none;
     }
     
     .tab-btn {
         padding: 10px 15px;
-        flex-shrink: 0; /* Чтобы не сжимались */
+        flex-shrink: 0;
     }
     
-    /* --- TIME SELECTOR --- */
     .time-selector {
         width: 100%;
         justify-content: space-between;
@@ -400,25 +371,21 @@
         padding: 8px 0;
     }
 
-    /* --- PODIUM (ТОП 3) --- */
     .podium-stage {
         align-items: flex-end;
-        gap: 10px; /* Меньше зазоры */
+        gap: 10px;
         margin-bottom: 40px;
     }
 
-    /* Столбики */
     .podium-column {
-        min-width: 90px; /* Уменьшаем ширину */
+        min-width: 90px;
     }
 
-    /* Аватарки в топе */
     .podium-column .avatar-box img {
         width: 60px !important;
         height: 60px !important;
     }
     
-    /* Золотой (Топ 1) чуть больше */
     .podium-column.gold .avatar-box img {
         width: 80px !important;
         height: 80px !important;
@@ -426,7 +393,7 @@
 
     .u-name {
         font-size: 0.85rem;
-        max-width: 80px; /* Обрезаем длинные ники */
+        max-width: 80px;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -436,7 +403,6 @@
         font-size: 0.8rem;
     }
 
-    /* --- LIST ITEMS --- */
     .lb-card {
         padding: 15px;
         gap: 15px;
@@ -454,7 +420,7 @@
 
     .lb-info .name {
         font-size: 0.95rem;
-        max-width: 120px; /* Ограничение длины ника на мобилке */
+        max-width: 120px;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
@@ -472,10 +438,9 @@
     }
     
     .lb-stat span {
-        display: none; /* Скрываем слово "XP/Stars" на мобилке для экономии места */
+        display: none;
     }
 
-    /* --- MY RANK BAR --- */
     .my-rank-bar {
         bottom: 20px;
         width: 90%;
@@ -483,29 +448,24 @@
     }
 }
 
-/* --- МОБИЛЬНЫЙ ФИКС MY RANK BAR --- */
 @media (max-width: 768px) {
     .my-rank-bar {
-        /* Позиционирование */
         position: fixed;
-        bottom: 20px; /* Отступ от низа экрана */
+        bottom: 20px;
         left: 50%;
         transform: translateX(-50%);
         
-        /* Размеры */
-        width: 92%; /* Чуть меньше ширины экрана (отступы по бокам) */
-        max-width: none; /* Убираем ограничение десктопа */
+        width: 92%;
+        max-width: none;
         padding: 12px 20px;
         
-        /* Стили */
-        border-radius: 16px; /* Менее круглые углы (как остров) */
-        background: rgba(88, 101, 242, 0.95); /* Меньше прозрачности для читаемости */
+        border-radius: 16px;
+        background: rgba(88, 101, 242, 0.95);
         backdrop-filter: blur(12px);
         box-shadow: 0 5px 20px rgba(0,0,0,0.4);
-        z-index: 9999; /* Чтобы точно была поверх всего */
+        z-index: 9999;
     }
 
-    /* Контент внутри плашки */
     .mrb-content {
         display: flex;
         align-items: center;
@@ -519,23 +479,21 @@
     
     .mrb-rank span {
         font-size: 1.1rem;
-        color: #fff; /* Желтый может сливаться, белый надежнее */
+        color: #fff;
         font-weight: 800;
     }
 
     .mrb-val {
         font-size: 1rem;
-        background: rgba(0,0,0,0.2); /* Подложка под цифры */
+        background: rgba(0,0,0,0.2);
         padding: 4px 10px;
         border-radius: 8px;
     }
     
-    /* Убираем подпись (xp/stars) если мало места */
     .mrb-val small {
         display: none; 
     }
     
-    /* Добавляем отступ снизу страницы, чтобы плашка не перекрывала последний элемент списка */
     .lb-wrapper {
         padding-bottom: 100px;
     }
@@ -545,12 +503,10 @@
     color: #9ca3af !important; 
 }
 
-/* На всякий случай улучшаем читаемость текста в карточке */
 .lb-info .title {
-    color: #fbbf24 !important; /* Более яркий золотой */
+    color: #fbbf24 !important;
 }
 
-/* Класс для скрытия заголовков (нужен для решения проблемы 3) */
 .visually-hidden {
     position: absolute;
     width: 1px;

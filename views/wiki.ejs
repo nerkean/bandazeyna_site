@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <%- include('partials/head') %>
+
+        <link rel="stylesheet" href="/css/wiki.css">
+</head>
+<body>
+    <%- include('partials/navbar') %>
+
+    <div class="wiki-hero">
+        <h1 class="wiki-h1">База Знаний</h1>
+        <form action="/wiki" method="GET" class="search-box">
+            <input type="text" name="q" class="search-input" placeholder="Поиск..." value="<%= searchQuery || '' %>">
+            <button type="submit" class="search-btn"><i class="fas fa-search"></i></button>
+        </form>
+    </div>
+
+    <div class="wiki-container">
+        
+        <% const cats = [
+            { id: 'guides', name: 'Гайды и Советы', icon: 'fas fa-book-open' },
+            { id: 'items', name: 'Предметы', icon: 'fas fa-cube' },
+            { id: 'bees', name: 'Пчелы', icon: 'fas fa-bug' },
+            { id: 'mechanics', name: 'Механики', icon: 'fas fa-cogs' },
+            { id: 'server', name: 'О Сервере', icon: 'fas fa-info-circle' }
+        ]; %>
+
+        <% cats.forEach(cat => { %>
+            <% if (categories[cat.id] && categories[cat.id].length > 0) { %>
+                <div class="cat-section">
+                    <h2 class="cat-title"><i class="<%= cat.icon %>"></i> <%= cat.name %></h2>
+                    <div class="articles-grid">
+                        <% categories[cat.id].forEach(art => { %>
+                            <a href="/wiki/<%= art.slug %>" class="art-card">
+                                <div class="art-icon"><i class="<%= art.icon %>"></i></div>
+                                <div class="art-title"><%= art.title %></div>
+                                <div class="art-desc"><%= art.description %></div>
+                                <div class="art-meta">
+                                    <span><i class="far fa-eye"></i> <%= art.views %></span>
+                                    <span><i class="far fa-calendar"></i> <%= new Date(art.createdAt).toLocaleDateString() %></span>
+                                </div>
+                            </a>
+                        <% }) %>
+                    </div>
+                </div>
+            <% } %>
+        <% }); %>
+
+        <% if (Object.values(categories).flat().length === 0) { %>
+            <div style="text-align: center; color: #666; padding: 50px;">
+                <i class="fas fa-search" style="font-size: 3rem; margin-bottom: 20px;"></i>
+                <h3>Ничего не найдено</h3>
+            </div>
+        <% } %>
+
+    </div>
+
+    <%- include('partials/footer') %>
+</body>
+</html>

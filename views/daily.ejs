@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <%- include('partials/head', { title: 'Ежедневные награды' }) %>
+    
+    <link rel="preload" href="/css/daily.css" as="style">
+    <link rel="stylesheet" href="/css/daily.css">
+</head>
+<body>
+    <%- include('partials/navbar') %>
+
+    <canvas id="confetti-canvas"></canvas>
+
+    <div class="daily-wrapper">
+        
+        <header class="d-header">
+            <h1>Ежедневные Награды</h1>
+            <p>Заходи каждый день, чтобы не потерять серию!</p>
+        </header>
+
+        <div class="streak-badge">
+            <span class="s-fire">🔥</span>
+            <span class="s-text">Серия: <span><%= streak %></span> дней</span>
+        </div>
+
+        <div class="rewards-track" role="list">
+            <% rewards.forEach(r => { %>
+                <% 
+                    let statusClass = '';
+                    if (r.day < currentDay) {
+                        statusClass = 'claimed'; 
+                    } else if (r.day === currentDay) {
+                        statusClass = canClaim ? 'active' : 'claimed'; 
+                    } else {
+                        statusClass = 'locked';
+                    }
+
+                    if (r.day === 7) statusClass += ' day-7';
+                %>
+
+                <div class="r-card <%= statusClass %>" role="listitem" aria-label="День <%= r.day %>: <%= r.description %>">
+                    <div class="r-day">День <%= r.day %></div>
+                    <div class="r-icon"><%= r.emoji %></div>
+                    <div class="r-val"><%= r.description %></div>
+                </div>
+            <% }) %>
+        </div>
+
+        <div class="action-area">
+            <% if (canClaim) { %>
+                <button class="btn-claim" onclick="claimReward(this)" aria-label="Забрать награду">
+                    ЗАБРАТЬ НАГРАДУ
+                </button>
+            <% } else { %>
+                <button class="btn-claim" disabled aria-label="Награда недоступна">
+                    ВЕРНИСЬ ПОЗЖЕ
+                </button>
+                <div class="timer-box">
+                    До следующей награды: <span id="countdown">--:--:--</span>
+                </div>
+            <% } %>
+        </div>
+
+    </div>
+
+    <%- include('partials/footer') %>
+
+    <script nonce="<%= nonce %>" src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js" defer></script>
+
+    <script nonce="<%= nonce %>">
+        const nextTime = <%- JSON.stringify(nextClaimTime) %>;
+        
+        if (nextTime) {
+            const timerEl = document.getElementById('countdown');
+            
+            function updateTimer() {
+                const now = new Date().getTime();
+                const diff = nextTime - now;
+
+                if (diff <= 0) {
+                    location.reload(); 
+                    return;
+                }
+
+                const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                const s = Math.floor((diff % (1000 * 60)) / 1000);
+                
+                if (timerEl) timerEl.innerText = `${h}ч ${m}м ${s}с`;
+            }
+
+            updateTimer();
+            setInterval(updateTimer, 1000);
+        }
+
+        async function claimReward(btn) {
+            if(btn.disabled) return;
+            const originalText = btn.innerText;
+            
+            btn.disabled = true;
+            btn.innerText = "ОБРАБОТКА...";
+
+            try {
+                const res = await fetch('/api/daily/claim', { method: 'POST' });
+                const data = await res.json();
+
+                if (data.success) {
+                    if (typeof confetti === 'function') {
+                        var myCanvas = document.getElementById('confetti-canvas');
+                        var myConfetti = confetti.create(myCanvas, { resize: true });
+                        myConfetti({
+                            particleCount: 150,
+                            spread: 70,
+                            origin: { y: 0.6 },
+                            colors: ['#5865F2', '#FFD700', '#FF005C']
+                        });
+                    }
+
+                    if (typeof Modal !== 'undefined') {
+                        await Modal.alert("Награда получена!", data.message, "success");
+                    } else {
+                        alert(data.message);
+                    }
+                    
+                    location.reload();
+                } else {
+                    if (typeof Modal !== 'undefined') Modal.alert("Ошибка", data.error, "error");
+                    else alert(data.error);
+                    
+                    btn.disabled = false;
+                    btn.innerText = originalText;
+                }
+            } catch (e) {
+                console.error(e);
+                btn.disabled = false;
+                btn.innerText = originalText;
+            }
+        }
+    </script>
+</body>
+</html>

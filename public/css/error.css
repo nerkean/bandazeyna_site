@@ -1,5 +1,3 @@
-/* public/css/error.css - MOBILE OPTIMIZED */
-
 body {
     background-color: #050608;
     overflow-x: hidden;
@@ -7,7 +5,6 @@ body {
     margin: 0;
 }
 
-/* --- ЖИВОЙ ФОН --- */
 .cyber-bg {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     z-index: 0; pointer-events: none;
@@ -29,7 +26,6 @@ body {
     opacity: 0.4;
 }
 
-/* Летающие соты */
 .floating-hex {
     position: absolute;
     background: rgba(88, 101, 242, 0.1);
@@ -42,11 +38,10 @@ body {
 .hex-2 { width: 60px; height: 70px; bottom: 20%; right: 15%; animation-delay: 2s; border-color: #A020F0; background: rgba(160, 32, 240, 0.1); }
 .hex-3 { width: 150px; height: 170px; top: 60%; left: 5%; animation-delay: 5s; opacity: 0.5; }
 
-/* --- КОНТЕНТ --- */
 .error-wrapper {
     position: relative; z-index: 2;
     display: flex; align-items: center; justify-content: center;
-    padding-top: 80px; /* Отступ под навбар */
+    padding-top: 80px; 
     padding-bottom: 40px;
 }
 
@@ -59,10 +54,8 @@ body {
     text-align: center;
     box-shadow: 0 20px 80px rgba(0,0,0,0.5);
     max-width: 600px; width: 90%;
-    /* Убран transform-style для оптимизации */
 }
 
-/* Глитч Текст */
 .glitch-wrapper { margin-bottom: 20px; position: relative; }
 
 .glitch {
@@ -81,7 +74,6 @@ body {
 
 .error-desc { color: #9ca3af; margin-bottom: 30px; font-size: 1rem; line-height: 1.6; }
 
-/* --- ИГРА --- */
 .game-border {
     padding: 5px;
     background: linear-gradient(135deg, #5865F2, #A020F0);
@@ -100,7 +92,6 @@ body {
 
 canvas { display: block; width: 100%; height: 100%; }
 
-/* Оверлей игры */
 .game-overlay {
     position: absolute; top: 0; left: 0; width: 100%; height: 100%;
     background: rgba(0,0,0,0.85);
@@ -125,14 +116,12 @@ canvas { display: block; width: 100%; height: 100%; }
 
 .game-overlay p { margin-top: 15px; font-size: 0.8rem; color: #666; }
 
-/* Счет */
 .score-board {
     position: absolute; top: 15px; right: 20px;
     font-size: 2.5rem; font-weight: 900; color: rgba(255,255,255,0.1);
     font-family: 'JetBrains Mono', monospace; z-index: 5;
 }
 
-/* Кнопки действий */
 .error-actions {
     display: flex; justify-content: center;
 }
@@ -151,7 +140,6 @@ canvas { display: block; width: 100%; height: 100%; }
     transform: translateY(-3px);
 }
 
-/* --- АНИМАЦИИ --- */
 @keyframes rotateBg { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 @keyframes floatHex { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-20px) rotate(10deg); } }
 @keyframes glitchShake {
@@ -165,25 +153,21 @@ canvas { display: block; width: 100%; height: 100%; }
 }
 @keyframes pulseIcon { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.2); opacity: 0.7; } 100% { transform: scale(1); opacity: 1; } }
 
-/* --- МОБИЛЬНАЯ ВЕРСИЯ --- */
 @media (max-width: 768px) {
-    /* Враппер */
     .error-wrapper {
-        padding: 100px 15px 40px; /* Больше отступ сверху для навбара */
-        display: block; /* Чтобы скролл работал корректно */
+        padding: 100px 15px 40px; 
+        display: block; 
         height: auto;
     }
 
-    /* Карточка */
     .error-card {
         padding: 30px 20px;
         width: 100%;
         margin: 0 auto;
     }
 
-    /* Тексты */
     .glitch { 
-        font-size: 5rem; /* Уменьшаем 404 */
+        font-size: 5rem; 
         letter-spacing: 5px;
     }
     
@@ -197,22 +181,18 @@ canvas { display: block; width: 100%; height: 100%; }
         margin-bottom: 20px;
     }
 
-    /* Игра */
     .game-container {
-        height: 240px; /* Компактнее */
+        height: 240px; 
     }
     
     .play-icon-pulse { font-size: 2.5rem; margin-bottom: 15px; }
     .play-btn { padding: 10px 25px; font-size: 0.9rem; }
 
-    /* Подсказки управления */
     .pc-hint { display: none; }
     .mobile-hint { display: block !important; color: #00f3ff; font-weight: 600; margin-top: 10px; }
 
-    /* Кнопка "Домой" во всю ширину */
     .error-actions { width: 100%; }
     .btn-home { width: 100%; }
 
-    /* Убираем лишние эффекты для производительности */
     .floating-hex { display: none; } 
 }

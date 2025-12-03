@@ -1,7 +1,3 @@
-/* --- 1. VARIABLES & FONTS --- */
-
-
-/* --- 4. HERO SECTION --- */
 .hero-section {
     min-height: 100vh; position: relative; display: flex; align-items: center;
     justify-content: space-between; padding: 0 10%;
@@ -41,8 +37,16 @@
     flex-wrap: wrap; 
 }
 
-/* Общие стили для кнопок Hero */
-/* Используем более специфичный селектор, чтобы перебить класс .big */
+.f-col h2 {
+    color: #fff;
+    font-size: 1.1rem;
+    margin-bottom: 25px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 700;
+    font-family: 'Montserrat', sans-serif;
+}
+
 .hero-section .hero-buttons a.btn-discord,
 .hero-section .hero-buttons a.btn-secondary {
     display: flex;
@@ -50,9 +54,9 @@
     justify-content: center;
     gap: 12px;
     
-    height: 64px; /* Фиксируем высоту, чтобы были одинаковыми */
-    padding: 0 40px; /* Отступы только по бокам */
-    min-width: 260px; /* Ширина */
+    height: 64px;
+    padding: 0 40px;
+    min-width: 260px;
     
     border-radius: 16px;
     font-size: 1.1rem;
@@ -60,12 +64,11 @@
     text-transform: uppercase;
     letter-spacing: 1px;
     text-decoration: none;
-    box-sizing: border-box; /* Чтобы border не ломал высоту */
+    box-sizing: border-box;
     
     transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
-/* Discord Button */
 .btn-discord {
     background: #5865F2;
     color: #fff;
@@ -79,7 +82,6 @@
     box-shadow: 0 20px 50px rgba(88, 101, 242, 0.6);
 }
 
-/* Market Button */
 .btn-secondary {
     background: rgba(255, 255, 255, 0.05);
     color: #fff;
@@ -93,7 +95,6 @@
     transform: translateY(-5px);
 }
 
-/* Мобильный адаптив */
 @media (max-width: 768px) {
     .hero-buttons {
         flex-direction: column;
@@ -107,7 +108,6 @@
 
 .big { padding: 1.1rem 2.5rem; font-size: 1rem; }
 
-/* --- 5. HERO VISUAL --- */
 .hero-visual {
     position: relative; width: 600px; height: 600px;
     transform-style: preserve-3d; transform: rotateX(10deg) rotateY(-10deg);
@@ -167,13 +167,11 @@
 .card-icon-box.purple { background: rgba(160, 32, 240, 0.15); color: #a020f0; }
 .card-icon-box.blue { background: rgba(88, 101, 242, 0.15); color: #5865F2; }
 
-/* public/css/style.css */
-
 .glass-pill {
     position: absolute;
     top: 4%; 
     left: 30%; 
-    transform: translateX(-50%); /* Сдвигаем ровно по центру по горизонтали */
+    transform: translateX(-50%);
     
     background: rgba(15, 17, 21, 0.7); 
     backdrop-filter: blur(12px);
@@ -183,9 +181,9 @@
     display: flex; 
     align-items: center; 
     gap: 12px;
-    z-index: 5; /* Поднимем z-index, чтобы точно была поверх */
+    z-index: 5;
     animation: floatVertical 8s ease-in-out infinite;
-    white-space: nowrap; /* Чтобы текст не переносился */
+    white-space: nowrap;
 }
 .glass-pill span { font-weight: 700; font-size: 0.9rem; color: #fff; font-family: 'Montserrat', sans-serif; }
 .avatar-stack { display: flex; padding-left: 10px; }
@@ -215,7 +213,6 @@
 @keyframes spinRing { from { transform: translate(-50%, -50%) rotate(0deg); } to { transform: translate(-50%, -50%) rotate(360deg); } }
 @keyframes pulseGlow { 0% { opacity: 0.3; transform: translate(-50%, -50%) scale(0.95); } 100% { opacity: 0.6; transform: translate(-50%, -50%) scale(1.05); } }
 
-/* --- 6. FEATURES & TICKER --- */
 .ticker-wrap {
     background: #0b0c10; border-bottom: 1px solid rgba(255,255,255,0.05); padding: 12px 0;
     white-space: nowrap; overflow: hidden;
@@ -228,12 +225,10 @@
 .ticker-item b { color: #fff; font-weight: 800; }
 @keyframes ticker { 0% { transform: translateX(0); } 100% { transform: translateX(-100%); } }
 
-/* --- FEATURES SECTION (FUN MODE) --- */
 .features-section { 
     padding: 100px 10%; 
     background: #0b0c10; 
     position: relative;
-    /* Легкий паттерн на фоне */
     background-image: radial-gradient(#1a1a2e 15%, transparent 16%), radial-gradient(#1a1a2e 15%, transparent 16%);
     background-size: 60px 60px;
     background-position: 0 0, 30px 30px;
@@ -249,16 +244,15 @@
     gap: 30px; 
 }
 
-/* Сама карточка */
 .feature-box {
     position: relative;
-    background: rgba(20, 22, 28, 0.8); /* Полупрозрачная подложка */
+    background: rgba(20, 22, 28, 0.8);
     backdrop-filter: blur(10px);
     padding: 40px 30px; 
     border-radius: 24px;
     border: 1px solid rgba(255,255,255,0.05); 
     overflow: hidden;
-    transform-style: preserve-3d; /* Важно для Tilt.js */
+    transform-style: preserve-3d;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -266,7 +260,6 @@
     transition: border-color 0.3s, box-shadow 0.3s;
 }
 
-/* Эффект прожектора (внутреннее свечение) */
 .fb-bg {
     position: absolute;
     top: -50%; left: -50%; width: 200%; height: 200%;
@@ -282,10 +275,9 @@
 .feature-box:hover {
     border-color: var(--card-color);
     box-shadow: 0 10px 40px -10px var(--card-color-dim);
-    transform: translateY(-5px); /* Небольшой подъем */
+    transform: translateY(-5px);
 }
 
-/* Иконка */
 .fb-icon {
     position: relative; z-index: 2;
     width: 70px; height: 70px; 
@@ -300,14 +292,13 @@
 }
 
 .feature-box:hover .fb-icon {
-    transform: scale(1.1) rotate(5deg); /* "Прыжок" иконки */
+    transform: scale(1.1) rotate(5deg);
     background: var(--card-color);
-    color: #000; /* Иконка становится черной на цветном фоне */
+    color: #000;
     box-shadow: 0 0 30px var(--card-color);
     border-color: transparent;
 }
 
-/* Тексты */
 .feature-box h3 { 
     position: relative; z-index: 2;
     color: #fff; font-size: 1.4rem; margin-bottom: 15px; font-weight: 800;
@@ -317,25 +308,23 @@
     color: #9ca3af; font-size: 0.95rem; line-height: 1.6; 
 }
 
-/* --- ЦВЕТОВЫЕ ТЕМЫ (НЕОН) --- */
 .f-wiki { 
-    --card-color: #FFD700; /* Золото */
+    --card-color: #FFD700;
     --card-color-dim: rgba(255, 215, 0, 0.3);
 }
 .f-team { 
-    --card-color: #00f3ff; /* Неон-голубой */
+    --card-color: #00f3ff;
     --card-color-dim: rgba(0, 243, 255, 0.3);
 }
 .f-event { 
-    --card-color: #bc13fe; /* Фиолетовый */
+    --card-color: #bc13fe;
     --card-color-dim: rgba(188, 19, 254, 0.3);
 }
 .f-trade { 
-    --card-color: #2ecc71; /* Зеленый */
+    --card-color: #2ecc71;
     --card-color-dim: rgba(46, 204, 113, 0.3);
 }
 
-/* --- 7. STEPS SECTION (WINDOW MODE) --- */
 .steps-section {
     padding: 100px 10%;
     background: #0b0c10;
@@ -352,7 +341,6 @@
     z-index: 2;
 }
 
-/* Карточка шага */
 .step-card {
     flex: 1;
     min-width: 280px;
@@ -366,7 +354,6 @@
     transform: translateY(-10px);
 }
 
-/* Окно с видео/гифкой */
 .step-window {
     background: #15171e;
     border-radius: 12px;
@@ -376,7 +363,6 @@
     position: relative;
 }
 
-/* Заголовок окна (Mac style) */
 .win-bar {
     background: #1e2129;
     padding: 8px 12px;
@@ -395,9 +381,9 @@
     border-radius: 50%;
     background: #555;
 }
-.win-dots span:nth-child(1) { background: #ff5f56; } /* Red */
-.win-dots span:nth-child(2) { background: #ffbd2e; } /* Yellow */
-.win-dots span:nth-child(3) { background: #27c93f; } /* Green */
+.win-dots span:nth-child(1) { background: #ff5f56; }
+.win-dots span:nth-child(2) { background: #ffbd2e; }
+.win-dots span:nth-child(3) { background: #27c93f; }
 
 .win-title {
     margin-left: auto;
@@ -407,7 +393,6 @@
     color: #666;
 }
 
-/* Экран с контентом */
 .win-screen {
     position: relative;
     height: 160px;
@@ -415,7 +400,6 @@
     overflow: hidden;
 }
 
-/* Экран с контентом */
 .win-screen {
     position: relative;
     height: 160px;
@@ -423,23 +407,20 @@
     overflow: hidden;
 }
 
-/* Стили для видео */
 .step-video {
     width: 100%;
     height: 100%;
-    object-fit: cover; /* Видео заполнит блок, обрезав лишнее по краям */
-    opacity: 0.85;     /* Чуть приглушаем яркость, чтобы было стильнее */
-    filter: contrast(1.1) saturate(1.2); /* Чуть добавим сочности */
+    object-fit: cover;
+    opacity: 0.85;
+    filter: contrast(1.1) saturate(1.2);
     transition: 0.4s ease;
 }
 
-/* При наведении видео становится ярким и чуть зумится */
 .step-card:hover .step-video {
     opacity: 1;
     transform: scale(1.05);
 }
 
-/* Эффект сканлайна (полоса сканера) */
 .scanline {
     position: absolute;
     top: 0; left: 0;
@@ -450,7 +431,6 @@
     z-index: 2;
 }
 
-/* Информация под окном */
 .step-info {
     text-align: center;
     position: relative;
@@ -491,14 +471,12 @@
     font-family: monospace;
 }
 
-/* Стрелочки между шагами */
 .step-connector {
     font-size: 1.5rem;
     color: rgba(255,255,255,0.1);
     animation: pulse 2s infinite;
 }
 
-/* Адаптив для шагов */
 @media (max-width: 900px) {
     .steps-grid {
         flex-direction: column;
@@ -512,8 +490,6 @@
     }
 }
 
-/* --- 8. RANKS SECTION --- */
-/* --- 8. LIFE SECTION (VIBE GALLERY) --- */
 .section-life {
     padding: 100px 10%;
     background: #08090c;
@@ -525,27 +501,24 @@
     position: absolute;
     top: 50%; left: 50%;
     transform: translate(-50%, -50%);
-    /* Убираем стили текста отсюда, они пойдут в ::after */
     pointer-events: none;
     z-index: 0;
-    width: 100%; /* Растягиваем контейнер */
+    width: 100%;
     text-align: center;
 }
 
-/* Рисуем текст через псевдо-элемент (Lighthouse это игнорирует) */
 .life-bg-text::after {
-    content: 'ВАЙБ'; /* <-- Текст теперь здесь */
+    content: 'ВАЙБ';
     font-family: 'Montserrat', sans-serif;
     font-size: 15rem;
     font-weight: 900;
-    color: rgba(255, 255, 255, 0.02); /* Тот же прозрачный цвет */
+    color: rgba(255, 255, 255, 0.02);
     white-space: nowrap;
 }
 
-/* Адаптив для мобильных (чтобы не рвало экран) */
 @media (max-width: 900px) {
     .life-bg-text::after {
-        font-size: 6rem; /* Уменьшаем на телефонах */
+        font-size: 6rem;
     }
 }
 
@@ -559,7 +532,6 @@
     margin-top: 50px;
 }
 
-/* Карточка жизни */
 .life-card {
     width: 350px;
     background: #12141a;
@@ -577,7 +549,6 @@
     border-color: rgba(255,255,255,0.1);
 }
 
-/* Верхняя часть с "Картинкой" (CSS Арт) */
 .lc-image {
     height: 200px;
     position: relative;
@@ -591,8 +562,8 @@
     font-size: 4rem;
     color: #fff;
     position: relative;
-    z-index: 10; /* Поднимаем иконку на самый верх */
-    filter: drop-shadow(0 10px 20px rgba(0,0,0,0.5)); /* Тень, чтобы отделить от фона */
+    z-index: 10;
+    filter: drop-shadow(0 10px 20px rgba(0,0,0,0.5));
     transition: 0.4s;
 }
 
@@ -600,7 +571,6 @@
     transform: scale(1.2) rotate(-5deg);
 }
 
-/* Контент снизу */
 .lc-content {
     padding: 25px;
     background: #12141a;
@@ -631,9 +601,6 @@
     font-weight: 700;
 }
 
-/* --- СТИЛИ ДЛЯ РАЗНЫХ КАРТОЧЕК --- */
-
-/* 1. RAID (ICE/BLUE) */
 .card-raid .lc-image {
     background: linear-gradient(135deg, #2980b9, #6dd5fa);
 }
@@ -644,7 +611,6 @@
     opacity: 0.5;
 }
 
-/* 2. CHILL (PURPLE/MUSIC) */
 .card-chill .lc-image {
     background: linear-gradient(135deg, #8e2de2, #4a00e0);
 }
@@ -653,42 +619,39 @@
     position: absolute; 
     top: 50%; 
     left: 50%; 
-    transform: translate(-50%, -50%); /* Центрируем */
+    transform: translate(-50%, -50%);
     
-    width: 80%; /* Ширина области волны */
+    width: 80%;
     height: 100%;
     
     display: flex; 
-    align-items: center; /* Выравнивание полосок по вертикали */
+    align-items: center;
     justify-content: center; 
-    gap: 6px; /* Расстояние между полосками */
-    z-index: 1; /* Опускаем НАЗАД за иконку */
+    gap: 6px;
+    z-index: 1;
     pointer-events: none;
 }
 
 .lc-visualizer span {
     width: 10px; 
-    height: 60px; /* Базовая высота, анимация будет её менять */
-    background: rgba(255, 255, 255, 0.15); /* Очень прозрачный белый */
+    height: 60px;
+    background: rgba(255, 255, 255, 0.15);
     border-radius: 10px;
     animation: soundWaveBack 1s infinite ease-in-out;
-    box-shadow: 0 0 15px rgba(142, 45, 226, 0.3); /* Мягкое фиолетовое свечение */
+    box-shadow: 0 0 15px rgba(142, 45, 226, 0.3);
 }
 
-/* Разная высота и задержка для эффекта волны */
 .lc-visualizer span:nth-child(1) { animation-duration: 0.8s; height: 40px; }
 .lc-visualizer span:nth-child(2) { animation-duration: 1.1s; height: 70px; }
-.lc-visualizer span:nth-child(3) { animation-duration: 1.3s; height: 100px; } /* Самая высокая по центру */
+.lc-visualizer span:nth-child(3) { animation-duration: 1.3s; height: 100px; }
 .lc-visualizer span:nth-child(4) { animation-duration: 1.0s; height: 70px; }
 .lc-visualizer span:nth-child(5) { animation-duration: 0.9s; height: 40px; }
 
-/* Новая анимация пульсации */
 @keyframes soundWaveBack {
     0%, 100% { transform: scaleY(0.5); opacity: 0.3; }
     50% { transform: scaleY(1.2); opacity: 0.6; }
 }
 
-/* 3. FUN (ORANGE/Shapes) */
 .card-fun .lc-image {
     background: linear-gradient(135deg, #f12711, #f5af19);
 }
@@ -697,15 +660,12 @@
     background: repeating-linear-gradient(45deg, rgba(255,255,255,0.1) 0, rgba(255,255,255,0.1) 10px, transparent 10px, transparent 20px);
 }
 
-/* Адаптив */
 @media (max-width: 900px) {
     .life-bg-text { font-size: 5rem; top: 10%; }
     .life-gallery { flex-direction: column; align-items: center; }
     .life-card { width: 100%; }
 }
 
-/* --- 9. FAQ SECTION --- */
-/* --- 9. FAQ SECTION (CYBER ACCORDION) --- */
 .section-faq {
     padding: 100px 10%;
     background: #050608;
@@ -720,7 +680,6 @@
     gap: 20px;
 }
 
-/* Карточка вопроса */
 .faq-card {
     background: #12141a;
     border-radius: 16px;
@@ -731,22 +690,19 @@
     cursor: pointer;
 }
 
-/* Эффект наведения */
 .faq-card:hover {
     background: #161920;
     border-color: rgba(255,255,255,0.1);
-    transform: translateX(10px); /* Легкий сдвиг вправо */
+    transform: translateX(10px);
 }
 
-/* Активное состояние */
 .faq-card.active {
     background: #1a1d24;
     border-color: var(--primary);
     box-shadow: 0 10px 40px -10px rgba(88, 101, 242, 0.2);
-    transform: scale(1.02); /* Легкое увеличение */
+    transform: scale(1.02);
 }
 
-/* Боковая полоска статуса */
 .faq-status-bar {
     position: absolute;
     left: 0; top: 0; bottom: 0;
@@ -758,9 +714,8 @@
 .faq-card:hover .faq-status-bar { background: var(--gold); }
 .faq-card.active .faq-status-bar { background: var(--primary); width: 6px; box-shadow: 0 0 15px var(--primary); }
 
-/* Заголовок */
 .faq-header {
-    padding: 25px 30px 25px 40px; /* Отступ слева под полоску */
+    padding: 25px 30px 25px 40px;
     display: flex;
     align-items: center;
     gap: 20px;
@@ -788,7 +743,6 @@
 
 .faq-card.active h3 { color: #fff; }
 
-/* Анимированная иконка плюса/минуса */
 .faq-icon {
     width: 24px; height: 24px;
     position: relative;
@@ -801,43 +755,39 @@
     position: absolute;
     background: #777;
     border-radius: 2px;
-    transition: 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55); /* Пружинистый эффект */
+    transition: 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
 }
 
-/* Горизонтальная палка */
 .faq-icon span:nth-child(1) { width: 100%; height: 2px; }
-/* Вертикальная палка */
 .faq-icon span:nth-child(2) { width: 2px; height: 100%; }
 
 .faq-card:hover .faq-icon span { background: #fff; }
 .faq-card.active .faq-icon span { background: var(--primary); }
 
-/* Превращение плюса в минус при открытии */
 .faq-card.active .faq-icon span:nth-child(2) {
-    transform: rotate(90deg); /* Вертикальная палка ложится, сливаясь с горизонтальной */
-    opacity: 0; /* Или просто исчезает */
+    transform: rotate(90deg);
+    opacity: 0;
 }
 .faq-card.active .faq-icon { transform: rotate(180deg); }
 
-/* Контент с ответом */
 .faq-content {
     max-height: 0;
     overflow: hidden;
-    transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1); /* Очень плавная анимация высоты */
+    transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .faq-card.active .faq-content {
-    max-height: 300px; /* Достаточно для текста */
+    max-height: 300px;
 }
 
 .faq-inner {
-    padding: 0 30px 30px 70px; /* Отступ под текст (чтобы был под заголовком) */
+    padding: 0 30px 30px 70px;
     color: #9ca3af;
     font-size: 0.95rem;
     line-height: 1.7;
     opacity: 0;
     transform: translateY(-10px);
-    transition: 0.4s ease 0.1s; /* Текст появляется с задержкой */
+    transition: 0.4s ease 0.1s;
 }
 
 .faq-card.active .faq-inner {
@@ -853,7 +803,6 @@
     font-family: monospace;
 }
 
-/* --- 10. CTA SECTION (EVENT HORIZON) --- */
 .section-cta {
     position: relative;
     padding: 140px 10%;
@@ -867,7 +816,6 @@
     border-top: 1px solid rgba(255,255,255,0.05);
 }
 
-/* --- BACKGROUND LAYERS --- */
 .cta-bg-layer {
     position: absolute;
     top: 0; left: 0; width: 100%; height: 100%;
@@ -875,7 +823,6 @@
     pointer-events: none;
 }
 
-/* Звезды на фоне */
 .stars-static {
     position: absolute; top: 0; left: 0; width: 100%; height: 80%;
     background-image: radial-gradient(2px 2px at 20px 30px, #fff, transparent),
@@ -887,7 +834,6 @@
     opacity: 0.3;
 }
 
-/* Движущийся пол (Сетка) */
 .grid-floor {
     position: absolute;
     bottom: -50%; left: -50%; width: 200%; height: 100%;
@@ -900,7 +846,6 @@
     mask-image: linear-gradient(to top, rgba(0,0,0,1) 0%, transparent 60%);
 }
 
-/* Свет на горизонте */
 .horizon-light {
     position: absolute;
     bottom: 0; left: 50%;
@@ -911,7 +856,6 @@
     z-index: 1;
 }
 
-/* --- CONTENT --- */
 .cta-content {
     position: relative;
     z-index: 5;
@@ -931,7 +875,6 @@
     font-weight: 700;
 }
 
-/* Глитч-заголовок */
 .glitch-title {
     font-size: 3.5rem;
     color: #fff;
@@ -947,7 +890,7 @@
     position: absolute;
     top: 0; left: 0;
     width: 100%; height: 100%;
-    background: #020203; /* Цвет фона, чтобы перекрывать */
+    background: #020203;
 }
 
 .glitch-title::before {
@@ -978,7 +921,6 @@
     padding: 16px 40px;
 }
 
-/* Статистика внизу */
 .cta-stats-row {
     display: flex;
     justify-content: center;
@@ -1004,7 +946,6 @@
     width: 1px; height: 20px; background: rgba(255,255,255,0.1);
 }
 
-/* --- ANIMATIONS --- */
 @keyframes gridMove {
     from { background-position: 0 0; }
     to { background-position: 0 60px; }
@@ -1025,20 +966,13 @@
     100% { clip: rect(67px, 9999px, 2px, 0); transform: skew(0); }
 }
 
-/* Mobile */
 @media (max-width: 900px) {
     .glitch-title { font-size: 2.5rem; }
     .cta-stats-row { flex-direction: column; gap: 10px; }
     .cs-divider { display: none; }
 }
 
-/* =========================================
-   MOBILE RESPONSIVE PATCH
-   Добавить в самый конец style.css
-   ========================================= */
-
 @media (max-width: 1024px) {
-    /* Убираем лишние отступы по бокам на планшетах и телефонах */
     .hero-section, .features-section, .steps-section, .section-life, .section-faq, .section-cta {
         padding-left: 5%;
         padding-right: 5%;
@@ -1046,31 +980,28 @@
 }
 
 @media (max-width: 768px) {
-
-    /* --- GLOBAL --- */
     body {
-        font-size: 14px; /* Чуть уменьшаем базовый шрифт */
+        font-size: 14px;
     }
 
-    /* --- HERO SECTION --- */
     .hero-section {
-        flex-direction: column; /* Элементы друг под другом */
+        flex-direction: column;
         justify-content: flex-start;
-        padding-top: 120px; /* Отступ сверху под навбар */
+        padding-top: 120px;
         padding-bottom: 50px;
-        min-height: auto; /* Убираем жесткую высоту */
-        overflow: hidden; /* Обрезаем вылезающие элементы */
+        min-height: auto;
+        overflow: hidden;
     }
 
     .hero-content {
         max-width: 100%;
-        text-align: center; /* Центрируем текст */
+        text-align: center;
         margin-bottom: 40px;
-        z-index: 5; /* Поднимаем текст над визуалом */
+        z-index: 5;
     }
 
     .hero-content h1 {
-        font-size: 2.8rem; /* Уменьшаем заголовок */
+        font-size: 2.8rem;
     }
 
     .hero-content p {
@@ -1080,82 +1011,73 @@
     }
 
     .hero-buttons {
-        justify-content: center; /* Центрируем кнопки */
+        justify-content: center;
         flex-direction: column;
         gap: 15px;
     }
 
     .hero-section .hero-buttons a.btn-discord,
     .hero-section .hero-buttons a.btn-secondary {
-        width: 100%; /* Кнопки на всю ширину */
+        width: 100%;
         min-width: unset;
         font-size: 1rem;
     }
 
-    /* --- HERO VISUAL (Адаптация 3D круга) --- */
     .hero-visual {
         width: 100%;
-        height: 350px; /* Уменьшаем высоту блока */
-        /* Уменьшаем весь 3D блок в 2 раза */
+        height: 350px;
         transform: scale(0.6) rotateX(10deg) rotateY(-10deg); 
         margin-left: 0;
-        margin-top: -50px; /* Подтягиваем вверх */
+        margin-top: -50px;
     }
 
-    /* Скрываем лишние декорации на телефоне для производительности */
     .visual-glow {
         width: 300px;
         height: 300px;
     }
     
-    /* Сдвигаем плавающие карточки, чтобы они кучнее смотрелись */
     .card-pos-1 { top: 0%; right: -10%; }
     .card-pos-2 { bottom: 10%; left: -10%; }
     .card-pos-3 { bottom: 0%; right: -20%; }
     .card-pos-4 { top: 0%; left: -20%; }
     
-    /* Спрятать тост уведомления на мобиле, он часто мешает */
     .glass-toast { display: none; }
-    /* Пилюлю с онлайном ставим по центру */
     .glass-pill { left: 50%; top: -10%; width: auto; }
 
-    /* --- FEATURES SECTION --- */
     .features-section {
         padding-top: 60px;
         padding-bottom: 60px;
     }
     
     .section-header h2 {
-        font-size: 2rem; /* Уменьшаем заголовки секций */
+        font-size: 2rem;
     }
     
     .features-grid {
-        grid-template-columns: 1fr; /* Одна колонка */
+        grid-template-columns: 1fr;
         gap: 20px;
     }
 
-    /* --- STEPS SECTION --- */
     .steps-section {
         padding-top: 60px;
         padding-bottom: 60px;
     }
 
     .steps-grid {
-        flex-direction: column; /* Вертикальный список */
+        flex-direction: column;
     }
 
     .step-connector {
-        transform: rotate(90deg); /* Поворачиваем стрелку вниз */
+        transform: rotate(90deg);
         margin: 10px 0;
     }
 
     .step-card {
-        width: 100%; /* Карточка на всю ширину */
+        width: 100%;
     }
 
-    /* --- LIFE SECTION --- */
     .life-bg-text {
-        font-size: 6rem; /* Уменьшаем огромный фоновый текст */
+        font-size: 6rem;
         top: 20%;
     }
 
@@ -1167,34 +1089,29 @@
         width: 100%;
     }
 
-    /* --- CTA SECTION --- */
     .section-cta {
         padding: 80px 5%;
     }
 
     .glitch-title {
-        font-size: 2.2rem; /* Уменьшаем глитч заголовок */
+        font-size: 2.2rem;
     }
     
     .cta-stats-row {
-        flex-direction: column; /* Статистику в столбик */
+        flex-direction: column;
         gap: 15px;
     }
     
     .cs-divider {
-        display: none; /* Прячем разделители */
+        display: none;
     }
 }
 
-/* Фикс для очень маленьких экранов (iPhone SE и старые) */
 @media (max-width: 380px) {
     .hero-content h1 { font-size: 2.2rem; }
-    .glass-card { scale: 0.8; } /* Ещё сильнее уменьшаем карточки */
+    .glass-card { scale: 0.8; }
 }
 
-/* --- LCP OPTIMIZATION --- */
-
-/* Простая анимация появления без JS */
 @keyframes fadeInUpQuick {
     from {
         opacity: 0;
@@ -1207,11 +1124,9 @@
 }
 
 .hero-animate {
-    /* Анимация длится 0.8 сек, начинается сразу */
     animation: fadeInUpQuick 0.8s ease-out forwards;
 }
 
-/* Для мобильных устройств отключаем анимацию заголовка полностью ради скорости */
 @media (max-width: 768px) {
     .hero-animate {
         animation: none !important;
@@ -1220,19 +1135,160 @@
     }
 }
 
-/* Оптимизация шрифтов: показывает текст сразу стандартным шрифтом, потом подменяет на красивый */
-@font-face {
-    font-family: 'Intro';
-    src: url('../assets/fonts/intro_bold.ttf') format('truetype');
-    font-weight: bold;
-    font-style: normal;
-    font-display: swap; /* <--- ВАЖНО: Текст не исчезает пока грузится шрифт */
+.nav-wrapped {
+    position: relative;
+    background: linear-gradient(135deg, #00c6ff 0%, #0072ff 100%);
+    padding: 8px 20px;
+    border-radius: 30px;
+    color: #fff !important;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.3);
+    box-shadow: 0 0 15px rgba(0, 198, 255, 0.4);
+    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+    z-index: 1;
 }
 
-@font-face {
-    font-family: 'Raleway';
-    src: url('../assets/fonts/Raleway-Regular.ttf') format('truetype');
-    font-weight: normal;
-    font-style: normal;
-    font-display: swap; /* <--- ВАЖНО */
+.nav-wrapped i {
+    color: #FFD700;
+    transition: 0.4s;
+}
+
+.nav-wrapped::before {
+    content: '';
+    position: absolute;
+    top: -100%; left: 0;
+    width: 100%; height: 300%;
+    background-image: 
+        radial-gradient(2px 2px at 10% 10%, rgba(255,255,255,0.9) 50%, transparent),
+        radial-gradient(2px 2px at 20% 30%, rgba(255,255,255,0.7) 50%, transparent),
+        radial-gradient(2px 2px at 50% 40%, rgba(255,255,255,0.9) 50%, transparent),
+        radial-gradient(2px 2px at 80% 20%, rgba(255,255,255,0.7) 50%, transparent),
+        radial-gradient(1px 1px at 90% 60%, rgba(255,255,255,0.8) 50%, transparent);
+    background-size: 50% 50%;
+    opacity: 0.8;
+    pointer-events: none;
+    animation: btnSnow 3s linear infinite;
+    z-index: -1;
+}
+
+@keyframes btnSnow {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(33.3%); }
+}
+
+.nav-wrapped:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0 25px rgba(0, 198, 255, 0.8);
+    border-color: #fff;
+}
+
+.nav-wrapped:hover i {
+    transform: rotate(180deg) scale(1.2);
+}
+
+@media (max-width: 900px) {
+    .nav-wrapped {
+        width: 100%; 
+        justify-content: center;
+        height: 50px;
+        font-size: 1.1rem;
+        margin-bottom: 10px;
+    }
+}
+
+.logout-btn {
+    color: #e74c3c;
+    border-color: rgba(231, 76, 60, 0.2);
+    background: rgba(231, 76, 60, 0.05);
+}
+
+.logout-btn:hover {
+    background: rgba(231, 76, 60, 0.15) !important;
+    border-color: #e74c3c !important;
+    color: #fff !important;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(231, 76, 60, 0.2);
+}
+
+.highlight-gold { color: #FFD700 !important; text-shadow: 0 0 10px rgba(255, 215, 0, 0.3); font-weight: 700; }
+
+.profile-dropdown-wrapper { position: relative; }
+
+.profile-trigger {
+    display: flex; align-items: center; gap: 10px;
+    background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 5px 15px 5px 5px; border-radius: 50px; cursor: pointer;
+    transition: 0.3s; height: 44px;
+}
+.profile-trigger:hover { background: rgba(255, 255, 255, 0.1); border-color: rgba(255, 255, 255, 0.2); }
+.profile-trigger img { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 2px solid #12141a; }
+.trigger-name { font-weight: 700; color: #fff; font-size: 0.9rem; max-width: 100px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.trigger-arrow { font-size: 0.7rem; color: #888; transition: 0.3s; }
+.trigger-arrow.rotate { transform: rotate(180deg); }
+
+.profile-dropdown {
+    position: absolute; top: 120%; right: 0;
+    width: 260px; background: #12141a; border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px; padding: 15px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+    opacity: 0; transform: translateY(-10px); pointer-events: none;
+    transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    z-index: 1005;
+}
+.profile-dropdown.active { opacity: 1; transform: translateY(0); pointer-events: all; }
+
+.dropdown-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.role-badge { font-size: 0.7rem; background: var(--primary); color: #fff; padding: 2px 8px; border-radius: 4px; font-weight: 800; text-transform: uppercase; }
+.level-info { font-size: 0.75rem; color: #666; font-family: 'JetBrains Mono'; }
+
+.dropdown-grid { display: flex; flex-direction: column; gap: 5px; }
+
+.dd-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 12px; border-radius: 10px;
+    color: #ccc; font-size: 0.9rem; font-weight: 600;
+    transition: 0.2s; text-decoration: none;
+}
+.dd-item:hover { background: rgba(255, 255, 255, 0.05); color: #fff; transform: translateX(3px); }
+.dd-item i { width: 20px; text-align: center; color: var(--primary); }
+.dd-item.special { color: #FFD700; }
+.dd-item.special i { color: #FFD700; }
+
+.dropdown-footer {
+    margin-top: 15px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.05);
+}
+.dd-logout {
+    display: flex; align-items: center; gap: 12px; width: 100%;
+    padding: 10px 12px; border-radius: 10px;
+    color: #ef4444; font-size: 0.9rem; font-weight: 700;
+    transition: 0.2s; text-decoration: none;
+}
+.dd-logout:hover { background: rgba(239, 68, 68, 0.1); }
+
+#navOverlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.5); z-index: 998;
+    opacity: 0; pointer-events: none; transition: 0.3s;
+    backdrop-filter: blur(3px);
+}
+#navOverlay.active { opacity: 1; pointer-events: all; }
+#navOverlay.active-desktop { pointer-events: all; background: transparent; backdrop-filter: none; }
+
+.mobile-only-links { display: none; }
+
+@media (max-width: 900px) {
+    .desktop-only { display: none; }
+    .mobile-only-links { display: flex; flex-direction: column; gap: 20px; width: 100%; margin-top: 20px; }
+    .divider-h { width: 50%; height: 1px; background: rgba(255,255,255,0.1); margin: 10px auto; }
+    .logout { color: #ef4444; }
 }

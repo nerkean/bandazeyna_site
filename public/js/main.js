@@ -1,5 +1,3 @@
-// public/js/main.js
-
 document.addEventListener('DOMContentLoaded', () => {
     const navbar = document.querySelector('.navbar');
 

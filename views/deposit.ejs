@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <%- include('partials/head', { title: 'Банк | Депозиты' }) %>
+    
+    <link rel="preload" href="/css/deposit.css" as="style">
+    <link rel="stylesheet" href="/css/deposit.css">
+</head>
+<body>
+    <%- include('partials/navbar') %>
+
+    <div class="bank-wrapper">
+        
+        <div class="bank-header">
+            <div class="bh-title">
+                <h1>Банк <span style="color: var(--primary);">Империи</span></h1>
+                <p>Сохрани и приумножь свой капитал.</p>
+            </div>
+            <div class="bh-balance">
+                <span>Доступно средств</span>
+                <strong id="userBalance"><%= Math.floor(profile.stars).toLocaleString() %> ⭐</strong>
+            </div>
+        </div>
+
+        <div class="bank-grid">
+            
+            <div class="bank-main">
+                
+                <section>
+                    <h2 class="section-title"><i class="fas fa-chart-line"></i> Активные вклады</h2>
+                    
+                    <% if (activeDeposits && activeDeposits.length > 0) { %>
+                        <div class="active-deposits-list">
+                            <% activeDeposits.forEach(d => { %>
+                                <div class="dep-card">
+                                    <div class="dep-header">
+                                        <h3><%= d.planType === 'SAVINGS' ? 'Сберегательный' : 'Гибкий' %></h3>
+                                        <span class="dep-id">#<%= d._id.toString().slice(-4) %></span>
+                                    </div>
+                                    
+                                    <div class="dep-stats">
+                                        <div class="ds-item">
+                                            <span>Вклад</span>
+                                            <strong><%= d.amount.toLocaleString() %></strong>
+                                        </div>
+                                        <div class="ds-item profit">
+                                            <span>Прибыль</span>
+                                            <strong>+<%= d.expectedProfit.toLocaleString() %></strong>
+                                        </div>
+                                    </div>
+
+                                    <% if (d.timeLeft <= 0) { %>
+                                        <div class="dep-timer" style="background: rgba(46, 204, 113, 0.1);">
+                                            <span style="color: var(--primary);">Статус</span>
+                                            <strong style="color: var(--primary);">Готово!</strong>
+                                        </div>
+                                        <div class="dep-actions">
+                                            <button class="btn-action-sm collect" onclick="manageDeposit('<%= d._id %>', 'collect')" aria-label="Забрать деньги">
+                                                Забрать <%= d.payoutAmount.toLocaleString() %> ⭐
+                                            </button>
+                                        </div>
+                                    <% } else { %>
+                                        <div class="dep-timer">
+                                            <span>До выплаты</span>
+                                            <strong class="timer" data-end="<%= new Date(d.maturityDate).getTime() %>">...</strong>
+                                        </div>
+                                        
+                                        <% if (d.canWithdrawEarly) { %>
+                                            <div class="dep-actions">
+                                                <button class="btn-action-sm withdraw" onclick="manageDeposit('<%= d._id %>', 'withdraw')" aria-label="Закрыть досрочно">
+                                                    Снять (<%= d.amount.toLocaleString() %>)
+                                                </button>
+                                            </div>
+                                        <% } %>
+                                    <% } %>
+                                </div>
+                            <% }) %>
+                        </div>
+                    <% } else { %>
+                        <div class="empty-bank">
+                            <i class="fas fa-piggy-bank" style="font-size: 3rem; margin-bottom: 15px; display: block;"></i>
+                            Нет активных депозитов. Самое время заставить деньги работать!
+                        </div>
+                    <% } %>
+                </section>
+
+                <section>
+                    <h2 class="section-title" style="margin-top: 30px;"><i class="fas fa-history"></i> История</h2>
+                    
+                    <div class="active-deposits-list">
+                        <% if (historyDeposits && historyDeposits.length > 0) { %>
+                            <% historyDeposits.forEach(d => { %>
+                                <div class="dep-card" style="border-left: 4px solid #666; border-color: rgba(255,255,255,0.05);">
+                                    <div class="dep-header">
+                                        <h3><%= new Date(d.createdAt).toLocaleDateString() %></h3>
+                                        <span class="dep-id" style="color: <%= d.status === 'closed' ? '#ef4444' : '#2ecc71' %>">
+                                            <%= d.status === 'closed' ? 'ЗАКРЫТ' : 'ВЫПЛАЧЕН' %>
+                                        </span>
+                                    </div>
+                                    <div class="dep-stats">
+                                        <div class="ds-item">
+                                            <span>Сумма</span>
+                                            <strong><%= d.amount.toLocaleString() %></strong>
+                                        </div>
+                                        <div class="ds-item">
+                                            <span>Итог</span>
+                                            <% if (d.status === 'closed') { %>
+                                                <strong style="color: #aaa;"><%= d.amount.toLocaleString() %></strong>
+                                            <% } else { %>
+                                                <strong style="color: var(--primary);">+<%= Math.floor(d.amount * (1 + d.interestRate)).toLocaleString() %></strong>
+                                            <% } %>
+                                        </div>
+                                    </div>
+                                </div>
+                            <% }) %>
+                        <% } else { %>
+                            <p style="color: #9ca3af; text-align: center;">История пуста.</p>
+                        <% } %>
+                    </div>
+                </section>
+
+            </div>
+
+            <aside class="bank-sidebar">
+                
+                <h2 class="section-title"><i class="fas fa-plus-circle"></i> Открыть вклад</h2>
+                
+                <div class="plans-list">
+                    <% plans.forEach((p, index) => { %>
+                        <div class="plan-card <%= index === 0 ? 'selected' : '' %>" 
+                             onclick="selectPlan('<%= p.id %>', <%= p.percent %>, <%= p.duration %>, <%= p.min %>, this)"
+                             role="button" aria-label="Выбрать план <%= p.name %>">
+                            
+                            <div class="plan-head">
+                                <span class="plan-name"><%= p.name %></span>
+                                <span class="plan-percent">+<%= p.percent * 100 %>%</span>
+                            </div>
+                            <div class="plan-desc"><%= p.desc %></div>
+                            <div class="plan-meta">
+                                <span><i class="far fa-clock"></i> <%= p.duration %> дн.</span>
+                                <span><i class="fas fa-coins"></i> Мин: <%= p.min %></span>
+                            </div>
+                        </div>
+                    <% }) %>
+                </div>
+
+                <div class="deposit-form">
+                    <div class="form-group">
+                        <label class="form-label">Сумма вклада</label>
+                        <div class="input-box">
+                            <input type="number" id="amountInput" placeholder="1000" aria-label="Сумма вклада">
+                            <span class="input-suffix">⭐</span>
+                        </div>
+                    </div>
+
+                    <div class="calc-result">
+                        <span class="cr-label">Итоговая выплата:</span>
+                        <span class="cr-val" id="resultVal">0 ⭐</span>
+                    </div>
+                    
+                    <p class="form-hint">
+                        Нажимая кнопку, вы соглашаетесь с заморозкой средств на выбранный срок.
+                    </p>
+
+                    <button class="btn-deposit" onclick="createDeposit()">Вложить средства</button>
+                </div>
+
+            </aside>
+
+        </div>
+    </div>
+
+    <%- include('partials/footer') %>
+
+    <script nonce="<%= nonce %>">
+        let currentPlan = { 
+            id: '<%= plans[0].id %>', 
+            percent: <%= plans[0].percent / 100 %>, 
+            min: <%= plans[0].min %> 
+        };
+        
+        const amountInput = document.getElementById('amountInput');
+        const resultVal = document.getElementById('resultVal');
+
+        function selectPlan(id, percent, duration, min, el) {
+            document.querySelectorAll('.plan-card').forEach(c => c.classList.remove('selected'));
+            el.classList.add('selected');
+            currentPlan = { id, percent: percent / 100, min };
+            updateCalc();
+        }
+
+        amountInput.addEventListener('input', updateCalc);
+        
+        function updateCalc() {
+            const val = parseInt(amountInput.value) || 0;
+            if (val > 0) {
+                const total = Math.floor(val * (1 + currentPlan.percent));
+                resultVal.innerText = total.toLocaleString() + ' ⭐';
+                resultVal.style.color = '#2ecc71';
+            } else {
+                resultVal.innerText = '0 ⭐';
+                resultVal.style.color = '#666';
+            }
+        }
+
+        async function createDeposit() {
+            const amount = parseInt(amountInput.value);
+            
+            if (!amount || amount < currentPlan.min) {
+                if (typeof Modal !== 'undefined') Modal.alert("Ошибка", `Минимальная сумма для этого плана: ${currentPlan.min} ⭐`, "error");
+                else alert(`Минимум: ${currentPlan.min}`);
+                return;
+            }
+
+            const btn = document.querySelector('.btn-deposit');
+            btn.disabled = true;
+            btn.innerText = "Обработка...";
+
+            try {
+                const res = await fetch('/api/deposit/create', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        planId: currentPlan.id, 
+                        amount: amount 
+                    })
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    if (typeof Modal !== 'undefined') await Modal.alert("Успешно", data.message, "success");
+                    else alert(data.message);
+                    location.reload();
+                } else {
+                    if (typeof Modal !== 'undefined') Modal.alert("Ошибка", data.error, "error");
+                    else alert(data.error);
+                    btn.disabled = false;
+                    btn.innerText = "Вложить средства";
+                }
+            } catch (e) {
+                console.error(e);
+                alert('Ошибка сети');
+                btn.disabled = false;
+                btn.innerText = "Вложить средства";
+            }
+        }
+
+        async function manageDeposit(id, action) {
+            let confirmText = "";
+            if (action === 'collect') confirmText = "Забрать прибыль и закрыть вклад?";
+            if (action === 'withdraw') confirmText = "Внимание! При досрочном закрытии вы получите только сумму вклада (без процентов). Продолжить?";
+
+            if (typeof Modal !== 'undefined') {
+                const ok = await Modal.confirm("Действие с вкладом", confirmText, "warning");
+                if (!ok) return;
+            } else if (!confirm(confirmText)) return;
+
+            try {
+                const res = await fetch('/api/deposit/action', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ depositId: id, action })
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    if (typeof Modal !== 'undefined') await Modal.alert("Успешно", data.message, "success");
+                    else alert(data.message);
+                    location.reload();
+                } else {
+                    if (typeof Modal !== 'undefined') Modal.alert("Ошибка", data.error, "error");
+                    else alert(data.error);
+                }
+            } catch (e) {
+                alert('Ошибка сети');
+            }
+        }
+
+        function updateTimers() {
+            document.querySelectorAll('.timer').forEach(el => {
+                const end = parseInt(el.getAttribute('data-end'));
+                const now = new Date().getTime();
+                const diff = end - now;
+
+                if (diff <= 0) {
+                    el.innerHTML = "<span style='color:#2ecc71'>Готово!</span>";
+                    return;
+                }
+
+                const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+                const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                
+                let text = '';
+                if (d > 0) text += `${d}д `;
+                text += `${h}ч ${m}м`;
+                el.innerText = text;
+            });
+        }
+        setInterval(updateTimers, 60000);
+        updateTimers();
+    </script>
+</body>
+</html>

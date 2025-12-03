@@ -2,8 +2,7 @@
 <html lang="ru">
 <head>
     <%- include('partials/head', { title: 'Магазин | Дача Зейна' }) %>
-    
-    <link rel="preload" href="/css/shop.css" as="style">
+        <link rel="preload" href="/css/shop.css" as="style">
     <link rel="stylesheet" href="/css/shop.css">
 </head>
 <body>
@@ -26,7 +25,24 @@
         </header>
 
         <div class="items-grid" id="itemsGrid">
-            <% items.forEach((item, index) => { 
+            <% 
+                function getItemImage(item) {
+                    if (item.imageUrl_web) return item.imageUrl_web;
+                    
+                    if (item.category === 'Украшение профиля' || item.category.includes('Украшение')) {
+                        const cleanId = item.itemId.replace('profile_frame_', '').replace('profile_bg_', '');
+                        
+                        let folder = 'frames';
+                        if (item.itemId.includes('bg') || item.decorationType === 'card_background') folder = 'backgrounds';
+                        
+                        return `/assets/${folder}/${cleanId}.png`; 
+                    }
+                    
+                    return null;
+                }
+            %>
+
+            <% items.forEach((item) => { 
                 if (item.category.includes('Премиум')) return;
                 
                 let rarity = 'common';
@@ -34,10 +50,7 @@
                 else if (item.price.stars >= 1000 || item.price.shards >= 20) rarity = 'epic';
                 else if (item.price.stars >= 300 || item.price.shards >= 5) rarity = 'rare';
 
-                // ОПТИМИЗАЦИЯ LCP
-                const isLCP = index < 4;
-                const loadingMode = isLCP ? 'eager' : 'lazy';
-                const fetchPriority = isLCP ? 'high' : 'auto';
+                const imageUrl = getItemImage(item);
             %>
                 <div class="item-card <%= rarity %>" 
                      onclick="openPreview(this)"
@@ -46,26 +59,27 @@
                      data-desc="<%= item.description || 'Описание отсутствует.' %>"
                      data-type="<%= item.category %>"
                      data-rarity="<%= rarity %>"
-                     data-image="<%= item.imageUrl_web || '' %>"
+                     data-image="<%= imageUrl || '' %>"
                      data-emoji="<%= item.emoji || '📦' %>"
                      data-stars="<%= item.price.stars || 0 %>"
                      data-shards="<%= item.price.shards || 0 %>"
-                     <%- isLCP ? '' : `data-aos="fade-up" data-aos-delay="${(index % 4) * 50}"` %>
+                     /* [FIX] УБРАЛИ AOS АНИМАЦИИ */
                 >
-                     
+                      
                     <% if (rarity === 'legendary') { %>
                         <div class="rarity-badge legendary">LEGENDARY</div>
                     <% } %>
 
                     <div class="item-visual">
                         <div class="item-glow"></div>
-                        <% if (item.imageUrl_web) { %>
-                            <img src="<%= item.imageUrl_web %>" 
+                        <% if (imageUrl) { %>
+                            <img src="<%= imageUrl %>" 
                                  class="item-img" 
                                  alt="<%= item.name %>"
                                  width="120" height="120"
-                                 loading="<%= loadingMode %>"
-                                 fetchpriority="<%= fetchPriority %>">
+                                 loading="lazy"
+                                 onerror="this.style.display='none'; this.previousElementSibling ? this.previousElementSibling.style.display='block' : null;">
+                             <div class="item-emoji" style="display: none;"><%= item.emoji || '📦' %></div>
                         <% } else { %>
                             <div class="item-emoji"><%= item.emoji || '📦' %></div>
                         <% } %>
@@ -217,8 +231,7 @@
 
     <%- include('partials/footer') %>
 
-    <script>
-        // JS остался без изменений, так как он работает отлично
+    <script nonce="<%= nonce %>">
         function filterShop(category, btnElement) {
             const itemsGrid = document.getElementById('itemsGrid');
             const premiumDash = document.getElementById('premiumDashboard');
@@ -240,7 +253,6 @@
 
             const cards = document.querySelectorAll('.item-card');
             cards.forEach(card => {
-                const rawCat = card.getAttribute('data-category') || ''; 
                 const typeAttr = card.getAttribute('data-type') || ''; 
                 
                 let isMatch = false;
@@ -249,10 +261,6 @@
 
                 if (isMatch) {
                     card.style.display = ''; 
-                    if (card.hasAttribute('data-aos')) {
-                        card.classList.remove('aos-animate');
-                        setTimeout(() => card.classList.add('aos-animate'), 50);
-                    }
                 } else {
                     card.style.display = 'none';
                 }
@@ -281,8 +289,10 @@
 
             const visualContainer = document.getElementById('pVisualContainer');
             visualContainer.className = `preview-visual-container ${rarity}`;
+            
             if (img) {
-                visualContainer.innerHTML = `<img src="${img}" class="p-img" alt="${name}">`;
+                visualContainer.innerHTML = `<img src="${img}" class="p-img" alt="${name}" onerror="this.style.display='none'; this.nextElementSibling ? this.nextElementSibling.style.display='block' : null;">`;
+                visualContainer.innerHTML += `<div class="p-emoji" style="display:none">${emoji}</div>`;
             } else {
                 visualContainer.innerHTML = `<div class="p-emoji">${emoji}</div>`;
             }
@@ -304,23 +314,30 @@
         async function buyItem(itemId, itemName) {
             closePreview();
             let qty = 1;
+
             if (!itemId.startsWith('premium_')) {
-                 const input = prompt(`Введите количество для "${itemName}":`, "1");
-                 if (input === null) return;
+                 const input = await Modal.prompt(
+                     "Покупка", 
+                     `Введите количество для <b>${itemName}</b>:`, 
+                     "1", 
+                     "number"
+                 );
+                 
+                 if (input === null) return; 
+                 
                  qty = parseInt(input);
                  if (!qty || qty < 1) {
-                     if (typeof Modal !== 'undefined') Modal.alert("Ошибка", "Некорректное число", "error");
-                     else alert("Некорректное число");
+                     await Modal.alert("Ошибка", "Некорректное число", "error");
                      return;
                  }
             }
 
-            if (typeof Modal !== 'undefined') {
-                const confirmed = await Modal.confirm("Подтверждение", `Купить <b>${qty > 1 ? qty + 'x ' : ''}${itemName}</b>?`);
-                if (!confirmed) return;
-            } else {
-                if(!confirm(`Купить ${itemName}?`)) return;
-            }
+            const confirmed = await Modal.confirm(
+                "Подтверждение", 
+                `Купить <b>${qty > 1 ? qty + 'x ' : ''}${itemName}</b>?`
+            );
+            
+            if (!confirmed) return;
 
             try {
                 const res = await fetch('/api/shop/buy', {
@@ -331,21 +348,31 @@
                 const result = await res.json();
 
                 if (result.success) {
-                    if (typeof Modal !== 'undefined') await Modal.alert("Успешно!", result.message, "success");
-                    else alert(result.message);
+                    await Modal.alert("Успешно!", result.message, "success");
                     location.reload(); 
                 } else {
-                    if (typeof Modal !== 'undefined') Modal.alert("Ошибка", result.error, "error");
-                    else alert(result.error);
+                    await Modal.alert("Ошибка", result.error, "error");
                 }
             } catch (e) {
-                if (typeof Modal !== 'undefined') Modal.alert("Ошибка", "Ошибка соединения", "error");
-                else alert("Ошибка соединения");
+                await Modal.alert("Ошибка", "Ошибка соединения", "error");
             }
         }
-
+        
         document.addEventListener('DOMContentLoaded', () => {
-            if(typeof AOS !== 'undefined') AOS.init();
+            const urlParams = new URLSearchParams(window.location.search);
+            const category = urlParams.get('category');
+            
+            if (category) {
+                const buttons = document.querySelectorAll('.tab-btn');
+                
+                for (const btn of buttons) {
+                    const onClickAttr = btn.getAttribute('onclick');
+                    if (onClickAttr && onClickAttr.includes(`'${category}'`)) {
+                        btn.click();
+                        break; 
+                    }
+                }
+            }
         });
     </script>
 </body>

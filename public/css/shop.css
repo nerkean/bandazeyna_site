@@ -1,5 +1,3 @@
-/* public/css/shop.css */
-
 .shop-wrapper {
     max-width: 1200px;
     margin: 0 auto;
@@ -18,7 +16,6 @@
 }
 .shop-header p { color: #9ca3af; font-size: 1.1rem; margin-bottom: 40px; }
 
-/* Tabs */
 .shop-tabs-container { display: flex; justify-content: center; }
 .shop-tabs {
     background: #15171e; padding: 5px; border-radius: 16px;
@@ -35,25 +32,22 @@
 .tab-btn:hover { color: #fff; background: rgba(255,255,255,0.05); }
 .tab-btn.active { background: var(--primary); color: #fff; box-shadow: 0 4px 15px rgba(88, 101, 242, 0.4); }
 
-/* Премиум таб */
 .btn-premium-tab { border: 1px solid var(--gold); }
 .btn-premium-tab.active { background: var(--gold); box-shadow: 0 0 15px rgba(255, 215, 0, 0.4); }
 
-/* Grid */
 .items-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: 30px;
 }
 
-/* Cards */
 .item-card {
     background: #12141a; 
     border-radius: 24px; 
     border: 1px solid rgba(255,255,255,0.05);
     position: relative; 
     overflow: hidden; 
-    display: flex; /* ЭТО НОРМАЛЬНО, но !important тут быть не должно */
+    display: flex; 
     flex-direction: column;
     transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
     height: 100%;
@@ -94,10 +88,10 @@
 .item-footer { margin-top: auto; display: flex; align-items: center; justify-content: space-between; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.05); }
 
 .price-tag { display: flex; flex-direction: column; }
-/* ЦЕНА ТОВАРА */
+
 .cost { 
     font-weight: 800; 
-    font-family: 'Montserrat', sans-serif; /* Было JetBrains */
+    font-family: 'Montserrat', sans-serif; 
     font-size: 1rem; 
 }
 .cost.gold { color: #ffd700; }
@@ -110,7 +104,6 @@
 }
 .btn-buy-action:hover { background: #fff; color: #000; }
 
-/* --- PREMIUM DASHBOARD --- */
 #premiumDashboard { max-width: 900px; margin: 0 auto; }
 
 .premium-status-card {
@@ -144,28 +137,27 @@
 .plan-header { margin-bottom: 25px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 20px; }
 .plan-header h3 { color: #fff; font-size: 1.5rem; margin-bottom: 10px; }
 
-/* ЦЕНА ПЛАНА */
 .plan-cost { 
     font-size: 1.8rem; font-weight: 800; color: #00f3ff; 
-    font-family: 'Montserrat', sans-serif; /* Было JetBrains */
+    font-family: 'Montserrat', sans-serif;
 }
 
 .plan-features { list-style: none; margin-bottom: 30px; flex: 1; }
 .plan-features li { color: #aaa; margin-bottom: 10px; font-size: 0.9rem; }
 .plan-features i { color: #2ecc71; margin-right: 8px; }
-.btn-plan { width: 100%; padding: 12px; border-radius: 10px; border: none; background: rgba(255,255,255,0.1); color: #fff; font-weight: 700; cursor: pointer; transition: 0.2s; }
+.btn-plan { width: 100%; padding: 12px; border-radius: 10px; border: none; background: rgba(255,255,255,0.1); color: #fff; font-family: 'Montserrat', sans-serif; font-weight: 800; cursor: pointer; transition: 0.2s; }
 .btn-plan:hover { background: #fff; color: #000; }
 
 .plan-card.featured { border-color: var(--gold); background: linear-gradient(145deg, #1a1c24, #0f1014); transform: scale(1.05); box-shadow: 0 10px 40px rgba(0,0,0,0.3); z-index: 2; }
 .plan-card.featured:hover { transform: scale(1.05) translateY(-5px); }
 .best-value {
     position: absolute;
-    top: -15px; /* Чуть выше, чтобы "сидел" на границе */
+    top: -15px; 
     left: 50%;
     transform: translateX(-50%);
     
-    background: #FFD700; /* Яркий золотой */
-    color: #000; /* Черный текст для контраста */
+    background: #FFD700; 
+    color: #000; 
     
     font-weight: 900;
     font-size: 0.85rem;
@@ -173,9 +165,8 @@
     border-radius: 20px;
     letter-spacing: 1.5px;
     
-    /* Эффекты */
-    box-shadow: 0 0 20px rgba(255, 215, 0, 0.6); /* Сильное свечение */
-    border: 3px solid #15171e; /* Обводка цветом фона, чтобы отделить от карточки */
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.6); 
+    border: 3px solid #15171e; 
     z-index: 10;
 }
 
@@ -190,7 +181,6 @@
 }
 @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
 
-/* --- PREVIEW MODAL (ITEM INSPECTOR) --- */
 .preview-overlay {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     background: rgba(0,0,0,0.85); backdrop-filter: blur(10px);
@@ -222,7 +212,6 @@
 }
 .close-btn:hover { background: #e74c3c; }
 
-/* Левая часть (Визуал) */
 .preview-left {
     flex: 1;
     background: radial-gradient(circle at center, #1a1d26 0%, #0b0c10 100%);
@@ -237,7 +226,6 @@
     display: flex; justify-content: center; align-items: center;
 }
 
-/* Свечение за предметом в зависимости от редкости */
 .preview-visual-container::before {
     content: ''; position: absolute;
     width: 200px; height: 200px;
@@ -254,7 +242,6 @@
 .p-img { max-width: 100%; max-height: 100%; z-index: 1; filter: drop-shadow(0 20px 40px rgba(0,0,0,0.5)); transform: scale(1.2); }
 .p-emoji { font-size: 8rem; z-index: 1; }
 
-/* Правая часть (Инфо) */
 .preview-right {
     flex: 1;
     padding: 40px;
@@ -302,12 +289,10 @@
     transform: translateY(-3px);
 }
 
-/* Намек на клик в карточке */
 .tap-hint {
     font-size: 0.7rem; color: #555; text-transform: uppercase; font-weight: 700; letter-spacing: 1px;
 }
 
-/* Адаптив */
 @media (max-width: 800px) {
     .preview-box { flex-direction: column; max-height: 90vh; overflow-y: auto; }
     .preview-left { height: 250px; padding: 20px; }
@@ -327,18 +312,15 @@
         font-size: 2.5rem;
     }
 
-    /* --- TABS (FIXED: MULTI-ROW) --- */
     .shop-tabs-container {
         width: 100%;
-        /* Убираем overflow, чтобы кнопки переносились */
         overflow: visible; 
     }
 
     .shop-tabs {
         display: flex;
-        /* Разрешаем перенос строк */
         flex-wrap: wrap; 
-        justify-content: center; /* Центрируем кнопки */
+        justify-content: center; 
         gap: 10px;
         width: 100%;
         padding-bottom: 0;
@@ -346,14 +328,12 @@
 
     .tab-btn {
         white-space: nowrap; 
-        /* Разрешаем кнопкам сжиматься или растягиваться по необходимости */
         flex: 1 1 auto; 
         font-size: 0.85rem;
         padding: 10px 15px;
-        min-width: 100px; /* Минимальная ширина для удобства */
+        min-width: 100px; 
     }
 
-    /* --- PREMIUM DASHBOARD --- */
     .premium-status-card {
         flex-direction: column;
         text-align: center;
@@ -366,11 +346,11 @@
     }
 
     .premium-benefits {
-        grid-template-columns: 1fr; /* Одна колонка для бонусов */
+        grid-template-columns: 1fr;
     }
 
     .premium-plans {
-        flex-direction: column; /* Планы вертикально */
+        flex-direction: column; 
     }
 
     .plan-card {
@@ -378,10 +358,9 @@
     }
 
     .plan-card.featured {
-        transform: none; /* Убираем увеличение на мобиле */
+        transform: none; 
     }
 
-    /* --- PREVIEW MODAL (MOBILE) --- */
     .preview-box {
         flex-direction: column;
         width: 95%;
@@ -424,22 +403,14 @@
     }
 }
 
-/* =========================================
-   ACCESSIBILITY FIXES (100/100)
-   Добавить в конец public/css/shop.css
-   ========================================= */
-
-/* 1. FIX CONTRAST: "Нажми для просмотра" */
 .tap-hint {
-    /* Было #555 (слишком темно), стало #9ca3af (читаемый серый) */
     color: #9ca3af !important; 
     font-weight: 600;
     letter-spacing: 0.5px;
 }
 
-/* 2. FIX HEADINGS: Стили для H2 в карточках (бывшие H3) */
 .item-header h2 {
-    font-size: 1.1rem; /* Размер оставляем компактным */
+    font-size: 1.1rem; 
     color: #fff;
     font-weight: 800;
     margin: 0;
@@ -447,7 +418,6 @@
     font-family: 'Montserrat', sans-serif;
 }
 
-/* 3. FIX HEADINGS: Стили для H3 в бенефитах (бывшие H4) */
 .ben-text h3 {
     color: #fff;
     margin-bottom: 5px;

@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <%- include('partials/head', { title: title || 'Итоги 2025 | Дача Зейна' }) %>
+    
+    <link rel="stylesheet" href="/css/wrapped.css">
+
+    <link rel="stylesheet" href="https://unpkg.com/aos@2.3.1/dist/aos.css" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="https://unpkg.com/aos@2.3.1/dist/aos.css"></noscript>
+</head>
+<body>
+    <%- include('partials/navbar') %>
+
+    <div class="bg-universe" id="starfield">
+        <div class="nebula n-1"></div>
+        <div class="nebula n-2"></div>
+    </div>
+
+    <div class="wrapped-container">
+
+        <div class="hero-wrap">
+            <div data-aos="zoom-in" data-aos-duration="1000">
+                <div class="hero-year">2025</div>
+                <h1 class="hero-sub">WRAPPED</h1>
+            </div>
+            <div class="scroll-hint">
+                <i class="fas fa-chevron-down"></i> Листай вниз
+            </div>
+        </div>
+
+        <div class="chapter">
+            <h2 class="chapter-title" data-aos="fade-right">Глава 1: Пульс Сервера</h2>
+            
+            <div class="stat-row">
+                <div class="big-stat" data-tilt data-aos="fade-up" data-aos-delay="100">
+                    <div class="bs-icon">👥</div>
+                    <div class="bs-val counter" data-target="<%= stats.totalUsers %>">0</div>
+                    <div class="bs-lbl">Участников</div>
+                </div>
+                <div class="big-stat" data-tilt data-aos="fade-up" data-aos-delay="200">
+                    <div class="bs-icon">💬</div>
+                    <div class="bs-val counter" data-target="<%= Math.floor(stats.global.totalMsgs / 1000) %>">0</div>
+                    <div class="bs-lbl">Тыс. сообщений</div>
+                </div>
+            </div>
+
+            <div class="stat-row">
+                <div class="big-stat" style="border-color: var(--rose);" data-tilt data-aos="fade-up">
+                    <div class="bs-icon">🎙️</div>
+                    <div class="bs-val counter" data-target="<%= Math.floor(stats.global.totalVoice / 3600) %>">0</div>
+                    <div class="bs-lbl">Часов разговоров</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="chapter">
+            <h2 class="chapter-title" data-aos="fade-right">Глава 2: Империя Денег</h2>
+
+            <% if (stats.richest) { %>
+            <div class="leader-spotlight" data-aos="zoom-in">
+                <div class="ls-bg"></div>
+                <div class="ls-avatar-wrap">
+                    <div class="ls-crown">👑</div>
+                    <img src="/img/proxy/avatar/<%= stats.richest.userId %>/<%= stats.richest.avatar %>" 
+                         class="ls-avatar" 
+                         alt="Аватар <%= stats.richest.username %>"
+                         width="180" height="180" loading="lazy">
+                </div>
+                <div class="ls-info">
+                    <h3>Богатейший игрок</h3>
+                    <div class="ls-name" style="font-size: 2rem; font-weight: 900; margin: 10px 0;"><%= stats.richest.username %></div>
+                    <div class="ls-stat"><span class="counter" data-target="<%= Math.floor(stats.richest.stars) %>">0</span> ⭐</div>
+                </div>
+            </div>
+            <% } %>
+
+            <div class="grid-leaders">
+                <% if (stats.topDepositor) { %>
+                <div class="l-card" data-aos="fade-up" data-aos-delay="100">
+                    <img src="/img/proxy/avatar/<%= stats.topDepositor.userId %>/<%= stats.topDepositor.avatar %>" class="l-ava" alt="<%= stats.topDepositor.username %>" loading="lazy">
+                    <div class="l-info">
+                        <h4>Банкир года</h4>
+                        <h3><%= stats.topDepositor.username %></h3>
+                        <p><%= Math.floor(stats.topDepositor.total).toLocaleString() %> в банке</p>
+                    </div>
+                </div>
+                <% } %>
+
+                <% if (stats.taxPayer) { %>
+                <div class="l-card" data-aos="fade-up" data-aos-delay="200">
+                    <img src="/img/proxy/avatar/<%= stats.taxPayer.userId %>/<%= stats.taxPayer.avatar %>" class="l-ava" alt="<%= stats.taxPayer.username %>" loading="lazy">
+                    <div class="l-info">
+                        <h4>Налогоплательщик</h4>
+                        <h3><%= stats.taxPayer.username %></h3>
+                        <p><%= Math.floor(stats.taxPayer.totalStarsPaidInTax).toLocaleString() %> уплачено</p>
+                    </div>
+                </div>
+                <% } %>
+            </div>
+        </div>
+
+        <div class="market-strip">
+            <div class="ticker-move">
+                <span class="t-item">ОБЩИЙ ОБОРОТ: <b><%= (stats.market.volume / 1000000).toFixed(2) %>M</b></span>
+                <span class="t-item">ВСЕГО СДЕЛОК: <b><%= stats.market.trades %></b></span>
+                <span class="t-item">САМАЯ ДОРОГАЯ: <b><%= stats.mostExpensiveStock ? stats.mostExpensiveStock.ticker : 'N/A' %></b></span>
+                <span class="t-item">ХАЙП ГОДА: <b><%= stats.popularStock %></b></span>
+            </div>
+        </div>
+
+        <div class="chapter">
+            <h2 class="chapter-title" data-aos="fade-right">Глава 3: Легенды Сервера</h2>
+            
+            <div class="grid-leaders">
+                <% if (stats.chatty) { %>
+                <div class="l-card" data-aos="fade-up">
+                    <div style="font-size:2rem;">💬</div>
+                    <div class="l-info">
+                        <h4>Болтун</h4>
+                        <h3><%= stats.chatty.username %></h3>
+                        <p><%= stats.chatty.totalMessages.toLocaleString() %></p>
+                    </div>
+                </div>
+                <% } %>
+
+                <% if (stats.voice) { %>
+                <div class="l-card" data-aos="fade-up" data-aos-delay="100">
+                    <div style="font-size:2rem;">🎙️</div>
+                    <div class="l-info">
+                        <h4>Голос</h4>
+                        <h3><%= stats.voice.username %></h3>
+                        <p><%= (stats.voice.totalVoiceTime / 3600).toFixed(0) %> часов</p>
+                    </div>
+                </div>
+                <% } %>
+
+                <% if (stats.topStreaker) { %>
+                <div class="l-card" data-aos="fade-up" data-aos-delay="200">
+                    <div style="font-size:2rem;">🔥</div>
+                    <div class="l-info">
+                        <h4>Гриндер</h4>
+                        <h3><%= stats.topStreaker.username %></h3>
+                        <p><%= stats.topStreaker.streak %> дней</p>
+                    </div>
+                </div>
+                <% } %>
+            </div>
+        </div>
+
+        <div class="chapter" style="min-height: 50vh; text-align: center;">
+            <h2 data-aos="zoom-in">Спасибо за этот год!</h2>
+            <p style="color: #888; max-width: 500px; margin: 20px auto;">Мы растем и развиваемся благодаря вам.</p>
+            <a href="/profile" class="btn-profile-big" style="display: inline-block; background: var(--primary); color: #fff; padding: 15px 40px; border-radius: 50px; font-weight: 800; text-decoration: none; box-shadow: 0 10px 30px rgba(88, 101, 242, 0.3); transition: 0.3s;">
+                Посмотреть мой профиль <i class="fas fa-arrow-right"></i>
+            </a>
+        </div>
+
+    </div>
+
+    <%- include('partials/footer') %>
+
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js" defer nonce="<%= nonce %>"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.7.0/vanilla-tilt.min.js" defer nonce="<%= nonce %>"></script>
+
+    <script nonce="<%= nonce %>">
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof AOS !== 'undefined') AOS.init({ duration: 1000, once: true });
+            else setTimeout(() => AOS.init({ duration: 1000, once: true }), 500);
+
+            const starfield = document.getElementById('starfield');
+            if (starfield) {
+                for(let i=0; i<50; i++) {
+                    const star = document.createElement('div');
+                    star.className = 'star';
+                    star.style.top = Math.random() * 100 + '%';
+                    star.style.left = Math.random() * 100 + '%';
+                    star.style.setProperty('--duration', (Math.random() * 3 + 2) + 's');
+                    star.style.animationDelay = Math.random() * 5 + 's';
+                    starfield.appendChild(star);
+                }
+            }
+
+            const counters = document.querySelectorAll('.counter');
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const counter = entry.target;
+                        const target = +counter.getAttribute('data-target');
+                        let current = 0;
+                        const inc = Math.ceil(target / 50); 
+                        
+                        const update = () => {
+                            current += inc;
+                            if(current < target) {
+                                counter.innerText = current.toLocaleString();
+                                requestAnimationFrame(update);
+                            } else {
+                                counter.innerText = target.toLocaleString();
+                            }
+                        };
+                        update();
+                        observer.unobserve(counter);
+                    }
+                });
+            }, { threshold: 0.5 });
+
+            counters.forEach(c => observer.observe(c));
+
+            if (window.innerWidth > 768) { 
+                const checkTilt = setInterval(() => {
+                    if (typeof VanillaTilt !== 'undefined') {
+                        VanillaTilt.init(document.querySelectorAll("[data-tilt]"), {
+                            max: 10, speed: 400, glare: true, "max-glare": 0.2
+                        });
+                        clearInterval(checkTilt);
+                    }
+                }, 100);
+            }
+        });
+    </script>
+</body>
+</html>

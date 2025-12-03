@@ -1,4 +1,3 @@
-// routes/auth.js
 import express from 'express';
 import passport from 'passport';
 
@@ -8,7 +7,13 @@ router.get('/discord', passport.authenticate('discord'));
 
 router.get('/discord/callback', 
     passport.authenticate('discord', { failureRedirect: '/' }), 
-    (req, res) => res.redirect('/profile')
+    (req, res) => {
+        if (req.user && req.user.id) {
+            res.redirect(`/profile/${req.user.id}`);
+        } else {
+            res.redirect('/'); 
+        }
+    }
 );
 
 router.get('/logout', (req, res, next) => {
@@ -18,4 +23,4 @@ router.get('/logout', (req, res, next) => {
     });
 });
 
-export default router; // Важно: здесь не /auth/..., префиксы зададим в server.js
+export default router;

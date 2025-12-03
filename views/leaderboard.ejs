@@ -189,7 +189,7 @@
 
     <%- include('partials/footer') %>
     
-    <script>
+    <script nonce="<%= nonce %>">
         document.addEventListener('DOMContentLoaded', () => {
             if(typeof AOS !== 'undefined') AOS.init();
         });

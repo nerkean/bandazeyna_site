@@ -1,161 +1,272 @@
-/* public/css/market.css */
-
-/* --- ОБЩИЙ ЛЕЙАУТ (SCROLLABLE) --- */
-body {
-    background-color: #0b0c10;
-    overflow-x: hidden; /* Убираем только горизонтальный скролл */
+:root {
+    --bg: #050505;
+    --panel: #101216;
+    --border: rgba(255, 255, 255, 0.08);
+    --primary: #5865F2;
+    --green: #2ecc71;
+    --red: #ff4949;
+    --text-main: #fff;
+    --text-muted: #b0b3b8;
 }
 
-.market-wrapper {
-    display: grid;
-    grid-template-columns: 320px 1fr; /* Левая колонка (список) | Правая часть (график + торговля) */
-    gap: 30px;
-    padding: 120px 5% 50px; /* Большие отступы */
-    max-width: 1400px;
-    margin: 0 auto;
-    min-height: 100vh; /* Чтобы футер прижался вниз */
-    align-items: start; /* Элементы не растягиваются по высоте */
+body { background-color: var(--bg); font-family: 'Montserrat', sans-serif; overflow-x: hidden; margin: 0; }
+
+#canvas-container {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    z-index: 0; pointer-events: none; opacity: 0.8;
 }
 
-/* --- ЛЕВАЯ ПАНЕЛЬ (СПИСОК АКЦИЙ) --- */
-.stock-list-panel {
-    background: rgba(18, 20, 26, 0.95);
-    border: 1px solid rgba(255,255,255,0.05);
-    border-radius: 16px;
+.market-container {
+    max-width: 1400px; margin: 0 auto;
+    padding: 20px 20px 60px;
+    min-height: 100vh;
     display: flex; flex-direction: column;
-    height: 600px; /* Фиксируем высоту только списка */
-    position: sticky; /* Липнет при скролле */
-    top: 120px;
+    position: relative; z-index: 2;
 }
 
-.stock-list-panel h2 {
-    padding: 20px; margin: 0; font-size: 1.2rem; color: #fff;
-    border-bottom: 1px solid rgba(255,255,255,0.05);
-    display: flex; align-items: center; gap: 10px;
-}
-.stock-list-panel h2 i { color: var(--primary); }
-
-.stock-table-header {
-    display: grid; grid-template-columns: 1.8fr 1fr 1fr;
-    padding: 12px 20px; font-size: 0.75rem; font-weight: 700; color: var(--text-muted);
-    background: rgba(255,255,255,0.02); text-transform: uppercase; letter-spacing: 0.05em;
+.market-header {
+    display: flex; justify-content: space-between; align-items: flex-end;
+    margin-bottom: 30px; padding-bottom: 20px;
+    border-bottom: 1px solid var(--border);
 }
 
-.stock-list {
+.mh-title h1 { font-size: 2.5rem; margin: 0; font-weight: 900; text-transform: uppercase; letter-spacing: -1px; line-height: 1; }
+.mh-title p { color: var(--text-muted); margin: 5px 0 0; font-size: 1rem; }
+
+.mh-balance { display: flex; gap: 30px; }
+.bal-item { display: flex; flex-direction: column; align-items: flex-end; }
+.bal-label { font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; letter-spacing: 1px; }
+.bal-val { font-size: 1.5rem; font-weight: 800; font-family: 'JetBrains Mono'; color: #fff; }
+.bal-val.stars { color: #FFD700; text-shadow: 0 0 15px rgba(255, 215, 0, 0.3); }
+.bal-val.shards { color: #00f3ff; }
+
+.market-ticker-wrap {
+    width: 100%; overflow: hidden; white-space: nowrap;
+    background: rgba(16, 18, 22, 0.8);
+    border-bottom: 1px solid var(--border); border-top: 1px solid var(--border);
+    padding: 10px 0; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem;
+    backdrop-filter: blur(5px); margin-top: 100px; 
+    position: relative; z-index: 5;
+}
+
+.market-ticker { display: inline-block; animation: tickerScroll 40s linear infinite; }
+.mt-item { display: inline-block; margin-right: 40px; color: #ccc; }
+.mt-item strong { color: #fff; font-weight: 800; }
+.mt-val { margin-left: 5px; }
+.mt-change { margin-left: 5px; font-size: 0.75rem; }
+.mt-change.up { color: var(--green); }
+.mt-change.down { color: var(--red); }
+
+@keyframes tickerScroll { 0% { transform: translateX(0); } 100% { transform: translateX(-100%); } }
+
+.terminal-grid {
+    display: grid;
+    grid-template-columns: 350px 1fr;
+    gap: 25px;
+    align-items: start;
+}
+
+.stock-sidebar {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 16px; display: flex; flex-direction: column;
+    overflow: hidden;
+    position: sticky; top: 130px; height: calc(100vh - 150px);
+}
+
+.sidebar-search {
+    padding: 15px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 10px; color: var(--text-muted);
+}
+.sidebar-search input {
+    background: transparent; border: none; outline: none; color: #fff;
+    font-family: inherit; font-size: 0.95rem; width: 100%;
+}
+
+.stock-list-wrapper {
     flex: 1; overflow-y: auto;
     scrollbar-width: thin; scrollbar-color: #333 transparent;
 }
+.stock-list-wrapper::-webkit-scrollbar { width: 4px; }
+.stock-list-wrapper::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
 
-/* Карточка акции */
-.stock-item {
-    display: grid; grid-template-columns: 1.8fr 1fr 1fr;
-    align-items: center; padding: 15px 20px;
-    border-bottom: 1px solid rgba(255,255,255,0.03);
-    cursor: pointer; transition: background 0.2s;
-    border-left: 3px solid transparent;
+.stock-card {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 15px 20px; border-bottom: 1px solid rgba(255,255,255,0.03);
+    cursor: pointer; transition: 0.2s; gap: 15px;
+}
+.stock-card:hover { background: rgba(255,255,255,0.03); }
+.stock-card.active { background: rgba(88, 101, 242, 0.1); border-left: 3px solid var(--primary); }
+.stock-card.active .sc-name { color: #fff; }
+
+.stock-icon {
+    width: 40px; height: 40px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; color: #fff; font-size: 1.1rem; flex-shrink: 0;
+    background: linear-gradient(135deg, var(--icon-bg), rgba(255,255,255,0.1));
+    border: 1px solid rgba(255,255,255,0.1);
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
 }
 
-.stock-item:hover, .stock-item.active {
-    background: rgba(255,255,255,0.04);
-    border-left-color: var(--primary);
+.sc-left { display: flex; flex-direction: column; overflow: hidden; }
+.sc-ticker { font-weight: 800; font-family: 'JetBrains Mono'; color: #fff; display: flex; align-items: center; gap: 5px; }
+.sc-name { font-size: 0.8rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.sc-right { text-align: right; margin-left: auto; flex-shrink: 0; }
+.sc-price { font-weight: 700; color: #fff; }
+.sc-change { font-size: 0.8rem; font-weight: 600; border-radius: 4px; padding: 2px 6px; margin-top: 4px; display: inline-block; }
+.sc-change.up { color: var(--green); background: rgba(46, 204, 113, 0.1); }
+.sc-change.down { color: var(--red); background: rgba(239, 68, 68, 0.1); }
+
+.sys-badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-family: 'Montserrat', sans-serif; font-size: 0.65rem; text-transform: uppercase; font-weight: 800;
+    padding: 4px 10px; border-radius: 20px; letter-spacing: 0.5px;
+    margin-left: 8px; transform: translateY(-2px); cursor: help; position: relative; transition: all 0.3s ease;
+}
+.sys-badge.official {
+    background: rgba(88, 101, 242, 0.15); 
+    color: #8ea1ff;
+    border: 1px solid rgba(88, 101, 242, 0.3);
+}
+.sys-badge.official:hover { background: rgba(88, 101, 242, 0.2); box-shadow: 0 0 15px rgba(88, 101, 242, 0.2); }
+
+.sys-badge.official:hover::after {
+    content: "Официальная акция. Курс зависит от активности сервера.";
+    position: absolute; bottom: 140%; left: 50%; transform: translateX(-50%) translateY(10px);
+    background: rgba(15, 17, 22, 0.95); backdrop-filter: blur(10px); color: #fff;
+    padding: 10px 14px; border-radius: 12px; font-size: 0.75rem; width: 200px; text-align: center;
+    border: 1px solid rgba(88, 101, 242, 0.3); box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    pointer-events: none; z-index: 100; opacity: 0; visibility: hidden;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    white-space: normal;
+}
+.sys-badge.official:hover::before {
+    content: ''; position: absolute; bottom: 120%; left: 50%; transform: translateX(-50%) translateY(10px);
+    border-width: 6px; border-style: solid; border-color: rgba(88, 101, 242, 0.3) transparent transparent transparent;
+    z-index: 100; opacity: 0; visibility: hidden; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.sys-badge.official:hover::after, .sys-badge.official:hover::before { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); }
+
+.trade-area { display: flex; flex-direction: column; gap: 20px; height: auto; min-width: 0; }
+
+.chart-card {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 16px; padding: 20px;
+    display: flex; flex-direction: column;
+    min-height: 500px;
 }
 
-.stock-symbol { font-weight: 800; color: #fff; font-size: 0.95rem; font-family: 'Montserrat', sans-serif; }
-.name { font-size: 0.8rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.stock-price .price { font-weight: 600; color: #fff; font-family: 'Montserrat', sans-serif; font-size: 0.95rem; }
+.chart-top-bar { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; flex-wrap: wrap; gap: 10px; }
+.ct-info h2 { margin: 0; font-size: 2rem; font-weight: 900; line-height: 1; display: flex; align-items: center; gap: 10px; }
+.ct-info span { color: var(--text-muted); font-size: 1rem; }
+.ct-price { font-size: 2.5rem; font-weight: 700; font-family: 'JetBrains Mono'; color: #fff; }
+.ct-price .currency { color: #FFD700; font-size: 1.5rem; margin-left: 5px; }
+.up-text { color: var(--green); } .down-text { color: var(--red); }
+.chart-box { flex: 1; min-height: 0; } 
 
-.change {
-    font-size: 0.8rem; font-weight: 700; padding: 4px 8px; border-radius: 6px;
-    text-align: center; width: fit-content; justify-self: end;
-    font-family: 'Montserrat', sans-serif;
-}
-.change.positive { color: #2ecc71; background: rgba(46, 204, 113, 0.1); }
-.change.negative { color: #e74c3c; background: rgba(231, 76, 60, 0.1); }
-
-/* --- ЦЕНТРАЛЬНАЯ КОЛОНКА --- */
-.center-column {
-    display: flex; flex-direction: column; gap: 30px; width: 100%;
+.trade-controls {
+    flex: 1; background: var(--panel); border: 1px solid var(--border);
+    border-radius: 16px; padding: 25px;
+    display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center;
+    gap: 30px;
 }
 
-/* --- ГРАФИК --- */
-.chart-panel {
-    background: #12141a;
-    border: 1px solid rgba(255,255,255,0.05);
-    border-radius: 20px;
-    padding: 30px;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+.user-position {
+    display: flex; flex-direction: column; gap: 12px;
+    border-right: 1px solid var(--border); padding-right: 30px;
+    min-width: 160px; flex: 1;
+}
+.pos-item { display: flex; justify-content: space-between; font-size: 0.9rem; color: var(--text-muted); gap: 15px; }
+.pos-item strong { color: #fff; font-family: 'JetBrains Mono'; }
+
+.trade-input-section {
+    display: flex; flex-direction: column; gap: 12px;
+    flex: 2; min-width: 280px;
 }
 
-.chart-header {
-    display: flex; justify-content: space-between; align-items: flex-end;
-    margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.05);
+.input-wrapper {
+    position: relative; background: rgba(0,0,0,0.2);
+    border: 1px solid var(--border); border-radius: 12px;
+    display: flex; align-items: center; justify-content: flex-start;
+    overflow: hidden; height: 60px;
 }
-.chart-header h2 { margin: 0; font-size: 2rem; color: #fff; }
-.chart-header h3 { margin: 0; font-size: 2.5rem; color: #fff; font-weight: 900; }
-
-.chart-wrapper {
-    position: relative; width: 100%; min-height: 400px;
+.input-wrapper input {
+    flex: 1; background: transparent; border: none; outline: none;
+    color: #fff; font-size: 1.5rem; font-weight: 700; font-family: 'JetBrains Mono';
+    padding: 0 10px 0 20px; text-align: left; height: 100%; margin: 0;
 }
+.input-wrapper input::-webkit-outer-spin-button,
+.input-wrapper input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.input-wrapper input[type=number] { -moz-appearance: textfield; }
 
-/* --- ПАНЕЛЬ ТОРГОВЛИ --- */
-.trade-panel {
-    background: rgba(25, 28, 35, 0.5); 
-    border: 1px solid rgba(255,255,255,0.05); border-radius: 20px;
-    padding: 30px; display: flex; justify-content: space-between; align-items: center;
-}
-
-.trade-info { display: flex; gap: 60px; }
-.user-holding, .user-profit { display: flex; flex-direction: column; }
-.label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px; font-weight: 700; }
-.value { font-size: 1.5rem; font-weight: 800; color: #fff; font-family: 'Montserrat', sans-serif; }
-
-.trade-actions {
-    display: flex; gap: 20px; align-items: stretch;
-    background: rgba(255,255,255,0.03); padding: 10px; border-radius: 16px; 
-    border: 1px solid rgba(255,255,255,0.05);
+.input-suffix { 
+    padding-right: 20px; padding-left: 5px; color: var(--text-muted); 
+    font-weight: 700; font-size: 1rem; flex-shrink: 0; line-height: 1; 
 }
 
-.trade-input-group { position: relative; display: flex; align-items: center; }
-.trade-input {
-    background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1);
-    color: #fff; padding: 0 15px; border-radius: 12px; font-size: 1.2rem; font-weight: 700;
-    text-align: center; width: 120px; height: 100%; outline: none; font-family: 'Montserrat', sans-serif;
-    transition: 0.2s;
+.quick-amounts { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
+.quick-amounts button {
+    background: rgba(255,255,255,0.05); border: 1px solid var(--border);
+    color: #aaa; border-radius: 6px; padding: 6px 12px; cursor: pointer;
+    font-size: 0.8rem; transition: 0.2s;
 }
-.trade-input:focus { border-color: var(--primary); background: rgba(255,255,255,0.1); }
-.trade-label { position: absolute; right: 15px; font-size: 0.8rem; color: var(--text-muted); font-weight: 600; pointer-events: none; }
+.quick-amounts button:hover { background: #fff; color: #000; }
+.max-btn { color: #FFD700 !important; border-color: rgba(255, 215, 0, 0.3) !important; }
 
-/* Кнопки (Neon) */
-.btn-buy, .btn-sell {
-    padding: 15px 35px; border-radius: 12px;
-    font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 1rem; letter-spacing: 0.05em;
-    text-transform: uppercase; border: 1px solid transparent; cursor: pointer;
-    transition: all 0.3s ease; color: #fff;
+.trade-right-col {
+    display: flex; flex-direction: column; gap: 15px; justify-content: center;
+    flex: 1; min-width: 220px;
 }
 
-.btn-buy { background: rgba(46, 204, 113, 0.1); border-color: #2ecc71; color: #2ecc71; }
-.btn-buy:hover { background: #2ecc71; color: #000; box-shadow: 0 0 20px rgba(46, 204, 113, 0.4); }
+.trade-summary {
+    display: flex; justify-content: space-between; font-size: 1.1rem; font-weight: 700;
+    padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.trade-summary span:last-child { color: #FFD700; font-family: 'JetBrains Mono'; }
 
-.btn-sell { background: rgba(231, 76, 60, 0.1); border-color: #e74c3c; color: #e74c3c; }
-.btn-sell:hover { background: #e74c3c; color: #fff; box-shadow: 0 0 20px rgba(231, 76, 60, 0.4); }
+.trade-buttons { display: flex; gap: 10px; width: 100%; }
+.t-btn {
+    flex: 1; padding: 15px; border: none; border-radius: 10px;
+    font-weight: 900; font-size: 0.9rem; cursor: pointer; transition: 0.2s;
+    text-transform: uppercase; letter-spacing: 1px; color: #fff;
+}
+.t-btn.buy { background: var(--green); color: #000; }
+.t-btn.buy:hover { background: #27ae60; transform: translateY(-2px); }
+.t-btn.sell { background: var(--red); }
+.t-btn.sell:hover { background: #c0392b; transform: translateY(-2px); }
 
-/* --- АДАПТИВ --- */
-@media (max-width: 1000px) {
-    .market-wrapper { 
-        grid-template-columns: 1fr; /* Одна колонка */
-        gap: 40px;
-    }
+.mobile-tabs { display: none; gap: 10px; margin-bottom: 20px; }
+.m-tab {
+    flex: 1; background: var(--panel); border: 1px solid var(--border);
+    color: var(--text-muted); padding: 12px; border-radius: 10px;
+    font-weight: 700; cursor: pointer;
+}
+.m-tab.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+@media (max-width: 1200px) {
+    .trade-controls { justify-content: center; gap: 20px; }
+    .user-position { width: 100%; border-right: none; border-bottom: 1px solid var(--border); padding-right: 0; padding-bottom: 15px; flex-direction: row; justify-content: space-between; flex: 100%; }
+    .trade-input-section, .trade-right-col { flex: 1; min-width: 45%; }
+}
+
+@media (max-width: 900px) {
+    .market-container { padding: 20px; height: auto; display: block; }
+    .market-header { flex-direction: column; align-items: flex-start; gap: 20px; }
+    .mh-balance { width: 100%; justify-content: space-between; }
     
-    .stock-list-panel { 
-        width: 100%; 
-        position: relative; /* Перестает липнуть */
-        top: 0;
-        height: 350px;
-    }
+    .mobile-tabs { display: flex; }
+    .terminal-grid { display: block; height: auto; }
     
-    .trade-panel { flex-direction: column; gap: 25px; text-align: center; }
-    .trade-actions { flex-direction: column; width: 100%; }
-    .trade-input-group { width: 100%; }
-    .trade-input { width: 100%; height: 50px; }
-    .btn-buy, .btn-sell { width: 100%; }
+    .stock-sidebar { display: none; height: 60vh; margin-bottom: 20px; position: static; }
+    .trade-area { display: none; }
+
+    .stock-sidebar.active, .trade-area.active { display: flex; animation: fadeIn 0.3s; }
+    
+    .trade-controls { flex-direction: column; align-items: stretch; gap: 20px; padding: 20px; height: auto; }
+    .user-position { flex-direction: row; padding-bottom: 15px; }
+    .trade-input-section, .trade-right-col { width: 100%; }
+    
+    .chart-card { min-height: 400px; }
 }
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }

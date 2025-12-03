@@ -1,7 +1,3 @@
-/* =========================================
-   MODERN PROFILE STYLES (REMASTERED)
-   ========================================= */
-
 :root {
     --bg-body: #0b0d12;
     --bg-card: #16181e;
@@ -17,16 +13,14 @@
     --radius-md: 16px;
 }
 
-/* --- 1. Layout & Wrapper --- */
 .profile-wrapper {
-    max-width: 1240px;
+    max-width: 1400px;
     margin: 0 auto;
-    padding: 100px 20px 60px; /* Отступ сверху для навбара */
+    padding: 150px 20px 60px;
     min-height: 100vh;
     font-family: 'Montserrat', sans-serif;
 }
 
-/* --- 2. Header (Hero Section) --- */
 .profile-header {
     position: relative;
     background-color: var(--bg-card);
@@ -42,11 +36,6 @@
     border: 1px solid var(--border-color);
 }
 
-.profile-header.default-bg {
-    background-image: url('/assets/backgrounds/profile_template.png');
-}
-
-/* Градиент для читаемости текста на фоне картинки */
 .profile-header-overlay {
     width: 100%;
     background: linear-gradient(to top, rgba(11, 13, 18, 0.98) 10%, rgba(11, 13, 18, 0.4) 100%);
@@ -56,7 +45,6 @@
     gap: 30px;
 }
 
-/* --- 3. Avatar & Identity --- */
 .avatar-wrapper {
     position: relative;
     width: 130px;
@@ -111,7 +99,6 @@
     display: inline-block;
 }
 
-/* Badges */
 .badges {
     display: flex;
     flex-wrap: wrap;
@@ -137,7 +124,6 @@
 .badge.tax-warning { color: #fca5a5; border-color: rgba(239, 68, 68, 0.3); background: rgba(239, 68, 68, 0.1); }
 .badge.rep { color: #86efac; }
 
-/* Edit Button */
 .btn-edit {
     margin-left: auto;
     background: rgba(255,255,255,0.05);
@@ -152,12 +138,10 @@
 }
 .btn-edit:hover { background: var(--bg-hover); transform: translateY(-2px); }
 
-/* --- 4. Dashboard Grid --- */
 .dashboard-grid {
     display: grid;
-    /* Левая (узкая) | Центр (широкая) | Правая (узкая) */
     grid-template-columns: 280px 1fr 300px; 
-    gap: 24px; /* Больше воздуха между колонками */
+    gap: 24px;
     align-items: start;
 }
 
@@ -167,17 +151,14 @@
     gap: 24px;
 }
 
-/* --- 5. Universal Card Styles --- */
 .card {
     background: var(--bg-card);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
     padding: 24px;
     position: relative;
-    /* Убрал тень для чистоты, но можно вернуть: box-shadow: 0 4px 20px rgba(0,0,0,0.2); */
 }
 
-/* Заголовки блоков (Финансы, Активность...) */
 .card h3, .card h2 {
     font-size: 1.1rem;
     font-weight: 800;
@@ -196,16 +177,17 @@
     font-size: 1.2rem;
 }
 
-/* Divider line */
+.card h3 a {
+    color: #FFD700; font-size: 1rem; margin-left: auto; transition: 0.3s;
+}
+.card h3 a:hover { transform: scale(1.2); }
+
 .divider {
     height: 1px;
     background: var(--border-color);
     margin: 16px 0;
 }
 
-/* --- 6. Content Modules --- */
-
-/* Stat Rows (Финансы, Активность) */
 .stat-row {
     display: flex;
     justify-content: space-between;
@@ -225,7 +207,6 @@
 .stat-row .val.shard { color: #38bdf8; }
 .stat-row.total .val { font-size: 1.1rem; color: var(--success); }
 
-/* Marriage Card */
 .marriage-info {
     display: flex;
     align-items: center;
@@ -242,17 +223,15 @@
 }
 .small-date { font-size: 0.8rem; opacity: 0.6; margin-top: 4px; display: block; }
 
-/* Charts Area */
 .chart-container {
     min-height: 250px;
-    margin: -10px -10px 0; /* Компенсация отступов для графика */
+    margin: -10px -10px 0;
 }
 
-/* Stock Table (Portfolio) */
 .simple-table {
     width: 100%;
     border-collapse: separate;
-    border-spacing: 0 8px; /* Отступы между строками таблицы */
+    border-spacing: 0 8px;
 }
 .simple-table th {
     text-align: left;
@@ -278,12 +257,7 @@
     color: var(--primary);
 }
 
-/* Quests */
-.quest-list {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
+.quest-list { display: flex; flex-direction: column; gap: 12px; }
 .quest-item {
     background: rgba(255,255,255,0.03);
     border: 1px solid var(--border-color);
@@ -310,12 +284,7 @@
     transition: width 0.5s ease;
 }
 
-/* Achievements */
-.achievements-list {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-}
+.achievements-list { display: flex; flex-wrap: wrap; gap: 8px; }
 .ach-tag {
     background: rgba(255, 215, 0, 0.08);
     border: 1px solid rgba(255, 215, 0, 0.2);
@@ -332,7 +301,6 @@
     transform: translateY(-2px);
 }
 
-/* Danger Zone (Личное) */
 .danger-zone {
     border-color: rgba(239, 68, 68, 0.3);
     background: linear-gradient(to bottom, rgba(239, 68, 68, 0.05), transparent);
@@ -340,7 +308,6 @@
 .danger-zone h3 i { color: var(--danger); }
 .tax-alert { color: var(--danger); font-weight: 700; margin-top: 12px; font-size: 0.95rem; }
 
-/* Buttons */
 .btn-secondary {
     display: flex;
     align-items: center;
@@ -364,10 +331,8 @@
     border-color: rgba(255,255,255,0.2);
 }
 
-/* --- 7. MINI INVENTORY GRID (CLEAN VERSION) --- */
 .inventory-grid {
     display: grid;
-    /* Ровно 4 колонки */
     grid-template-columns: repeat(4, 1fr); 
     gap: 10px;
     margin-bottom: 5px;
@@ -375,10 +340,10 @@
 
 .inv-item {
     position: relative;
-    background: transparent; /* Важно: Прозрачный фон */
-    border: none;            /* Важно: Без рамки */
+    background: transparent;
+    border: none;
     border-radius: 12px;
-    aspect-ratio: 1 / 1;     /* Строгий квадрат */
+    aspect-ratio: 1 / 1;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -388,15 +353,13 @@
     overflow: visible;
 }
 
-/* Hover Effect */
 .inv-item:hover {
     transform: translateY(-4px);
-    background: rgba(255, 255, 255, 0.05); /* Легкая подсветка только при наведении */
+    background: rgba(255, 255, 255, 0.05);
     box-shadow: 0 8px 20px rgba(0,0,0,0.3);
     z-index: 10;
 }
 
-/* Rarity Stripes (Толстые полоски снизу) */
 .inv-item.common { border-bottom: 3px solid #95a5a6; }
 .inv-item.rare { border-bottom: 3px solid #3498db; }
 .inv-item.epic { border-bottom: 3px solid #9b59b6; }
@@ -405,39 +368,19 @@
     filter: drop-shadow(0 4px 10px rgba(255, 215, 0, 0.2));
 }
 
-/* Icon Container */
-.inv-icon {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 8px;
-}
-.inv-icon img {
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: contain;
-    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.6));
-}
+.inv-icon { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; padding: 8px; }
+.inv-icon img { max-width: 100%; max-height: 100%; object-fit: contain; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.6)); }
 .inv-icon .inv-emoji { font-size: 1.8rem; }
 
-/* Quantity (Без фона, с тенью) */
 .inv-qty {
-    position: absolute;
-    top: 4px; right: 6px;
-    font-size: 0.75rem;
-    color: #fff;
-    font-weight: 800;
+    position: absolute; top: 4px; right: 6px;
+    font-size: 0.75rem; color: #fff; font-weight: 800;
     font-family: 'JetBrains Mono', monospace;
     text-shadow: 0 2px 4px rgba(0,0,0,0.9);
     pointer-events: none;
 }
-
-/* Скрываем имя в сетке */
 .inv-name { display: none; }
 
-/* Tooltip (Всплывашка) */
 .inv-item::after {
     content: attr(data-tooltip);
     position: absolute;
@@ -450,13 +393,14 @@
     font-size: 0.85rem;
     font-weight: 600;
     white-space: nowrap;
-    opacity: 0; pointer-events: none;
+    opacity: 0;
+    pointer-events: none;
     transition: 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     border: 1px solid var(--border-color);
     box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-    visibility: hidden; z-index: 100;
+    visibility: hidden;
+    z-index: 100;
 }
-/* Стрелка тултипа */
 .inv-item::before {
     content: '';
     position: absolute;
@@ -465,161 +409,252 @@
     border-width: 6px;
     border-style: solid;
     border-color: #0f1115 transparent transparent transparent;
-    opacity: 0; visibility: hidden; transition: 0.2s; z-index: 100;
+    opacity: 0;
+    visibility: hidden;
+    transition: 0.2s;
+    z-index: 100;
 }
 .inv-item:hover::after, .inv-item:hover::before {
-    opacity: 1; visibility: visible;
+    opacity: 1;
+    visibility: visible;
     transform: translateX(-50%) scale(1);
 }
 
-/* --- 8. Responsive Design (FIXED FULL WIDTH) --- */
+.wall-input-box {
+    display: flex; gap: 15px; margin-bottom: 25px;
+    background: rgba(255,255,255,0.03); padding: 15px; border-radius: 16px;
+    border: 1px solid rgba(255,255,255,0.05); align-items: center;
+}
 
-@media (max-width: 1100px) {
+.wall-input-ava {
+    width: 40px; height: 40px; border-radius: 50%; object-fit: cover;
+    border: 2px solid rgba(255,255,255,0.1);
+}
+
+.wall-input {
+    flex: 1; background: transparent; border: none; color: #fff;
+    font-family: inherit; font-size: 0.95rem; padding: 5px; outline: none;
+}
+.wall-input::placeholder { color: #666; transition: 0.3s; }
+.wall-input:focus::placeholder { opacity: 0.5; transform: translateX(5px); }
+
+.btn-send {
+    width: 40px; height: 40px; border-radius: 12px; border: none;
+    background: var(--primary); color: #fff; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: 0.3s; font-size: 1rem;
+}
+.btn-send:hover { background: #fff; color: var(--primary); transform: scale(1.1); }
+.btn-send:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+.wall-list {
+    display: flex; flex-direction: column; gap: 15px;
+    max-height: 600px; overflow-y: auto; padding-right: 5px;
+}
+.wall-list::-webkit-scrollbar { width: 4px; }
+.wall-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+
+.wall-item { display: flex; gap: 15px; animation: slideIn 0.3s ease; }
+
+.wall-ava {
+    width: 45px; height: 45px; border-radius: 50%; object-fit: cover;
+    border: 2px solid rgba(255,255,255,0.1); flex-shrink: 0;
+}
+
+.wall-bubble {
+    background: rgba(255,255,255,0.03); padding: 12px 18px;
+    border-radius: 0 16px 16px 16px; border: 1px solid rgba(255,255,255,0.05);
+    width: 100%; position: relative;
+}
+.wall-item:hover .wall-bubble { background: rgba(255,255,255,0.05); }
+
+.wall-meta {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 6px; font-size: 0.85rem;
+}
+
+.wall-author { font-weight: 800; color: #fff; text-decoration: none; transition: 0.2s; }
+.wall-author:hover { color: var(--primary); }
+
+.wall-text { color: #ccc; font-size: 0.95rem; line-height: 1.5; word-wrap: break-word; }
+
+.wall-date { 
+    color: #9ca3af; 
+    font-size: 0.75rem; 
+    font-family: 'JetBrains Mono', monospace; 
+}
+
+.wall-empty { 
+    text-align: center; 
+    color: #9ca3af; 
+    padding: 30px; 
+    border: 2px dashed rgba(255,255,255,0.1); 
+    border-radius: 16px; 
+}
+
+.loader-spinner { 
+    text-align: center; 
+    width: 100%; 
+    padding: 20px; 
+    color: #ffffff;
+    font-weight: 700;
+    opacity: 0.8;
+}
+
+.profile-full-row {
+    margin-top: 30px;
+    width: 100%;
+}
+
+.wall-pagination {
+    display: flex; justify-content: center; align-items: center; gap: 8px;
+    margin-top: 20px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.05);
+}
+
+.page-btn {
+    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #aaa;
+    min-width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center;
+    justify-content: center; cursor: pointer; transition: 0.2s; font-size: 0.9rem; font-weight: 700;
+}
+
+.page-btn:hover:not(:disabled) { background: rgba(255,255,255,0.1); color: #fff; border-color: rgba(255,255,255,0.2); }
+.page-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); box-shadow: 0 0 10px rgba(88, 101, 242, 0.3); }
+.page-btn:disabled { opacity: 0.3; cursor: default; }
+
+@media (max-width: 1200px) {
     .dashboard-grid {
-        grid-template-columns: 300px 1fr; 
+        grid-template-columns: 1fr 1fr; 
     }
     .col-right {
         grid-column: span 2;
-        flex-direction: row;
-        flex-wrap: wrap;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 25px;
     }
-    .col-right > .card { flex: 1; min-width: 300px; }
 }
 
 @media (max-width: 768px) {
     .profile-wrapper {
-        /* ВАЖНО: Меньше отступов по бокам, чтобы контент занял всю ширину */
-        padding: 80px 12px 40px; 
-        width: 100%;
-        box-sizing: border-box;
+        padding: 100px 15px 40px; 
+        overflow-x: hidden; 
     }
 
-    /* --- HEADER --- */
     .profile-header {
+        height: auto;
+        min-height: auto;
+        display: flex;
+        flex-direction: column;
+        padding-top: 140px; 
+        overflow: visible; 
+    }
+
+    .profile-header-overlay {
+        position: relative; 
         flex-direction: column;
         align-items: center;
-        min-height: auto;
-        margin-bottom: 20px;
-        border-radius: 20px;
-    }
-    
-    .profile-header-overlay {
-        flex-direction: column;
         text-align: center;
-        padding: 25px 15px; 
-        background: linear-gradient(to top, #0b0d12 15%, rgba(11, 13, 18, 0.85) 100%);
+        padding: 0 20px 30px;
+        background: #16181e; 
+        border-top: 1px solid rgba(255,255,255,0.1);
+        border-radius: 0 0 24px 24px; 
     }
     
     .avatar-wrapper {
-        width: 100px;
-        height: 100px;
-        margin-bottom: 10px;
+        width: 120px;
+        height: 120px;
+        margin-top: -60px; 
+        margin-bottom: 15px;
+        z-index: 5; 
     }
+    
     .avatar-big {
-        width: 84px;
-        height: 84px;
-        border-width: 3px;
+        width: 100%;
+        height: 100%;
+        border-width: 4px;
+        background: #16181e; 
+    }
+    
+    .profile-identity {
+        width: 100%;
+        padding-bottom: 0;
     }
     
     .profile-identity h1 {
-        font-size: 1.6rem;
-        margin-bottom: 4px;
-        line-height: 1.2;
-        word-break: break-word; /* Если ник длинный, переносим */
-    }
-    
-    .user-title { 
-        font-size: 0.8rem; 
-        margin-bottom: 10px; 
-    }
-    
-    .badges {
-        justify-content: center;
-        gap: 6px;
-        margin-bottom: 15px;
-    }
-    .badge { padding: 4px 10px; font-size: 0.75rem; }
-    
-    .btn-edit {
-        margin: 10px auto 0;
-        width: 100%;
-        justify-content: center;
-        padding: 12px;
-        font-size: 0.95rem;
+        font-size: 2rem;
     }
 
-    /* --- GRID --- */
+    .badges {
+        justify-content: center;
+        margin-top: 10px;
+    }
+
+    .btn-edit {
+        position: relative;
+        bottom: auto; right: auto;
+        margin-top: 20px;
+        width: 100%;
+        justify-content: center;
+    }
+
     .dashboard-grid {
         display: flex;
         flex-direction: column;
-        gap: 15px;
-        width: 100%; /* Гарантируем ширину */
+        gap: 20px;
     }
 
     .col-left, .col-center, .col-right {
         display: flex;
         flex-direction: column;
+        gap: 20px;
         width: 100%;
-        gap: 15px;
-    }
-
-    /* --- CARDS --- */
-    .card {
-        padding: 15px; /* Чуть компактнее внутри */
-        width: 100%;
-        box-sizing: border-box; /* Чтобы паддинг не вылезал за 100% */
     }
     
-    /* Карточки идут по порядку */
-    .glow-card { order: 1; }
-    .card:has(.inventory-grid) { order: 2; } 
-    .graph-card { order: 3; } 
-
-    .card h3, .card h2 {
-        font-size: 1rem;
-        margin-bottom: 15px;
-        padding-bottom: 8px;
+    .col-right {
+        grid-column: auto;
+        display: flex;
     }
 
-    .stat-row {
-        font-size: 0.9rem;
-        margin-bottom: 10px;
-        padding: 6px 0;
+    .card {
+        padding: 20px;
     }
-    .stat-row .val { font-size: 0.95rem; }
-    .stat-row.total .val { font-size: 1.1rem; }
 
-    /* --- INVENTORY (5 в ряд, чтобы не было гигантских иконок) --- */
+    .card:has(.simple-table) {
+        overflow-x: auto;
+    }
+    .simple-table {
+        min-width: 300px;
+    }
+
     .inventory-grid {
-        grid-template-columns: repeat(5, 1fr); /* 5 иконок = оптимально */
+        grid-template-columns: repeat(5, 1fr);
         gap: 6px;
     }
     
-    .inv-item { 
-        border-radius: 8px; 
-        background: rgba(255,255,255,0.04) !important;
+    @media (max-width: 380px) {
+        .inventory-grid {
+            grid-template-columns: repeat(4, 1fr);
+        }
     }
-    .inv-qty { 
-        font-size: 0.65rem; 
-        top: 2px; 
-        right: 4px; 
-    }
-    .inv-icon { padding: 4px; }
-    /* Ограничиваем размер эмодзи, чтобы не рвало сетку */
-    .inv-icon .inv-emoji { font-size: 1.6rem; } 
-    .inv-icon img { transform: scale(1); }
+
+    .inv-item { border-radius: 8px; }
+    .inv-qty { font-size: 0.6rem; right: 2px; bottom: 2px; }
 }
 
-/* Для узких телефонов (iPhone SE) */
-@media (max-width: 380px) {
-    .inventory-grid {
-        grid-template-columns: repeat(4, 1fr); /* Тут можно 4 */
-    }
-    .profile-identity h1 { font-size: 1.4rem; }
-}
-/* --- Animation Utilities --- */
 @keyframes pulse {
     0% { transform: scale(1); }
-    50% { transform: scale(1.15); }
+    50% { transform: scale(1.1); }
     100% { transform: scale(1); }
+}
+
+@keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+.badge.rep-negative { 
+    background: rgba(239, 68, 68, 0.15); 
+    color: #ef4444; 
+    border-color: rgba(239, 68, 68, 0.3); 
+}
+
+.btn-edit {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 600;
 }

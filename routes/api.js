@@ -1,415 +1,362 @@
-// routes/api.js
 import express from 'express';
 import UserProfile from '../models/UserProfile.js';
-import Stock from '../models/Stock.js';
-import StockTransaction from '../models/StockTransaction.js'; 
-import { getShopItems, getItemDefinition } from '../utils/itemDefinitions.js';
 import { checkAuth } from '../middleware/checkAuth.js';
-import ApplicationSubmission from '../models/ApplicationSubmission.js';
-import crypto from 'crypto';
-import BetaUser from '../models/BetaUser.js';
-import Feedback from '../models/Feedback.js';
+import Message from '../models/Message.js';
+import multer from 'multer';
+import fs from 'fs';
+import path from 'path';
+import jwt from 'jsonwebtoken';
+import { fileURLToPath } from 'url';
+import { body, validationResult } from 'express-validator';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 const router = express.Router();
 
-router.post('/admin/application', checkAuth, async (req, res) => {
-    // Проверка ID админа
-    const ADMIN_IDS = ['438744415734071297']; 
-    if (!ADMIN_IDS.includes(req.user.id)) return res.status(403).json({ error: 'No access' });
+const BOT_API_URL = process.env.BOT_API_URL || 'http://154.43.62.60:9818/api/v1'; 
+const JWT_SECRET = process.env.JWT_SECRET || 'secret'; 
 
-    const { appId, action } = req.body;
+async function proxyToBot(endpoint, method, body, userId) {
+    const token = jwt.sign({ userId }, JWT_SECRET, { expiresIn: '1m' });
+    const url = `${BOT_API_URL}${endpoint}`;
 
-    try {
-        const app = await ApplicationSubmission.findById(appId);
-        if (!app) return res.status(404).json({ error: 'Not found' });
-
-        let generatedPassword = null;
-
-        if (action === 'approve') {
-            app.status = 'approved';
-            
-            // ГЕНЕРАЦИЯ СЛУЧАЙНОГО ПАРОЛЯ (8 символов, hex)
-            generatedPassword = crypto.randomBytes(4).toString('hex');
-
-            // Создаем пользователя для входа
-            await BetaUser.create({
-                username: app.discordUsername, // Логин = Ник
-                password: generatedPassword,   // Пароль = Случайный код
-                assignedToDiscordId: app.uid
-            });
-
-            try {
-                // Формируем красивое сообщение
-                const messageText = `
-**🎉 Поздравляем! Ваша заявка на бета-тест сайта одобрена**
-
-Вы получили доступ к закрытому разделу сайта
-🔗 **Вход:** https://bandazeyna.com/beta-login
-👤 **Логин:** ||\`${app.discordUsername}\`||
-🔑 **Пароль:** ||\`${generatedPassword}\`||
-
-**В скором времени 
-
-⚠️ **Напомним о самом главном правиле: нельзя делиться информацией и материалом который находится на сайте. Мы хотим сохранить интригу для пользователей чтобы получить самые четсные эмоции. За нарушение этого правила вы можете получить бан на неопределенный срок или потерять доступ к сайту**
-                `.trim();
-
-                // Стучимся к боту на порт 3001 (или тот, что указал в боте)
-                // Если бот и сайт на одной машине — localhost. Если нет — IP сервера бота.
-                await fetch('http://localhost:3001/api/send-dm', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        userId: app.uid, // ID пользователя из Discord
-                        message: messageText
-                    })
-                });
-                
-                console.log('📨 Запрос на отправку ЛС отправлен боту.');
-
-            } catch (botError) {
-                console.error('⚠️ Не удалось связаться с ботом для отправки ЛС:', botError);
-                // Не прерываем выполнение, просто логируем ошибку
-            }
-        } else {
-            app.status = 'rejected';
-        }
-
-        await app.save();
-        
-        // Возвращаем пароль на фронтенд, чтобы админ мог его скопировать
-        res.json({ success: true, generatedPassword });
-
-    } catch (e) {
-        console.error(e);
-        res.status(500).json({ error: 'Server error' });
-    }
-});
-
-// Отправка отзыва (Обновленная версия)
-router.post('/feedback', checkAuth, async (req, res) => {
-    const { r_design, r_tech, r_idea, comment } = req.body;
-
-    // Преобразуем строки в числа
-    const design = parseInt(r_design);
-    const tech = parseInt(r_tech);
-    const idea = parseInt(r_idea);
-
-    // Проверка валидности оценок
-    if (!design || !tech || !idea) {
-        return res.status(400).json({ error: 'Пожалуйста, оцените все пункты!' });
-    }
-    
-    if (comment.trim().length < 5) {
-        return res.status(400).json({ error: 'Напишите хотя бы пару слов в комментарии.' });
-    }
+    console.log(`[Proxy] Sending ${method} to ${url}`);
 
     try {
-        // Проверка на повторный отзыв
-        const existing = await Feedback.findOne({ userId: req.user.id });
-        if (existing) {
-            return res.status(400).json({ error: 'Вы уже оставляли отзыв! Спасибо.' });
-        }
-
-        await Feedback.create({
-            userId: req.user.id,
-            username: req.user.username,
-            ratings: {
-                design: design,
-                tech: tech,
-                idea: idea
+        const response = await fetch(url, {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
             },
-            comment: comment.trim()
+            body: body ? JSON.stringify(body) : undefined
         });
 
-        res.json({ success: true });
-    } catch (e) {
-        console.error(e);
-        res.status(500).json({ error: 'Ошибка сервера' });
+        const text = await response.text(); 
+        
+        try {
+            const data = JSON.parse(text); 
+            if (!response.ok) {
+                return { success: false, error: data.error || `Ошибка бота: ${response.status}` };
+            }
+            return data;
+        } catch (e) {
+            console.error(`[Proxy Error] Ответ не JSON! URL: ${url}`);
+            console.error(`[Proxy Response]:`, text);
+            return { success: false, error: `Ошибка сервера (Invalid JSON). Проверь консоль.` };
+        }
+
+    } catch (err) {
+        console.error(`[Proxy Network Error]:`, err);
+        return { success: false, error: 'Нет связи с сервером бота' };
+    }
+}
+
+const uploadDir = path.join(__dirname, '../public/uploads/chat');
+if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, uploadDir);
+    },
+    filename: (req, file, cb) => {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, uniqueSuffix + path.extname(file.originalname));
     }
 });
-// Торговля акциями
-router.post('/trade', checkAuth, async (req, res) => {
-    const { ticker, amount, action } = req.body;
-    const userId = req.user.id;
 
-    if (!amount || amount <= 0) return res.json({ success: false, error: "Неверное количество" });
-
-    // Начало сессии транзакции (для надежности, если MongoDB поддерживает Replica Set)
-    // Но для простоты сделаем без transaction session пока
-    try {
-        const user = await UserProfile.findOne({ userId: userId, guildId: process.env.GUILD_ID });
-        const stock = await Stock.findOne({ ticker: ticker });
-
-        if (!user) return res.json({ success: false, error: "Профиль не найден" });
-        if (!stock) return res.json({ success: false, error: "Акция не найдена" });
-
-        const totalPrice = stock.currentPrice * amount;
-
-        // --- ПОКУПКА ---
-        if (action === 'BUY') {
-            if (user.stars < totalPrice) {
-                return res.json({ success: false, error: `Недостаточно средств! Нужно ${totalPrice.toFixed(2)}, а у вас ${user.stars.toFixed(2)}` });
-            }
-
-            user.stars -= totalPrice;
-
-            const portfolioItem = user.portfolio.find(p => p.ticker === ticker);
-            if (portfolioItem) {
-                const oldTotal = portfolioItem.quantity * portfolioItem.avgBuyPrice;
-                portfolioItem.quantity += amount;
-                portfolioItem.totalInvested += totalPrice;
-                portfolioItem.avgBuyPrice = (oldTotal + totalPrice) / portfolioItem.quantity;
-            } else {
-                user.portfolio.push({
-                    ticker: ticker,
-                    quantity: amount,
-                    avgBuyPrice: stock.currentPrice,
-                    totalInvested: totalPrice
-                });
-            }
-
-            await user.save();
-
-            // !!! ВАЖНО: Сохраняем транзакцию для рынка !!!
-            await StockTransaction.create({
-                ticker: ticker,
-                userId: userId,
-                type: 'BUY',
-                quantity: amount,
-                pricePerShare: stock.currentPrice,
-                totalValue: totalPrice
-            });
-
-            return res.json({ success: true, message: `Куплено ${amount} акций ${ticker}` });
+const upload = multer({ 
+    storage: storage,
+    limits: { fileSize: 5 * 1024 * 1024 },
+    fileFilter: (req, file, cb) => {
+        if (file.mimetype.startsWith('image/')) {
+            cb(null, true);
+        } else {
+            cb(new Error('Можно загружать только изображения!'), false);
         }
-
-        // --- ПРОДАЖА ---
-        else if (action === 'SELL') {
-            const portfolioItem = user.portfolio.find(p => p.ticker === ticker);
-            
-            if (!portfolioItem || portfolioItem.quantity < amount) {
-                return res.json({ success: false, error: "У вас нет столько акций!" });
-            }
-
-            user.stars += totalPrice;
-            portfolioItem.quantity -= amount;
-            
-            if (portfolioItem.quantity <= 0) {
-                user.portfolio = user.portfolio.filter(p => p.ticker !== ticker);
-            } else {
-                const ratio = amount / (portfolioItem.quantity + amount);
-                portfolioItem.totalInvested -= portfolioItem.totalInvested * ratio;
-            }
-
-            await user.save();
-
-            // !!! ВАЖНО: Сохраняем транзакцию для рынка !!!
-            await StockTransaction.create({
-                ticker: ticker,
-                userId: userId,
-                type: 'SELL',
-                quantity: amount,
-                pricePerShare: stock.currentPrice,
-                totalValue: totalPrice
-            });
-
-            return res.json({ success: true, message: `Продано ${amount} акций ${ticker}` });
-        }
-
-    } catch (e) {
-        console.error(e);
-        res.json({ success: false, error: "Ошибка сервера" });
     }
+});
+
+router.post('/trade', checkAuth, [
+    body('ticker').isString().isLength({ min: 2, max: 5 }).trim().escape(),
+    body('amount').isInt({ min: 1 }).withMessage('Количество должно быть числом > 0'),
+    body('action').isIn(['BUY', 'SELL']),
+], async (req, res) => {
+    
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ success: false, error: errors.array()[0].msg });
+    }
+    const { ticker, amount, action } = req.body;
+    
+    const payload = {
+        ticker: ticker,
+        quantity: parseInt(amount)
+    };
+
+    const endpoint = action === 'BUY' ? '/stocks/buy' : '/stocks/sell';
+
+    const result = await proxyToBot(endpoint, 'POST', payload, req.user.id);
+    
+    res.json(result);
 });
 
 router.post('/shop/buy', checkAuth, async (req, res) => {
     const { itemId, quantity } = req.body;
-    const qty = parseInt(quantity) || 1;
+    const result = await proxyToBot('/shop/buy', 'POST', { itemId, quantity }, req.user.id);
+    res.json(result);
+});
 
-    if (qty < 1) return res.json({ success: false, error: "Неверное количество" });
+router.post('/inventory/use', checkAuth, async (req, res) => {
+    const { itemId, quantity } = req.body;
+    const result = await proxyToBot('/items/use', 'POST', { itemId, quantity }, req.user.id);
+    res.json(result);
+});
 
+router.post('/daily/claim', checkAuth, async (req, res) => {
+    const result = await proxyToBot('/rewards/daily', 'POST', {}, req.user.id);
+    res.json(result);
+});
+
+router.post('/deposit/create', checkAuth, async (req, res) => {
+    const { planId, amount } = req.body;
+    const result = await proxyToBot('/deposit/create', 'POST', { planId, amount }, req.user.id);
+    res.json(result);
+});
+
+router.post('/deposit/action', checkAuth, async (req, res) => {
+    const { depositId, action } = req.body;
+    const result = await proxyToBot('/deposit/action', 'POST', { depositId, action }, req.user.id);
+    res.json(result);
+});
+
+router.get('/messages/conversations', checkAuth, async (req, res) => {
+    const myId = req.user.id;
     try {
-        const userId = req.user.id;
-        const userProfile = await UserProfile.findOne({ userId: userId, guildId: process.env.GUILD_ID });
+        const conversations = await Message.aggregate([
+            { $match: { $or: [{ senderId: myId }, { receiverId: myId }] } },
+            { $sort: { createdAt: -1 } },
+            {
+                $group: {
+                    _id: { $cond: [{ $eq: ["$senderId", myId] }, "$receiverId", "$senderId"] },
+                    lastMessage: { $first: "$content" },
+                    timestamp: { $first: "$createdAt" },
+                    unreadCount: { $sum: { $cond: [{ $and: [{ $eq: ["$receiverId", myId] }, { $eq: ["$isRead", false] }] }, 1, 0] } }
+                }
+            },
+            { $sort: { timestamp: -1 } }
+        ]);
 
-        if (!userProfile) return res.json({ success: false, error: "Профиль не найден" });
+        const partnerIds = conversations.map(c => c._id);
+        const profiles = await UserProfile.find({ userId: { $in: partnerIds } }).select('userId username avatar');
+        const profileMap = new Map(profiles.map(p => [p.userId, p]));
 
-        // --- ЛОГИКА ПОКУПКИ ПРЕМИУМА ---
-        const premiumPlans = {
-            'premium_14d': { name: 'Премиум (14 дней)', cost: 6, days: 14, currency: 'shards' },
-            'premium_30d': { name: 'Премиум (30 дней)', cost: 10, days: 30, currency: 'shards' },
-            'premium_perm': { name: 'Премиум (Навсегда)', cost: 70, days: 99999, currency: 'shards' }
-        };
-
-        if (premiumPlans[itemId]) {
-            const plan = premiumPlans[itemId];
-            
-            // Проверка средств (Осколки)
-            if (userProfile.shards < plan.cost) {
-                return res.json({ success: false, error: `Не хватает Осколков! Нужно ${plan.cost}, у вас ${userProfile.shards}` });
-            }
-
-            // Списание
-            userProfile.shards -= plan.cost;
-
-            // Выдача статуса
-            const now = new Date();
-            if (plan.days === 99999) {
-                userProfile.premiumType = 'permanent';
-                userProfile.premiumRoleExpiresAt = null; // Навсегда
-            } else {
-                // Если уже есть временный премиум, продлеваем его
-                let currentExpiry = userProfile.premiumRoleExpiresAt && userProfile.premiumRoleExpiresAt > now 
-                    ? new Date(userProfile.premiumRoleExpiresAt) 
-                    : now;
-                
-                // Добавляем дни
-                currentExpiry.setDate(currentExpiry.getDate() + plan.days);
-                
-                userProfile.premiumType = 'temporary';
-                userProfile.premiumRoleExpiresAt = currentExpiry;
-            }
-
-            await userProfile.save();
-            return res.json({ success: true, message: `Успешно куплен: ${plan.name}!` });
-        }
-
-        // --- ЛОГИКА ОБЫЧНЫХ ПРЕДМЕТОВ ---
-        const items = getShopItems();
-        const item = items.find(i => i.itemId === itemId);
-
-        if (!item) return res.json({ success: false, error: "Товар не найден" });
-
-        const costStars = (item.price.stars || 0) * qty;
-        const costShards = (item.price.shards || 0) * qty;
-
-        if (userProfile.stars < costStars) return res.json({ success: false, error: `Не хватает Звезд! Нужно ${costStars}, у вас ${userProfile.stars}` });
-        if (userProfile.shards < costShards) return res.json({ success: false, error: `Не хватает Осколков! Нужно ${costShards}, у вас ${userProfile.shards}` });
-
-        userProfile.stars -= costStars;
-        userProfile.shards -= costShards;
-
-        const existingItem = userProfile.inventory.find(i => i.itemId === itemId);
-        if (existingItem) {
-            existingItem.quantity += qty;
-        } else {
-            userProfile.inventory.push({ itemId: itemId, quantity: qty, reservedQuantity: 0 });
-        }
-
-        await userProfile.save();
-
-        return res.json({ 
-            success: true, 
-            message: `Куплено: ${item.name} (x${qty})`,
-            newBalance: { stars: userProfile.stars, shards: userProfile.shards }
+        const result = conversations.map(c => {
+            const profile = profileMap.get(c._id) || { username: 'Неизвестный', avatar: null };
+            return {
+                partnerId: c._id,
+                username: profile.username,
+                avatar: profile.avatar,
+                lastMessage: c.lastMessage,
+                timestamp: c.timestamp,
+                unread: c.unreadCount
+            };
         });
 
+        res.json({ success: true, conversations: result });
     } catch (e) {
         console.error(e);
-        res.json({ success: false, error: "Ошибка сервера при покупке" });
+        res.status(500).json({ error: 'Ошибка' });
     }
 });
 
-// Использование предмета
-router.post('/inventory/use', checkAuth, async (req, res) => {
-    const { itemId, quantity } = req.body;
-    const qty = parseInt(quantity) || 1;
-    const userId = req.user.id;
+router.get('/messages/chat/:partnerId', checkAuth, async (req, res) => {
+    const myId = req.user.id;
+    const partnerId = req.params.partnerId;
+    
+    try {
+        const [myProfile, partnerProfile] = await Promise.all([
+            UserProfile.findOne({ userId: myId }),
+            UserProfile.findOne({ userId: partnerId })
+        ]);
+
+        if (!partnerProfile) return res.status(404).json({ error: 'Пользователь не найден' });
+
+        const iBlockedHim = myProfile.blockedUsers?.includes(partnerId) || false;
+        const heBlockedMe = partnerProfile.blockedUsers?.includes(myId) || false;
+
+        if (!heBlockedMe) {
+            const updateResult = await Message.updateMany(
+                { senderId: partnerId, receiverId: myId, isRead: false },
+                { isRead: true }
+            );
+            if (updateResult.modifiedCount > 0) {
+                req.io.to(partnerId).emit('messages_read', { readerId: myId });
+            }
+        }
+
+        const messages = await Message.find({
+            $or: [{ senderId: myId, receiverId: partnerId }, { senderId: partnerId, receiverId: myId }]
+        }).sort({ createdAt: 1 }).limit(100);
+
+        res.json({ 
+            success: true, 
+            messages,
+            partner: { username: partnerProfile.username, avatar: partnerProfile.avatar },
+            blockStatus: { iBlockedHim, heBlockedMe }
+        });
+    } catch (e) {
+        console.error(e);
+        res.status(500).json({ error: 'Ошибка чата' });
+    }
+});
+
+router.post('/messages/mark_read', checkAuth, async (req, res) => {
+    const { partnerId } = req.body;
+    try {
+        const updateResult = await Message.updateMany(
+            { senderId: partnerId, receiverId: req.user.id, isRead: false },
+            { isRead: true }
+        );
+        if (updateResult.modifiedCount > 0) {
+            req.io.to(partnerId).emit('messages_read', { readerId: req.user.id });
+        }
+        res.json({ success: true });
+    } catch (e) { res.status(500).json({ error: 'Err' }); }
+});
+
+router.post('/messages/send', checkAuth, (req, res) => {
+    upload.single('image')(req, res, async (err) => {
+        if (err) return res.status(400).json({ error: err.message });
+
+        const { receiverId, content } = req.body;
+        const file = req.file;
+        
+        if ((!content || !content.trim()) && !file) return res.status(400).json({ error: 'Пустое сообщение' });
+
+        try {
+            const myId = req.user.id;
+            const [myProfile, partnerProfile] = await Promise.all([
+                UserProfile.findOne({ userId: myId }),
+                UserProfile.findOne({ userId: receiverId })
+            ]);
+
+            if (!partnerProfile) return res.status(404).json({ error: 'Пользователь не найден' });
+            if (myProfile.blockedUsers?.includes(receiverId)) return res.status(403).json({ error: 'Вы заблокировали его' });
+            if (partnerProfile.blockedUsers?.includes(myId)) return res.status(403).json({ error: 'Вы в ЧС' });
+
+            const msgData = {
+                senderId: myId,
+                receiverId,
+                content: content ? content.trim() : '',
+                createdAt: new Date(),
+                isRead: false,
+                imageUrl: file ? `/uploads/chat/${file.filename}` : undefined
+            };
+
+            const msg = await Message.create(msgData);
+            
+            const eventData = {
+                message: msg.toObject(),
+                senderUsername: req.user.username,
+                senderAvatar: req.user.avatar
+            };
+
+            req.io.to(receiverId).emit('new_message', eventData);
+            req.io.to(myId).emit('message_sent', eventData);
+            
+            res.json({ success: true, message: msg });
+        } catch (e) {
+            console.error(e);
+            res.status(500).json({ error: 'Ошибка БД' });
+        }
+    });
+});
+
+router.post('/user/block', checkAuth, async (req, res) => {
+    const { targetId, action } = req.body;
+    try {
+        const myProfile = await UserProfile.findOne({ userId: req.user.id });
+        if (!myProfile.blockedUsers) myProfile.blockedUsers = [];
+
+        if (action === 'block') {
+            if (!myProfile.blockedUsers.includes(targetId)) myProfile.blockedUsers.push(targetId);
+        } else {
+            myProfile.blockedUsers = myProfile.blockedUsers.filter(id => id !== targetId);
+        }
+        await myProfile.save();
+        res.json({ success: true });
+    } catch (e) { res.status(500).json({ error: 'Ошибка' }); }
+});
+
+router.post('/profile/comment', checkAuth, async (req, res) => {
+    const { targetUserId, text } = req.body;
+    if (!text || text.length > 250) return res.status(400).json({ error: 'Некорректный текст' });
 
     try {
-        const userProfile = await UserProfile.findOne({ userId, guildId: process.env.GUILD_ID });
-        if (!userProfile) return res.json({ success: false, error: "Профиль не найден" });
+        const targetProfile = await UserProfile.findOne({ userId: targetUserId, guildId: process.env.GUILD_ID });
+        const authorProfile = await UserProfile.findOne({ userId: req.user.id, guildId: process.env.GUILD_ID });
+        
+        targetProfile.profileComments.push({
+            authorId: req.user.id,
+            authorUsername: req.user.username,
+            authorAvatar: authorProfile ? authorProfile.avatar : req.user.avatar,
+            comment: text.trim(),
+            timestamp: new Date()
+        });
+        if (targetProfile.profileComments.length > 50) targetProfile.profileComments = targetProfile.profileComments.slice(-50);
+        await targetProfile.save();
+        res.json({ success: true });
+    } catch (e) { res.status(500).json({ error: 'Ошибка' }); }
+});
 
-        // Проверяем наличие (для обычных предметов нужно списание, для многоразовых украшений - просто наличие)
-        if (!userProfile.hasItem(itemId, 1)) {
-            return res.json({ success: false, error: "У вас нет этого предмета!" });
-        }
+router.get('/profile/comments/:userId', async (req, res) => {
+    try {
+        const { userId } = req.params;
+        const page = parseInt(req.query.page) || 1;
+        const limit = 5;
+        const profile = await UserProfile.findOne({ userId }).select('profileComments');
+        
+        if (!profile) return res.status(404).json({ error: 'Профиль не найден' });
 
-        const itemDef = getItemDefinition(itemId);
-        if (!itemDef) return res.json({ success: false, error: "Предмет не существует" });
+        const allComments = profile.profileComments.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+        const paginatedComments = allComments.slice((page - 1) * limit, page * limit);
 
-        // 1. ЛУТБОКСЫ И НАБОРЫ
-        if (itemDef.category === 'Лутбокс' || itemDef.category === 'Набор ресурсов') {
-            if (typeof itemDef.open !== 'function') {
-                return res.json({ success: false, error: "Этот предмет нельзя открыть здесь." });
-            }
-
-            await userProfile.removeItemFromInventory(itemId, qty);
-            
-            const result = await itemDef.open(userProfile, null, null, userProfile.activeLuckClover);
-            
-            if (!result.success) {
-                await userProfile.addItemToInventory(itemId, qty); // Вернуть если ошибка
-                return res.json(result);
-            }
-
-            await userProfile.save();
-            return res.json({ 
-                success: true, 
-                type: 'lootbox',
-                message: result.message,
-                rewards: result.rewards 
-            });
-        }
-
-        // 2. УКРАШЕНИЯ (ЭКИПИРОВКА) - НОВЫЙ БЛОК
-        else if (itemDef.category === 'Украшение профиля') {
-            // Определяем тип украшения
-            if (itemDef.decorationType === 'avatar_frame') {
-                // Если эта рамка уже надета - снимаем её
-                if (userProfile.activeAvatarFrameId === itemId) {
-                    userProfile.activeAvatarFrameId = null;
-                    await userProfile.save();
-                    return res.json({ success: true, message: '🖼️ Рамка снята' });
-                } else {
-                    // Надеваем новую
-                    userProfile.activeAvatarFrameId = itemId;
-                    await userProfile.save();
-                    return res.json({ success: true, message: '🖼️ Рамка успешно установлена!' });
-                }
+        res.json({ 
+            success: true, 
+            comments: paginatedComments, 
+            pagination: { 
+                current: page, 
+                total: Math.ceil(allComments.length / limit),
+                count: allComments.length 
             } 
-            else if (itemDef.decorationType === 'card_background') {
-                // Если фон уже стоит - снимаем
-                if (userProfile.activeCardBgId === itemId) {
-                    userProfile.activeCardBgId = null;
-                    await userProfile.save();
-                    return res.json({ success: true, message: '🌄 Фон сброшен на стандартный' });
-                } else {
-                    // Устанавливаем новый
-                    userProfile.activeCardBgId = itemId;
-                    await userProfile.save();
-                    return res.json({ success: true, message: '🌄 Фон профиля успешно установлен!' });
-                }
-            }
-            else {
-                 return res.json({ success: false, error: "Неизвестный тип украшения" });
-            }
-        }
-
-        // 3. БУСТЕРЫ И РАСХОДНИКИ
-        else if (itemDef.category === 'Расходник' || itemDef.isUsable) {
-            if (typeof itemDef.use !== 'function') {
-                return res.json({ success: false, error: "Этот предмет нельзя использовать." });
-            }
-
-            const result = await itemDef.use(userProfile, null, qty);
-
-            if (result.success) {
-                await userProfile.removeItemFromInventory(itemId, qty);
-                await userProfile.save();
-            }
-            
-            return res.json(result);
-        }
-
-        else {
-            return res.json({ success: false, error: "Этот предмет нельзя использовать вручную." });
-        }
-
-    } catch (e) {
-        console.error('Inventory Use Error:', e);
-        res.json({ success: false, error: "Внутренняя ошибка сервера" });
+        });
+    } catch (e) { 
+        console.error(e);
+        res.status(500).json({ error: 'Ошибка сервера' }); 
     }
+});
+
+router.post('/giveaways/join', checkAuth, async (req, res) => {
+    const { giveawayId } = req.body;
+    const result = await proxyToBot('/giveaways/join', 'POST', { giveawayId }, req.user.id);
+    res.json(result);
+});
+
+router.get('/giveaways/:id/participants', checkAuth, async (req, res) => {
+    const result = await proxyToBot(`/giveaways/${req.params.id}/participants`, 'GET', null, req.user.id);
+    if (!result.success && !result.participants) {
+        return res.status(500).json({ error: 'Ошибка связи с ботом' });
+    }
+    res.json(result);
+});
+
+router.post('/user/update', checkAuth, async (req, res) => {
+    const { activeTitle } = req.body;
+    const result = await proxyToBot('/user/update', 'POST', { activeTitle }, req.user.id);
+    res.json(result);
 });
 
 export default router;

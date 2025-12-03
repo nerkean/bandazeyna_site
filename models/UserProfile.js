@@ -176,16 +176,17 @@ const userProfileSchema = new mongoose.Schema({
   event_candiesFromMessagesToday: { type: Number, default: 0 }, 
     event_ghostsCaught: { type: Number, default: 0 },
      totalStarsPaidInTax: { type: Number, default: 0 },
-       taxDue: { // Сумма налоговой задолженности
+       taxDue: { 
         type: Number,
         default: 0,
-        min: 0 // Задолженность не может быть отрицательной
+        min: 0 
     },
-        isTaxDelinquent: { // Флаг должника
+        isTaxDelinquent: { 
         type: Boolean,
         default: false,
-        index: true // Индекс для быстрого поиска должников
+        index: true 
     },
+    blockedUsers: [{ type: String, default: [] }],
 }, { timestamps: true });
 
 userProfileSchema.index({ userId: 1, guildId: 1 }, { unique: true });
@@ -325,9 +326,8 @@ userProfileSchema.statics.fetchProfile = async function(userId, guildId, usernam
             ]);
             updated = true;
         } else {
-            // Если Map существует, проверяем наличие ключа taxNotification
             if (userProfile.notificationSettings.get('taxNotification') === undefined) {
-                 userProfile.notificationSettings.set('taxNotification', true); // Добавляем, если отсутствует
+                 userProfile.notificationSettings.set('taxNotification', true);
                  updated = true;
             }
         }

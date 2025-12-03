@@ -1,0 +1,62 @@
+       :root { --bg: #050505; --card: #12141a; }
+        body { background: var(--bg); font-family: 'Montserrat', sans-serif; }
+
+        .wiki-hero {
+            text-align: center; padding: 100px 20px 40px;
+            background: radial-gradient(circle at 50% 0%, rgba(88, 101, 242, 0.15), transparent 60%);
+        }
+        .wiki-h1 { font-size: 3rem; font-weight: 900; color: #fff; margin-bottom: 20px; }
+        
+        .search-box {
+            max-width: 700px; 
+            margin: 0 auto; position: relative;
+        }
+        .search-input {
+            width: 100%; padding: 18px 60px 18px 30px; border-radius: 50px;
+            background: #1a1d24; border: 1px solid rgba(255,255,255,0.1);
+            color: #fff; font-size: 1.1rem; font-family: inherit;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3); transition: 0.3s;
+        }
+        .search-input:focus { border-color: #5865F2; box-shadow: 0 10px 40px rgba(88, 101, 242, 0.2); outline: none; }
+        .search-btn {
+            position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+            background: #5865F2; color: #fff; width: 40px; height: 40px; border-radius: 50%;
+            border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.1rem;
+        }
+
+        .wiki-container { max-width: 1300px; margin: 0 auto; padding: 40px 20px 100px; }
+        
+        .cat-section { margin-bottom: 50px; }
+        
+        .cat-title { 
+            font-size: 1.4rem; color: #fff; margin-bottom: 20px; 
+            display: inline-flex; 
+            align-items: center; gap: 10px; 
+            border-bottom: 2px solid rgba(255,255,255,0.1); 
+            padding-bottom: 5px; padding-right: 20px;
+            width: fit-content;
+        }
+        .cat-title i { color: #FFD700; }
+
+        .articles-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px;
+        }
+
+        .art-card {
+            background: var(--card); border: 1px solid rgba(255,255,255,0.05); border-radius: 16px;
+            padding: 20px; transition: 0.3s; display: flex; flex-direction: column;
+            text-decoration: none; position: relative; overflow: hidden;
+        }
+        .art-card:hover { transform: translateY(-3px); border-color: #5865F2; background: #161920; }
+        
+        .art-icon { font-size: 1.8rem; margin-bottom: 12px; color: #5865F2; }
+        .art-title { font-size: 1.1rem; font-weight: 700; color: #fff; margin-bottom: 8px; line-height: 1.3; }
+        .art-desc { font-size: 0.85rem; color: #999; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        
+        .art-meta { margin-top: auto; padding-top: 12px; display: flex; gap: 15px; font-size: 0.75rem; color: #555; }
+        .art-meta span { display: flex; align-items: center; gap: 4px; }
+
+        @media (max-width: 768px) {
+            .wiki-h1 { font-size: 2.2rem; }
+            .articles-grid { grid-template-columns: 1fr; }
+        }

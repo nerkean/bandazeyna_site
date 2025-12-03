@@ -13,36 +13,40 @@
                     Торгуй, общайся и развивайся вместе с нами.
                 </p>
                 <div class="f-socials">
-                    <a href="https://discord.gg/bandazeyna" target="_blank" class="social-btn discord" title="Discord">
+                    <a href="https://discord.gg/bandazeyna" target="_blank" class="social-btn discord" title="Discord" aria-label="Discord">
                         <i class="fab fa-discord"></i>
                     </a>
-                    <a href="https://www.youtube.com/@ZeynBss" target="_blank" class="social-btn youtube" title="YouTube">
+                    <a href="https://www.youtube.com/@ZeynBss" target="_blank" class="social-btn youtube" title="YouTube" aria-label="YouTube">
                         <i class="fab fa-youtube"></i>
                     </a>
-                    <a href="https://t.me/zeynbss7" target="_blank" class="social-btn telegram" title="Telegram">
+                    <a href="https://t.me/zeynbss7" target="_blank" class="social-btn telegram" title="Telegram" aria-label="Telegram">
                         <i class="fab fa-telegram"></i>
                     </a>
                 </div>
             </div>
 
             <div class="f-col links-col">
-                <h3>Навигация</h3>
+                <h2>Навигация</h2>
                 <a href="/">Главная</a>
-                <a href="/market">Биржа Акций</a>
-                <a href="/leaderboard">Топ Игроков</a>
-                <a href="/shop">Магазин</a>
+                <a href="/wiki">📚 База Знаний</a> <a href="/market">📈 Биржа Акций</a>
+                <a href="/shop">🛒 Магазин</a>
+                <a href="/leaderboard">🏆 Топ Игроков</a>
             </div>
 
             <div class="f-col links-col">
-                <h3>Полезное</h3>
-                <a href="/profile">Мой Профиль</a>
-                <a href="/inventory">Инвентарь</a>
-                <a href="#">Правила Сервера</a>
-                <a href="#">Поддержка</a>
+                <h2>Личное</h2>
+                <a href="/profile">👤 Мой Профиль</a>
+                <a href="/inventory">🎒 Инвентарь</a>
+                <a href="/deposit">🏦 Банк (Вклады)</a> <a href="/daily">📅 Ежедневные</a> <a href="/giveaways" style="color: #FFD700; font-weight: 700; margin-top: 10px;">
+                    <i class="fas fa-gift"></i> Халява
+                </a>
+                <a href="/wrapped" style="color: #00f3ff; font-weight: 700;">
+                    <i class="fas fa-star"></i> Итоги Года
+                </a>
             </div>
 
             <div class="f-col status-col">
-                <h3>Статус Системы</h3>
+                <h2>Статус Системы</h2>
                 <div class="system-status">
                     <div class="status-row">
                         <span class="status-dot <%= systemStatus.online ? 'online' : 'offline' %>"></span>
@@ -56,7 +60,7 @@
 
                     <div class="status-row">
                         <span class="status-dot online" style="background: #a0a3b5; box-shadow: none;"></span>
-                        <span style="color: #a0a3b5;">Версия: <b style="color: #fff;">v2.1 Winter</b></span>
+                        <span style="color: #a0a3b5;">Версия: <b style="color: #fff;">v1.0 Зима</b></span>
                     </div>
                 </div>
                 <p class="ping-text">DB Latency: <%= systemStatus.ping %>ms</p>

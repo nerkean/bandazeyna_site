@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <%- include('partials/head', { title: 'Ошибка 500 | Критический сбой' }) %>
+    <link rel="stylesheet" href="/css/error.css">
+    <style>
+        .glitch-500 { text-shadow: 2px 2px 0px #ff0000, -2px -2px 0px #ff0055; }
+        .terminal-box {
+            background: #000;
+            border: 1px solid #333;
+            border-radius: 12px;
+            padding: 15px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            color: #0f0;
+            text-align: left;
+            height: 200px;
+            overflow: hidden;
+            margin-bottom: 30px;
+            position: relative;
+        }
+        .terminal-cursor::after { content: '█'; animation: blink 1s infinite; }
+        @keyframes blink { 50% { opacity: 0; } }
+    </style>
+</head>
+<body>
+    <%- include('partials/navbar') %>
+
+    <div class="cyber-bg">
+        <div class="bg-gradient" style="background: conic-gradient(from 0deg, #200, #500, #200, #000);"></div> <div class="bg-noise"></div>
+    </div>
+
+    <div class="error-wrapper">
+        <div class="error-card">
+            <div class="glitch-wrapper">
+                <h1 class="glitch glitch-500" data-text="500">500</h1>
+            </div>
+            
+            <h2 class="error-title" style="color: #ff4d4d;">INTERNAL SERVER ERROR</h2>
+            <p class="error-desc">Критический сбой в ядре улья.<br>Наши кибер-пчелы уже занимаются отладкой.</p>
+            
+            <div class="game-border" style="background: linear-gradient(135deg, #ff4d4d, #a00);">
+                <div class="terminal-box" id="terminal">
+                    > SYSTEM_CHECK_INIT...<br>
+                    > CONNECTING_TO_HIVE_MIND... [ERROR]<br>
+                    > REBOOT_SEQUENCE_STARTED...<br>
+                    > <span class="terminal-cursor">_</span>
+                </div>
+            </div>
+
+            <div class="error-actions">
+                <a href="/" class="btn-home" style="background: rgba(255,77,77,0.1); border-color: #ff4d4d;">
+                    <i class="fas fa-redo"></i> ПЕРЕЗАГРУЗИТЬ МАТРИЦУ
+                </a>
+            </div>
+
+            <% if (typeof error !== 'undefined' && error && process.env.NODE_ENV === 'development') { %>
+                <div style="margin-top: 20px; text-align: left; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 8px; font-size: 0.7rem; color: #aaa;">
+                    DETAILS: <%= error.message %>
+                </div>
+            <% } %>
+        </div>
+    </div>
+
+    <%- include('partials/footer') %>
+    
+    <script nonce="<%= nonce %>">
+        // Эффект печатания в терминале
+        const lines = [
+            "LOADING_MODULES... [OK]",
+            "CHECKING_DATABASE... [TIMEOUT]",
+            "CRITICAL_FAILURE_DETECTED",
+            "NOTIFYING_ADMINISTRATOR... [SENT]",
+            "PLEASE_STAND_BY..."
+        ];
+        const term = document.getElementById('terminal');
+        let lineIndex = 0;
+
+        function typeLine() {
+            if (lineIndex < lines.length) {
+                const p = document.createElement('div');
+                p.textContent = "> " + lines[lineIndex];
+                term.insertBefore(p, term.lastElementChild);
+                lineIndex++;
+                setTimeout(typeLine, 800);
+            }
+        }
+        setTimeout(typeLine, 1000);
+    </script>
+</body>
+</html>

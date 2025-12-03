@@ -8,7 +8,6 @@
 <body>
     <%- include('partials/navbar') %>
 
-    <!-- 1. HERO SECTION -->
     <section class="bot-hero">
         <div class="hero-content">
     <div class="sys-badge">
@@ -61,7 +60,6 @@
         </div>
     </section>
 
-    <!-- 2. FEATURES GRID -->
         <section class="features-section">
         <div class="section-title center" data-aos="fade-up">
             <h2>Экосистема сервера</h2>
@@ -69,21 +67,18 @@
         </div>
         
         <div class="features-grid">
-            <!-- Card 1: Craft & Items -->
             <div class="feat-card" data-aos="fade-up" data-aos-delay="100">
                 <div class="feat-icon color-1"><i class="fas fa-hammer"></i></div>
                 <h3>Крафт и инвентарь</h3>
                 <p>Собирайте ресурсы, создавайте редкие предметы на верстаке и используйте расходники для буста опыта.</p>
             </div>
             
-            <!-- Card 2: Economy & Market -->
             <div class="feat-card" data-aos="fade-up" data-aos-delay="200">
                 <div class="feat-icon color-2"><i class="fas fa-chart-pie"></i></div>
                 <h3>Глобальный рынок</h3>
                 <p>Торгуйте акциями, следите за курсом валют и станьте богатейшим магнатом сервера.</p>
             </div>
             
-            <!-- Card 3: Moderation -->
             <div class="feat-card" data-aos="fade-up" data-aos-delay="300">
                 <div class="feat-icon color-3"><i class="fas fa-shield-alt"></i></div>
                 <h3>Умная защита</h3>
@@ -92,7 +87,6 @@
         </div>
     </section>
 
-    <!-- 3. ECONOMY SHOWCASE -->
     <section class="showcase-section finance-mode">
         <div class="bg-grid"></div>
         
@@ -184,7 +178,6 @@
         </div>
     </section>
 
-    <!-- 4. SOCIAL SHOWCASE -->
     <section class="showcase-section social-mode">
         <div class="blob blob-1"></div>
 
@@ -258,7 +251,6 @@
         </div>
     </section>
 
-    <!-- 5. PROGRESS SECTION -->
     <section class="showcase-section quest-mode">
         <div class="showcase-container">
             <div class="showcase-text" data-aos="fade-right">
@@ -322,7 +314,6 @@
         </div>
     </section>
 
-    <!-- 6. MINING SECTION (CENTERED) -->
     <section class="showcase-section mining-mode centered">
         <div class="container-center" data-aos="fade-up">
             <div class="center-text">
@@ -339,9 +330,7 @@
             </div>
 
             <div class="center-visual">
-                <!-- VISUAL: MINING DASHBOARD (LARGE) -->
                 <div class="mining-dashboard">
-                    <!-- Card 1: Chat -->
                     <div class="md-card large">
                         <div class="md-header">
                             <div class="md-icon"><i class="fas fa-comment-alt"></i></div>
@@ -356,17 +345,14 @@
                             <span class="val">Dynamic ⭐</span>
                         </div>
                         <div class="md-graph">
-                            <!-- Имитация активности чата -->
                             <div class="wave-line"></div>
                         </div>
                     </div>
-                    
-                    <!-- Connector -->
+
                     <div class="md-plus">
                         <i class="fas fa-plus"></i>
                     </div>
 
-                    <!-- Card 2: Voice -->
                     <div class="md-card large">
                         <div class="md-header">
                             <div class="md-icon"><i class="fas fa-microphone-lines"></i></div>
@@ -385,7 +371,6 @@
                         </div>
                     </div>
 
-                    <!-- Result Block -->
                     <div class="md-result-block">
                         <div class="md-res-label">ИТОГОВЫЙ КОШЕЛЁК</div>
                         <div class="md-res-value">2,450.50 ⭐</div>
@@ -396,9 +381,7 @@
         </div>
     </section>
 
-    <!-- 7. CTA SECTION (INFINITE WARP) -->
     <section class="cta-section epic">
-        <!-- Анимированный фон -->
         <div class="warp-bg">
             <div class="stars"></div>
             <div class="stars-2"></div>
@@ -435,16 +418,11 @@
 
     <%- include('partials/footer') %>
 
-<script>
-    // Ждем загрузки (так как скрипт в head имеет defer)
+<script nonce="<%= nonce %>">
     document.addEventListener('DOMContentLoaded', () => {
-        // Проверяем, загрузился ли AOS
         if (typeof AOS !== 'undefined') {
             AOS.init({ duration: 800, once: true, offset: 80 });
         }
-
-        // Эффект печати в консоли (если он нужен)
-        // Можно добавить сюда логику для typing-line
     });
 </script>
 </body>
