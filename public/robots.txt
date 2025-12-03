@@ -1,10 +1,19 @@
 User-agent: *
 Allow: /
+
 Disallow: /api/
 Disallow: /auth/
-Disallow: /profile/*
+Disallow: /profile/
 Disallow: /inventory
 Disallow: /deposit
 Disallow: /messages
+Disallow: /daily
+Disallow: /admin
+
+Disallow: /*?sort=
+Disallow: /*?period=
+Disallow: /*?page=
+Disallow: /*?category=
+Disallow: /*?q=
 
 Sitemap: https://bandazeyna.com/sitemap.xml
