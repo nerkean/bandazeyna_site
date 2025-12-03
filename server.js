@@ -12,10 +12,9 @@ import MongoStore from 'connect-mongo';
 import { Strategy as DiscordStrategy } from 'passport-discord';
 import compression from 'compression';
 import helmet from 'helmet'; 
-import rateLimit from 'express-rate-limit';
 import crypto from 'crypto';
-import minify from 'express-minify';
 
+// Импорт роутеров
 import pagesRouter from './routes/pages.js';
 import apiRouter from './routes/api.js';
 import authRouter from './routes/auth.js';
@@ -24,56 +23,49 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-app.set('trust proxy', 1);
 const httpServer = createServer(app);
 
-const apiLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000, 
-    max: 100, 
-    message: { error: 'Слишком много запросов. Подождите 15 минут.' },
-    standardHeaders: true,
-    legacyHeaders: false,
-});
-
-const authLimiter = rateLimit({
-    windowMs: 60 * 60 * 1000, 
-    max: 20,
-    message: 'Слишком много попыток входа.'
-});
-
 const io = new Server(httpServer, {
-    cors: { origin: "*", methods: ["GET", "POST"] }
+    cors: {
+        origin: "*",
+        methods: ["GET", "POST"]
+    }
 });
 
+// 1. БАЗОВЫЕ НАСТРОЙКИ
+app.set('trust proxy', 1); // Важно для HTTPS на хостинге
 app.use(compression());
-app.use(minify());
 
+// Nonce
 app.use((req, res, next) => {
     res.locals.nonce = crypto.randomBytes(16).toString('base64');
     next();
 });
 
+// Helmet
 app.use(helmet({
     contentSecurityPolicy: {
         directives: {
             defaultSrc: ["'self'"],
             scriptSrc: [
-                "'self'",
-                "https://cdn.jsdelivr.net",
-                "https://cdnjs.cloudflare.com", 
-                "https://unpkg.com",
-                (req, res) => `'nonce-${res.locals.nonce}'`
+                "'self'", "'unsafe-inline'", 
+                "https://cdn.jsdelivr.net", "https://unpkg.com", "https://cdnjs.cloudflare.com",
+                "https://bandazeyna.com"
             ],
             scriptSrcAttr: ["'unsafe-inline'"], 
             styleSrc: [
-                "'self'", 
-                "'unsafe-inline'", 
-                "https://fonts.googleapis.com", 
-                "https://unpkg.com"
+                "'self'", "'unsafe-inline'", 
+                "https://fonts.googleapis.com", "https://unpkg.com", "https://cdnjs.cloudflare.com"
             ],
-            imgSrc: ["'self'", "data:", "https:", "blob:", "https://cdn.discordapp.com", "https://i.ibb.co"],
-            connectSrc: ["'self'", "https://discord.com", "ws:", "wss:", "https://cdn.jsdelivr.net", "https://unpkg.com"], 
+            imgSrc: [
+                "'self'", "data:", "blob:", 
+                "https://cdn.discordapp.com", "https://bandazeyna.com", "https://i.ibb.co"
+            ],
             fontSrc: ["'self'", "https://fonts.gstatic.com"],
+            connectSrc: [
+                "'self'", "https://bandazeyna.com", "https://cdn.jsdelivr.net",
+                "ws:", "wss:", "https://discord.com"
+            ],
             objectSrc: ["'none'"],
             upgradeInsecureRequests: [],
         },
@@ -83,20 +75,28 @@ app.use(helmet({
 
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
-app.use(express.static(path.join(__dirname, 'public'), { maxAge: '7d', etag: false }));
+
+// Статика (важно: robots.txt и sitemap.xml должны быть доступны тут)
+app.use(express.static(path.join(__dirname, 'public'), {
+    maxAge: '30d', 
+    etag: false   
+}));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Socket IO Middleware
 app.use((req, res, next) => {
     req.io = io;
     next();
 });
 
+// 2. БАЗА ДАННЫХ
 mongoose.connect(process.env.MONGODB_URI)
-    .then(() => console.log('🌍 MongoDB Connected'))
-    .catch(err => console.error('DB Error:', err));
+    .then(() => console.log('🌍 Сайт подключен к MongoDB'))
+    .catch(err => console.error('Ошибка БД:', err));
 
+// 3. СЕССИИ
 const sessionMiddleware = session({
     secret: process.env.SESSION_SECRET,
     resave: false,
@@ -105,8 +105,9 @@ const sessionMiddleware = session({
     cookie: { 
         maxAge: 1000 * 60 * 60 * 24 * 30, 
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax' 
+        // Включаем secure только в продакшене с HTTPS
+        secure: process.env.NODE_ENV === 'production', 
+        sameSite: 'lax'
     }
 });
 
@@ -120,6 +121,7 @@ io.use(wrap(passport.initialize()));
 io.use(wrap(passport.session()));
 
 const onlineUsers = new Set();
+
 io.on('connection', (socket) => {
     const user = socket.request.user;
     if (user && user.id) {
@@ -139,9 +141,11 @@ io.on('connection', (socket) => {
 });
 
 app.get('/api/users/status/:userId', (req, res) => {
-    res.json({ isOnline: onlineUsers.has(req.params.userId) });
+    const isOnline = onlineUsers.has(req.params.userId);
+    res.json({ isOnline });
 });
 
+// Passport Strategy
 passport.use(new DiscordStrategy({
     clientID: process.env.DISCORD_CLIENT_ID,
     clientSecret: process.env.DISCORD_CLIENT_SECRET,
@@ -165,6 +169,7 @@ passport.use(new DiscordStrategy({
 passport.serializeUser((user, done) => done(null, { id: user.id, username: user.username, avatar: user.avatar }));
 passport.deserializeUser((obj, done) => done(null, obj));
 
+// System Status Middleware
 app.use(async (req, res, next) => {
     const start = Date.now();
     try {
@@ -174,16 +179,17 @@ app.use(async (req, res, next) => {
     next();
 });
 
-app.use('/auth', authLimiter, authRouter); 
-app.use('/api', apiLimiter, apiRouter);   
+// === ПОДКЛЮЧЕНИЕ МАРШРУТОВ (БЕЗ ЗАЩИТЫ BETA) ===
+app.use('/auth', authRouter); 
+app.use('/api', apiRouter);   
 app.use('/', pagesRouter);    
 
-app.use((req, res) => { res.status(404).render('404', { user: req.user }); });
-
+// Ошибки
+app.use((req, res) => { res.status(404).render('404', { user: req.user, profile: null }); });
 app.use((err, req, res, next) => {
-    console.error('[Server Error]', err);
-    res.status(500).render('500', { user: req.user, error: process.env.NODE_ENV === 'development' ? err : null });
+    console.error(err);
+    res.status(500).render('500', { user: req.user, error: err });
 });
 
 const PORT = process.env.PORT || 3000;
-httpServer.listen(PORT, () => console.log(`🚀 Сайт запущен (Production Mode): http://localhost:${PORT}`));
+httpServer.listen(PORT, () => console.log(`🚀 Сайт запущен: http://localhost:${PORT}`));
