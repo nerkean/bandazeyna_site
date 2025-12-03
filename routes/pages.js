@@ -39,31 +39,36 @@ router.get('/sitemap.xml', async (req, res) => {
             { url: '/privacy', changefreq: 'yearly', priority: 0.3 },
         ];
 
-        const articles = await Article.find({ isPublished: true }).select('slug updatedAt').lean();
-        articles.forEach(art => {
-            urls.push({
-                url: `/wiki/${art.slug}`,
-                changefreq: 'monthly',
-                priority: 0.7,
-                lastmod: new Date(art.updatedAt).toISOString()
+        try {
+            const articles = await Article.find({ isPublished: true }).select('slug updatedAt').lean();
+            articles.forEach(art => {
+                urls.push({
+                    url: `/wiki/${art.slug}`,
+                    changefreq: 'monthly',
+                    priority: 0.7,
+                    lastmod: art.updatedAt ? new Date(art.updatedAt).toISOString() : new Date().toISOString()
+                });
             });
-        });
+        } catch (err) {
+            console.error("Sitemap Wiki Error:", err);
+        }
 
         const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
-        <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-            ${urls.map(u => `
-                <url>
-                    <loc>${baseUrl}${u.url}</loc>
-                    <changefreq>${u.changefreq}</changefreq>
-                    <priority>${u.priority}</priority>
-                    ${u.lastmod ? `<lastmod>${u.lastmod}</lastmod>` : ''}
-                </url>
-            `).join('')}
-        </urlset>`;
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${urls.map(u => `  <url>
+    <loc>${baseUrl}${u.url}</loc>
+    <changefreq>${u.changefreq}</changefreq>
+    <priority>${u.priority.toFixed(1)}</priority>${u.lastmod ? `
+    <lastmod>${u.lastmod}</lastmod>` : ''}
+  </url>`).join('\n')}
+</urlset>`;
 
-        cache.set(cacheKey, sitemap, 3600);
+        const finalSitemap = sitemap.trim();
+
+        cache.set(cacheKey, finalSitemap, 3600);
         res.header('Content-Type', 'application/xml');
-        res.send(sitemap);
+        res.send(finalSitemap);
+
     } catch (e) {
         console.error(e);
         res.status(500).end();
