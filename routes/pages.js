@@ -11,6 +11,7 @@ import { getShopItems, getItemDefinition } from '../utils/itemDefinitions.js';
 import { getQuestDefinition } from '../utils/questDefinitions.js';
 import { getAchievementDefinition } from '../utils/achievementDefinitions.js';
 import { dailyRewards } from '../utils/dailyRewardDefinitions.js';
+import Giveaway from '../models/Giveaway.js'
 import cache from '../utils/cache.js';
 
 const router = express.Router();
@@ -113,7 +114,8 @@ router.get('/', async (req, res) => {
         };
 
         res.render('index', { 
-            user: req.user, stats, title: 'Главная | Дача Зейна',
+            user: req.user, stats, title: 'Главная | Дача Зейна', 
+            description: 'Добро пожаловать на Дачу Зейна! Крупнейшее сообщество по Bee Swarm Simulator с уникальной экономикой, биржей, ивентами и гайдами.',
             heroStock: topStock || { ticker: 'INDEX', lastChange: 0, currentPrice: 100 },
             myProfile, currentPath: '/', jsonLD 
         });
@@ -282,6 +284,7 @@ const statsData = {
             user: req.user,
             stats: statsData,
             title: 'Итоги 2025 | Дача Зейна',
+            description: 'Глобальная статистика сервера за 2025 год. Узнай, кто стал богатейшим игроком, сколько сообщений было написано и какие акции взлетели.',
             currentPath: '/wrapped',
             jsonLD: null 
         });
@@ -315,7 +318,7 @@ router.get('/wiki', async (req, res) => {
             }]
         };
 
-        res.render('wiki', { user: req.user, title: 'База Знаний | Дача Зейна', categories, searchQuery, currentPath: '/wiki', jsonLD });
+        res.render('wiki', { user: req.user, title: 'База Знаний | Дача Зейна', description: 'Полная база знаний по Bee Swarm Simulator: гайды по пчелам, крафты предметов, механики игры и секреты сервера.', categories, searchQuery, currentPath: '/wiki', jsonLD });
     } catch (e) { res.status(500).render('404', { user: req.user }); }
 });
 
@@ -356,7 +359,7 @@ router.get('/wiki/:slug', async (req, res) => {
             ]
         };
 
-        res.render('wiki-article', { user: req.user, article, related, title: `${article.title} | Wiki`, currentPath: `/wiki/${article.slug}`, jsonLD });
+        res.render('wiki-article', { user: req.user, article, related, title: `${article.title} | Wiki`, description: article.description || `Читать статью ${article.title} на Вики Дача Зейна.`, currentPath: `/wiki/${article.slug}`, jsonLD });
     } catch (e) { res.status(500).render('404', { user: req.user }); }
 });
 
@@ -366,28 +369,40 @@ router.get('/profile/:userId', async (req, res) => {
     try {
         const targetId = req.params.userId;
         const profile = await UserProfile.findOne({ userId: targetId, guildId: process.env.GUILD_ID }).lean();
+        
         if (!profile) return res.status(404).render('404', { user: req.user });
 
         if (profile.inventory) {
-            profile.inventory = profile.inventory.map(slot => ({ ...slot, details: getItemDefinition(slot.itemId) || { name: slot.itemId, emoji: '📦' } }));
+            profile.inventory = profile.inventory.map(slot => ({ 
+                ...slot, 
+                details: getItemDefinition(slot.itemId) || { name: slot.itemId, emoji: '📦' } 
+            }));
         }
 
         const viewer = req.user; 
         const isOwner = viewer && viewer.id === targetId;
-        const targetUser = { id: profile.userId, username: profile.username || 'Неизвестный', avatar: profile.avatar };
-        if (isOwner) targetUser.avatar = viewer.avatar;
+        const targetUser = { 
+            id: profile.userId, 
+            username: profile.username || 'Неизвестный', 
+            avatar: profile.avatar 
+        };
+        
+        if (isOwner && viewer.avatar) targetUser.avatar = viewer.avatar;
         
         const stocks = await Stock.find({}).lean();
         const stockMap = new Map(stocks.map(s => [s.ticker, s.currentPrice]));
         let portfolioValue = 0;
         let portfolioDetails = [];
+        
         if (profile.portfolio) {
             portfolioDetails = profile.portfolio.map(p => {
-                const val = p.quantity * (stockMap.get(p.ticker) || 0);
+                const currentPrice = stockMap.get(p.ticker) || 0;
+                const val = p.quantity * currentPrice;
                 portfolioValue += val;
-                return { ...p, currentPrice: stockMap.get(p.ticker) || 0, value: val };
+                return { ...p, currentPrice, value: val };
             });
         }
+        
         const netWorth = profile.stars + portfolioValue;
         const quests = (profile.activeQuests || []).map(q => ({ ...q, details: getQuestDefinition(q.questId) || { name: q.questId } }));
         const achievements = (profile.achievements || []).map(ach => ({ ...ach, details: getAchievementDefinition(ach.achievementId) || { medalEmoji: '🏅' } }));
@@ -398,16 +413,23 @@ router.get('/profile/:userId', async (req, res) => {
             partnerName = partner ? partner.username : "Неизвестно";
         }
 
+        const desc = `Профиль игрока ${targetUser.username}. Капитал: ${Math.floor(netWorth).toLocaleString()} ⭐. Сообщений: ${profile.totalMessages}.`;
+
         const noIndex = true; 
 
         res.render('profile', {
             user: viewer, targetUser, profile, isOwner, portfolioValue, netWorth, portfolioDetails,
             quests, achievements, partnerName,
             title: `Профиль ${targetUser.username}`,
+            description: desc, 
             currentPath: `/profile/${targetId}`,
             noIndex 
         });
-    } catch (e) { console.error(e); res.status(500).render('404', { user: req.user }); }
+
+    } catch (e) { 
+        console.error(e); 
+        res.status(500).render('404', { user: req.user }); 
+    }
 });
 
 router.get('/market', checkAuth, async (req, res) => {
@@ -426,7 +448,7 @@ router.get('/market', checkAuth, async (req, res) => {
             profile = await UserProfile.findOne({ userId: req.user.id, guildId: process.env.GUILD_ID }).lean();
             if (profile) userPortfolio = profile.portfolio || [];
         }
-        res.render('market', { user: req.user, stocks, portfolio: userPortfolio, profile, title: 'Биржа Акций', currentPath: '/market' });
+        res.render('market', { user: req.user, stocks, portfolio: userPortfolio, profile, title: 'Биржа Акций', description: 'Торгуйте виртуальными акциями игроков и компаний. Анализируйте графики и зарабатывайте Звезды.', currentPath: '/market' });
     } catch (e) { res.status(500).render('404', { user: req.user }); }
 });
 
@@ -478,7 +500,7 @@ router.get('/leaderboard', async (req, res) => {
 
         const renderData = { leaders, sortType, period, title, dbField, valueSuffix, formatVoice: (sec) => Math.round(sec / 60), currentPage: page, totalPages: Math.ceil(totalPlayers / limit), startRank: skip + 1, myRank, myValue, searchQuery, currentPath: '/leaderboard' };
         cache.set(cacheKey, renderData, 300);
-        res.render('leaderboard', { user: req.user, ...renderData });
+        res.render('leaderboard', { user: req.user, ...renderData, description: `Топ игроков сервера Дача Зейна по категории: ${renderData.title || 'Богатство'}. Посмотри, кто занимает первое место!`, currentPath: '/leaderboard' });
     } catch (e) { res.status(500).render('404', { user: req.user }); }
 });
 
@@ -486,7 +508,7 @@ router.get('/shop', checkAuth, async (req, res) => {
     try {
         const profile = await UserProfile.findOne({ userId: req.user.id, guildId: process.env.GUILD_ID }).lean();
         const items = getShopItems();
-        res.render('shop', { user: req.user, profile: profile || { stars: 0 }, items, title: 'Магазин', currentPath: '/shop' });
+        res.render('shop', { user: req.user, profile: profile || { stars: 0 }, items, title: 'Магазин', description: 'Покупайте лутбоксы, бустеры, украшения для профиля и Премиум статус за внутриигровую валюту.', currentPath: '/shop' });
     } catch (e) { res.status(500).send("Ошибка"); }
 });
 
@@ -532,11 +554,17 @@ router.get('/messages/:userId', checkAuth, (req, res) => res.render('messages', 
 
 router.get('/bot', async (req, res) => {
     const totalUsers = await UserProfile.countDocuments({ guildId: process.env.GUILD_ID });
-    res.render('bot', { user: req.user, title: 'О Боте', stats: { users: totalUsers }, currentPath: '/bot' });
+    res.render('bot', { user: req.user, title: 'О Боте', description: 'Официальный бот сервера Дача Зейна. Уникальная экономика, биржа акций, кланы, браки и ежедневные награды.', stats: { users: totalUsers }, currentPath: '/bot' });
 });
 
-router.get('/terms', (req, res) => res.render('terms', { user: req.user, title: 'Условия использования' }));
-router.get('/privacy', (req, res) => res.render('privacy', { user: req.user, title: 'Политика конфиденциальности' }));
+router.get('/terms', (req, res) => res.render('terms', { 
+    user: req.user, title: 'Условия использования',
+    description: 'Правила использования сервисов проекта Дача Зейна.' 
+}));
+router.get('/privacy', (req, res) => res.render('privacy', { 
+    user: req.user, title: 'Политика конфиденциальности',
+    description: 'Информация о том, какие данные мы собираем и как их используем.' 
+}));
 
 router.get('/admin/wiki', checkAuth, async (req, res) => {
     const ADMIN_IDS = ['438744415734071297'];
@@ -576,6 +604,86 @@ router.get('/img/proxy/avatar/:userId/:hash', async (req, res) => {
 
     } catch (e) {
         res.redirect('/assets/img/avatars/default_avatar.png');
+    }
+});
+
+router.get('/giveaways', checkAuth, async (req, res) => {
+    try {
+        const now = new Date();
+
+        const activeGiveaways = await Giveaway.find({ 
+            status: 'ACTIVE', 
+            endsAt: { $gt: now } 
+        }).sort({ endsAt: 1 }).lean();
+
+        const endedGiveaways = await Giveaway.find({ 
+            status: 'ENDED' 
+        }).sort({ endsAt: -1 }).limit(12).lean();
+
+        const allWinnerIds = endedGiveaways.flatMap(g => g.winners || []);
+        
+        if (allWinnerIds.length > 0) {
+            const winnerProfiles = await UserProfile.find({ userId: { $in: allWinnerIds } })
+                .select('userId username')
+                .lean();
+            
+            const winnerMap = {};
+            winnerProfiles.forEach(p => { winnerMap[p.userId] = p.username; });
+
+            endedGiveaways.forEach(g => {
+                g.winnerNames = (g.winners || []).map(id => winnerMap[id] || 'Неизвестный');
+            });
+        }
+
+        const enrichedActive = activeGiveaways.map(g => ({
+            ...g,
+            isJoined: g.participants.includes(req.user.id),
+            timeLeft: Math.max(0, new Date(g.endsAt) - now)
+        }));
+
+        const eventSchema = activeGiveaways.map(g => ({
+            "@type": "Event",
+            "name": g.title,
+            "startDate": new Date().toISOString(),
+            "endDate": new Date(g.endsAt).toISOString(),
+            "eventStatus": "https://schema.org/EventScheduled",
+            "eventAttendanceMode": "https://schema.org/OnlineEventAttendanceMode",
+            "location": {
+                "@type": "VirtualLocation",
+                "url": "https://bandazeyna.com/giveaways"
+            },
+            "description": g.description,
+            "offers": {
+                "@type": "Offer",
+                "price": g.entryCost || 0,
+                "priceCurrency": "Stars",
+                "availability": "https://schema.org/InStock"
+            },
+            "organizer": {
+                "@type": "Organization",
+                "name": "Дача Зейна",
+                "url": "https://bandazeyna.com"
+            }
+        }));
+
+        const jsonLD = {
+            "@context": "https://schema.org",
+            "@graph": eventSchema
+        };
+
+        res.render('giveaways', { 
+            user: req.user, 
+            active: enrichedActive, 
+            ended: endedGiveaways,
+            title: 'Розыгрыши | Халява',
+            description: 'Участвуй в регулярных розыгрышах ценных призов, валюты и эксклюзивных ролей на сервере Дача Зейна.',
+            currentPath: '/giveaways',
+            jsonLD: jsonLD 
+        });
+
+    } catch (e) {
+        console.error('[Page Giveaways] Error:', e);
+        res.status(500).render('404', { user: req.user });
     }
 });
 
