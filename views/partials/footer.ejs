@@ -4,6 +4,7 @@
 
     <div class="footer-container">
         <div class="footer-top">
+            
             <div class="f-col brand-col">
                 <div class="f-logo">
                     <i class="fas fa-snowflake"></i> ДАЧА ЗЕЙНА
@@ -26,18 +27,21 @@
             </div>
 
             <div class="f-col links-col">
-                <h2>Навигация</h2>
+                <h4>Навигация</h4>
                 <a href="/">Главная</a>
-                <a href="/wiki">📚 База Знаний</a> <a href="/market">📈 Биржа Акций</a>
+                <a href="/wiki">📚 База Знаний</a>
+                <a href="/market">📈 Биржа Акций</a>
                 <a href="/shop">🛒 Магазин</a>
                 <a href="/leaderboard">🏆 Топ Игроков</a>
-            </div>
+                <a href="/bot">🤖 О Боте</a> </div>
 
             <div class="f-col links-col">
-                <h2>Личное</h2>
+                <h4>Личное</h4>
                 <a href="/profile">👤 Мой Профиль</a>
                 <a href="/inventory">🎒 Инвентарь</a>
-                <a href="/deposit">🏦 Банк (Вклады)</a> <a href="/daily">📅 Ежедневные</a> <a href="/giveaways" style="color: #FFD700; font-weight: 700; margin-top: 10px;">
+                <a href="/deposit">🏦 Банк (Вклады)</a>
+                <a href="/daily">📅 Ежедневные</a>
+                <a href="/giveaways" style="color: #FFD700; font-weight: 700; margin-top: 10px;">
                     <i class="fas fa-gift"></i> Халява
                 </a>
                 <a href="/wrapped" style="color: #00f3ff; font-weight: 700;">
@@ -46,7 +50,7 @@
             </div>
 
             <div class="f-col status-col">
-                <h2>Статус Системы</h2>
+                <h4>Статус Системы</h4>
                 <div class="system-status">
                     <div class="status-row">
                         <span class="status-dot <%= systemStatus.online ? 'online' : 'offline' %>"></span>
@@ -60,7 +64,7 @@
 
                     <div class="status-row">
                         <span class="status-dot online" style="background: #a0a3b5; box-shadow: none;"></span>
-                        <span style="color: #a0a3b5;">Версия: <b style="color: #fff;">v1.0 Зима</b></span>
+                        <span style="color: #a0a3b5;">Версия: <b style="color: #fff;">v1.0 Release</b></span>
                     </div>
                 </div>
                 <p class="ping-text">DB Latency: <%= systemStatus.ping %>ms</p>
@@ -68,7 +72,14 @@
         </div>
 
         <div class="footer-bottom">
-            <p>&copy; 2025 Dacha Zayna. Not affiliated with Roblox Corp.</p>
+            <div class="fb-left">
+                <p>&copy; <%= new Date().getFullYear() %> Dacha Zayna. Not affiliated with Roblox Corp.</p>
+            </div>
+            <div class="fb-right">
+                <a href="/terms">Условия</a>
+                <span class="sep">•</span>
+                <a href="/privacy">Конфиденциальность</a>
+            </div>
         </div>
     </div>
 </footer>

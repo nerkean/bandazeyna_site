@@ -2,6 +2,7 @@ import express from 'express';
 import UserProfile from '../models/UserProfile.js';
 import { checkAuth } from '../middleware/checkAuth.js';
 import Message from '../models/Message.js';
+import Article from '../models/Article.js'
 import multer from 'multer';
 import fs from 'fs';
 import path from 'path';
@@ -336,6 +337,59 @@ router.get('/profile/comments/:userId', async (req, res) => {
     } catch (e) { 
         console.error(e);
         res.status(500).json({ error: 'Ошибка сервера' }); 
+    }
+});
+
+router.post('/admin/wiki/delete', checkAuth, async (req, res) => {
+    const ADMIN_IDS = ['438744415734071297']; 
+    if (!ADMIN_IDS.includes(req.user.id)) return res.status(403).json({ error: 'Нет доступа' });
+
+    try {
+        await Article.findByIdAndDelete(req.body.id);
+        res.json({ success: true });
+    } catch (e) {
+        console.error(e);
+        res.status(500).json({ error: 'Ошибка удаления' });
+    }
+});
+
+router.post('/admin/wiki', checkAuth, async (req, res) => {
+    const ADMIN_IDS = ['438744415734071297'];
+    if (!ADMIN_IDS.includes(req.user.id)) return res.status(403).json({ error: 'Нет доступа' });
+
+    try {
+        const { id, title, slug, description, content, category, icon, image, tags, isPublished } = req.body;
+
+        const finalSlug = slug || title.toLowerCase()
+            .replace(/ /g, '-')
+            .replace(/[^\w-]+/g, '');
+
+        const articleData = {
+            title,
+            slug: finalSlug,
+            description,
+            content,
+            category,
+            icon: icon || 'fas fa-book', 
+            image: image || null,
+            tags: tags ? tags.split(',').map(t => t.trim()) : [],
+            isPublished: isPublished === 'on' || isPublished === true, 
+            author: req.user.username
+        };
+
+        if (id) {
+            await Article.findByIdAndUpdate(id, articleData);
+        } else {
+            const existing = await Article.findOne({ slug: finalSlug });
+            if (existing) return res.status(400).json({ error: 'Такая ссылка (slug) уже существует!' });
+            
+            await Article.create(articleData);
+        }
+
+        res.json({ success: true });
+    } catch (e) {
+        console.error(e);
+        res.status(500).json({ error: 'Ошибка сохранения: ' + e.message });
     }
 });
 

@@ -585,6 +585,7 @@ router.get('/admin/wiki/edit/:id', checkAuth, async (req, res) => {
     res.render('admin-wiki-edit', { user: req.user, article, noIndex: true });
 });
 
+
 router.get('/img/proxy/avatar/:userId/:hash', async (req, res) => {
     try {
         const { userId, hash } = req.params;
