@@ -14,7 +14,6 @@ import compression from 'compression';
 import helmet from 'helmet'; 
 import crypto from 'crypto';
 
-// Импорт роутеров
 import pagesRouter from './routes/pages.js';
 import apiRouter from './routes/api.js';
 import authRouter from './routes/auth.js';
@@ -32,17 +31,14 @@ const io = new Server(httpServer, {
     }
 });
 
-// 1. БАЗОВЫЕ НАСТРОЙКИ
-app.set('trust proxy', 1); // Важно для HTTPS на хостинге
+app.set('trust proxy', 1); 
 app.use(compression());
 
-// Nonce
 app.use((req, res, next) => {
     res.locals.nonce = crypto.randomBytes(16).toString('base64');
     next();
 });
 
-// Helmet
 app.use(helmet({
     contentSecurityPolicy: {
         directives: {
@@ -58,8 +54,13 @@ app.use(helmet({
                 "https://fonts.googleapis.com", "https://unpkg.com", "https://cdnjs.cloudflare.com"
             ],
             imgSrc: [
-                "'self'", "data:", "blob:", 
-                "https://cdn.discordapp.com", "https://dachazeyna.com", "https://i.ibb.co"
+                "'self'", 
+                "data:", 
+                "blob:", 
+                "https://cdn.discordapp.com", 
+                "https://media.discordapp.net", 
+                "https://dachazeyna.com", 
+                "https://i.ibb.co"
             ],
             fontSrc: ["'self'", "https://fonts.gstatic.com"],
             connectSrc: [
@@ -76,7 +77,6 @@ app.use(helmet({
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
-// Статика (важно: robots.txt и sitemap.xml должны быть доступны тут)
 app.use(express.static(path.join(__dirname, 'public'), {
     maxAge: '30d', 
     etag: false   
@@ -85,27 +85,26 @@ app.use(express.static(path.join(__dirname, 'public'), {
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Socket IO Middleware
 app.use((req, res, next) => {
     req.io = io;
     next();
 });
 
-// 2. БАЗА ДАННЫХ
 mongoose.connect(process.env.MONGODB_URI)
     .then(() => console.log('🌍 Сайт подключен к MongoDB'))
     .catch(err => console.error('Ошибка БД:', err));
 
-// 3. СЕССИИ
 const sessionMiddleware = session({
     secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
-    store: MongoStore.create({ mongoUrl: process.env.MONGODB_URI }),
+    store: MongoStore.create({ 
+    mongoUrl: process.env.MONGODB_URI,
+    touchAfter: 24 * 3600 
+}),
     cookie: { 
         maxAge: 1000 * 60 * 60 * 24 * 30, 
         httpOnly: true,
-        // Включаем secure только в продакшене с HTTPS
         secure: process.env.NODE_ENV === 'production', 
         sameSite: 'lax'
     }
@@ -145,7 +144,6 @@ app.get('/api/users/status/:userId', (req, res) => {
     res.json({ isOnline });
 });
 
-// Passport Strategy
 passport.use(new DiscordStrategy({
     clientID: process.env.DISCORD_CLIENT_ID,
     clientSecret: process.env.DISCORD_CLIENT_SECRET,
@@ -169,7 +167,6 @@ passport.use(new DiscordStrategy({
 passport.serializeUser((user, done) => done(null, { id: user.id, username: user.username, avatar: user.avatar }));
 passport.deserializeUser((obj, done) => done(null, obj));
 
-// System Status Middleware
 app.use(async (req, res, next) => {
     const start = Date.now();
     try {
@@ -179,12 +176,10 @@ app.use(async (req, res, next) => {
     next();
 });
 
-// === ПОДКЛЮЧЕНИЕ МАРШРУТОВ (БЕЗ ЗАЩИТЫ BETA) ===
 app.use('/auth', authRouter); 
 app.use('/api', apiRouter);   
 app.use('/', pagesRouter);    
 
-// Ошибки
 app.use((req, res) => { res.status(404).render('404', { user: req.user, profile: null }); });
 app.use((err, req, res, next) => {
     console.error(err);
