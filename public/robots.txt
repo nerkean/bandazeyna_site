@@ -4,16 +4,16 @@ Allow: /
 Disallow: /api/
 Disallow: /auth/
 Disallow: /profile/
-Disallow: /inventory
-Disallow: /deposit
-Disallow: /messages
-Disallow: /daily
-Disallow: /admin
+Disallow: /inventory/
+Disallow: /deposit/
+Disallow: /messages/
+Disallow: /daily/
+Disallow: /admin/
 
-Disallow: /*?sort=
-Disallow: /*?period=
-Disallow: /*?page=
-Disallow: /*?category=
-Disallow: /*?q=
+Disallow: /*?sort=$
+Disallow: /*?period=$
+Disallow: /*?page=$
+Disallow: /*?category=$
+Disallow: /*?q=$
 
 Sitemap: https://bandazeyna.com/map.xml
