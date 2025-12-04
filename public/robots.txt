@@ -16,4 +16,4 @@ Disallow: /*?page=$
 Disallow: /*?category=$
 Disallow: /*?q=$
 
-Sitemap: https://bandazeyna.com/map.xml
+Sitemap: https://bandazeyna.com/sitemap.xml
