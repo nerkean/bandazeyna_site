@@ -50,7 +50,7 @@ app.use(helmet({
             scriptSrc: [
                 "'self'", "'unsafe-inline'", 
                 "https://cdn.jsdelivr.net", "https://unpkg.com", "https://cdnjs.cloudflare.com",
-                "https://bandazeyna.com"
+                "https://dachazeyna.com"
             ],
             scriptSrcAttr: ["'unsafe-inline'"], 
             styleSrc: [
@@ -59,11 +59,11 @@ app.use(helmet({
             ],
             imgSrc: [
                 "'self'", "data:", "blob:", 
-                "https://cdn.discordapp.com", "https://bandazeyna.com", "https://i.ibb.co"
+                "https://cdn.discordapp.com", "https://dachazeyna.com", "https://i.ibb.co"
             ],
             fontSrc: ["'self'", "https://fonts.gstatic.com"],
             connectSrc: [
-                "'self'", "https://bandazeyna.com", "https://cdn.jsdelivr.net",
+                "'self'", "https://dachazeyna.com", "https://cdn.jsdelivr.net",
                 "ws:", "wss:", "https://discord.com"
             ],
             objectSrc: ["'none'"],

@@ -43,16 +43,16 @@ router.get('/', async (req, res) => {
                 {
                     "@type": "Organization",
                     "name": "Дача Зейна",
-                    "url": "https://bandazeyna.com",
-                    "logo": "https://bandazeyna.com/assets/img/logo.png",
+                    "url": "https://dachazeyna.com",
+                    "logo": "https://dachazeyna.com/assets/img/logo.png",
                     "sameAs": ["https://discord.gg/bandazeyna", "https://www.youtube.com/@ZeynBss"]
                 },
                 {
                     "@type": "WebSite",
-                    "url": "https://bandazeyna.com",
+                    "url": "https://dachazeyna.com",
                     "potentialAction": {
                         "@type": "SearchAction",
-                        "target": "https://bandazeyna.com/leaderboard?q={search_term_string}",
+                        "target": "https://dachazeyna.com/leaderboard?q={search_term_string}",
                         "query-input": "required name=search_term_string"
                     }
                 }
@@ -260,7 +260,7 @@ router.get('/wiki', async (req, res) => {
             "@context": "https://schema.org",
             "@graph": [{
                 "@type": "BreadcrumbList",
-                "itemListElement": [{ "@type": "ListItem", "position": 1, "name": "Главная", "item": "https://bandazeyna.com" }, { "@type": "ListItem", "position": 2, "name": "Вики", "item": "https://bandazeyna.com/wiki" }]
+                "itemListElement": [{ "@type": "ListItem", "position": 1, "name": "Главная", "item": "https://dachazeyna.com" }, { "@type": "ListItem", "position": 2, "name": "Вики", "item": "https://dachazeyna.com/wiki" }]
             }]
         };
 
@@ -287,15 +287,15 @@ router.get('/wiki/:slug', async (req, res) => {
                 {
                     "@type": "BreadcrumbList",
                     "itemListElement": [
-                        { "@type": "ListItem", "position": 1, "name": "Главная", "item": "https://bandazeyna.com" },
-                        { "@type": "ListItem", "position": 2, "name": "Вики", "item": "https://bandazeyna.com/wiki" },
-                        { "@type": "ListItem", "position": 3, "name": article.title, "item": `https://bandazeyna.com/wiki/${article.slug}` }
+                        { "@type": "ListItem", "position": 1, "name": "Главная", "item": "https://dachazeyna.com" },
+                        { "@type": "ListItem", "position": 2, "name": "Вики", "item": "https://dachazeyna.com/wiki" },
+                        { "@type": "ListItem", "position": 3, "name": article.title, "item": `https://dachazeyna.com/wiki/${article.slug}` }
                     ]
                 },
                 {
                     "@type": "Article",
                     "headline": article.title,
-                    "image": article.image || "https://bandazeyna.com/img/wiki_default.png",
+                    "image": article.image || "https://dachazeyna.com/img/wiki_default.png",
                     "author": { "@type": "Person", "name": article.author },
                     "publisher": { "@type": "Organization", "name": "Дача Зейна" },
                     "datePublished": article.createdAt,
@@ -597,7 +597,7 @@ router.get('/giveaways', checkAuth, async (req, res) => {
             "eventAttendanceMode": "https://schema.org/OnlineEventAttendanceMode",
             "location": {
                 "@type": "VirtualLocation",
-                "url": "https://bandazeyna.com/giveaways"
+                "url": "https://dachazeyna.com/giveaways"
             },
             "description": g.description,
             "offers": {
@@ -609,7 +609,7 @@ router.get('/giveaways', checkAuth, async (req, res) => {
             "organizer": {
                 "@type": "Organization",
                 "name": "Дача Зейна",
-                "url": "https://bandazeyna.com"
+                "url": "https://dachazeyna.com"
             }
         }));
 
