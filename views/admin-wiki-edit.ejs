@@ -102,9 +102,28 @@
                         <label>Теги (через запятую)</label>
                         <input type="text" name="tags" value="<%= article ? article.tags.join(', ') : '' %>" placeholder="blue, mythic, endgame">
                     </div>
+                                        <div class="col form-group">
+                        <label>Главная картинка (Превью)</label>
+                        <input type="file" name="mainImage" accept="image/*">
+                        
+                        <input type="hidden" name="currentImage" value="<%= article ? article.image : '' %>">
+
+                        <% if (article && article.image) { %>
+                            <div style="margin-top: 10px; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 8px; display: inline-block;">
+                                <div style="font-size: 0.8rem; color: #888; margin-bottom: 5px;">Текущая:</div>
+                                <img src="<%= article.image %>" style="height: 80px; border-radius: 6px; display: block;">
+                            </div>
+                        <% } %>
+                    </div>
                     <div class="col form-group">
-                        <label>Картинка (URL)</label>
-                        <input type="text" name="image" value="<%= article ? article.image : '' %>">
+                        <label>Галерея (Картинки)</label>
+                        <input type="file" name="gallery" multiple accept="image/*">
+                        <div class="help-text">Можно выбрать несколько. Они добавятся к существующим.</div>
+                    </div>
+                    <div class="col form-group">
+                        <label>Вложения (Файлы)</label>
+                        <input type="file" name="files" multiple>
+                        <div class="help-text">Файлы для скачивания (PDF, Configs, ZIP).</div>
                     </div>
                 </div>
 
@@ -141,16 +160,20 @@
 
         document.getElementById('wikiForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const formData = new FormData(e.target);
-            const data = Object.fromEntries(formData);
             
-            data.isPublished = e.target.isPublished.checked;
+            // Создаем FormData. Он автоматически соберет файлы из <input type="file">
+            const formData = new FormData(e.target);
+            
+            // Чекбокс isPublished в FormData передается только если включен, 
+            // но нам нужно явное значение.
+            formData.set('isPublished', e.target.isPublished.checked);
 
             try {
                 const res = await fetch('/api/admin/wiki', {
                     method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify(data)
+                    // ВАЖНО: Не указываем Content-Type header вручную! 
+                    // Браузер сам поставит multipart/form-data и boundary.
+                    body: formData 
                 });
                 const result = await res.json();
                 

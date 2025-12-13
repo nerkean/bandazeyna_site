@@ -1,18 +1,18 @@
 import express from 'express';
-import UserProfile from '../models/UserProfile.js';
-import Stock from '../models/Stock.js';
-import StockPriceHistory from '../models/StockPriceHistory.js';
-import StockTransaction from '../models/StockTransaction.js';
-import Deposit from '../models/Deposit.js';
-import Article from '../models/Article.js';
-import UserDailyStreak from '../models/UserDailyStreak.js';
+import UserProfile from '../src/models/UserProfile.js';
+import Stock from '../src/models/Stock.js';
+import StockPriceHistory from '../src/models/StockPriceHistory.js';
+import StockTransaction from '../src/models/StockTransaction.js';
+import Deposit from '../src/models/Deposit.js';
+import Article from '../src/models/Article.js';
+import UserDailyStreak from '../src/models/UserDailyStreak.js';
 import { checkAuth } from '../middleware/checkAuth.js';
-import { getShopItems, getItemDefinition } from '../utils/itemDefinitions.js';
-import { getQuestDefinition } from '../utils/questDefinitions.js';
-import { getAchievementDefinition } from '../utils/achievementDefinitions.js';
-import { dailyRewards } from '../utils/dailyRewardDefinitions.js';
-import Giveaway from '../models/Giveaway.js'
-import cache from '../utils/cache.js';
+import { getShopItems, getItemDefinition } from '../src/utils/definitions/itemDefinitions.js';
+import { getQuestDefinition } from '../src/utils/definitions/questDefinitions.js';
+import { getAchievementDefinition } from '../src/utils/definitions/achievementDefinitions.js';
+import { dailyRewards } from '../src/utils/definitions/dailyRewardDefinitions.js';
+import Giveaway from '../src/models/Giveaway.js'
+import cache from '../src/utils/cache.js';
 
 const router = express.Router();
 
@@ -68,180 +68,118 @@ router.get('/', async (req, res) => {
     } catch (e) { res.render('index', { user: req.user, stats: { users: 0, stars: 0 }, heroStock: {}, myProfile: null }); }
 });
 
+// --- WRAPPED (ИТОГИ ГОДА) ---
+// --- WRAPPED (ИТОГИ ГОДА) ---
 router.get('/wrapped', async (req, res) => {
     try {
-        const globalAgg = await UserProfile.aggregate([
-            {
+        const cacheKey = 'wrapped_data_v3';
+        let wrappedData = cache.get(cacheKey);
+
+        if (!wrappedData) {
+            // 1. Глобальная статистика
+            const globalAgg = await UserProfile.aggregate([{
                 $group: {
                     _id: null,
                     totalMsgs: { $sum: "$totalMessages" },
                     totalVoice: { $sum: "$totalVoiceTime" },
                     totalMoney: { $sum: "$stars" },
                     totalShards: { $sum: "$shards" },
-                    totalTaxPaid: { $sum: "$totalStarsPaidInTax" },
-                    totalGhosts: { $sum: "$event_ghostsCaught" },
-                    totalCandies: { $sum: "$event_candies" },
-                    totalWarnsIssued: { $sum: "$warningsIssued" },
-                    totalItems: { $sum: { $size: "$inventory" } },
-                    totalAchievements: { $sum: { $size: "$achievements" } }
+                    totalItems: { $sum: { $size: { $ifNull: ["$inventory", []] } } },
+                    totalGhosts: { $sum: "$event_ghostsCaught" }
                 }
-            }
-        ]);
+            }]);
 
-        const marketAgg = await StockTransaction.aggregate([
-            { $group: { _id: null, volume: { $sum: "$totalValue" }, trades: { $sum: 1 } } }
-        ]);
+            const marketAgg = await StockTransaction.aggregate([{ $group: { _id: null, volume: { $sum: "$totalValue" }, trades: { $sum: 1 } } }]);
 
-        const depositsAgg = await Deposit.aggregate([
-            { $group: { _id: null, totalValue: { $sum: "$amount" }, count: { $sum: 1 } } }
-        ]);
-
-        const [
-            richest,
-            richestShards,
-            chatty,    
-            voice,        
-            taxPayer,    
-            reputation,   
-            ghostHunter,  
-            candyBaron,  
-            oldest,   
-            streakerData,
-            mostExpensiveStock,
-            cheapestStock,
-            totalUsers,
-            premiumCount,
-            investorCount,
-            debtorCount,
-            activeChatUsers,  
-            activeVoiceUsers  
-        ] = await Promise.all([
-            UserProfile.findOne({ stars: { $gt: 0 } }).sort({ stars: -1 }).select('username stars avatar userId'),
-            UserProfile.findOne({ shards: { $gt: 0 } }).sort({ shards: -1 }).select('username shards avatar userId'),
-            UserProfile.findOne({ totalMessages: { $gt: 0 } }).sort({ totalMessages: -1 }).select('username totalMessages avatar userId'),
-            UserProfile.findOne({ totalVoiceTime: { $gt: 0 } }).sort({ totalVoiceTime: -1 }).select('username totalVoiceTime avatar userId'),
-            UserProfile.findOne({ totalStarsPaidInTax: { $gt: 0 } }).sort({ totalStarsPaidInTax: -1 }).select('username totalStarsPaidInTax avatar userId'),
-            UserProfile.findOne({ reputation: { $gt: 0 } }).sort({ reputation: -1 }).select('username reputation avatar userId'),
-            UserProfile.findOne({ event_ghostsCaught: { $gt: 0 } }).sort({ event_ghostsCaught: -1 }).select('username event_ghostsCaught avatar userId'),
-            UserProfile.findOne({ event_candies: { $gt: 0 } }).sort({ event_candies: -1 }).select('username event_candies avatar userId'),
-            UserProfile.findOne().sort({ joinedAt: 1 }).select('username joinedAt avatar userId'),
-            UserDailyStreak.findOne({ currentStreak: { $gt: 0 } }).sort({ currentStreak: -1 }),
-
-            Stock.findOne().sort({ currentPrice: -1 }),
-            Stock.findOne().sort({ currentPrice: 1 }),
-
-            UserProfile.countDocuments(),
-            UserProfile.countDocuments({ premiumType: { $ne: null } }),
-            UserProfile.countDocuments({ "portfolio.0": { $exists: true } }),
-            UserProfile.countDocuments({ isTaxDelinquent: true }),
-            UserProfile.countDocuments({ totalMessages: { $gt: 10 } }), 
-            UserProfile.countDocuments({ totalVoiceTime: { $gt: 600 } }) 
-        ]);
-
-        const getLeader = async (collection, groupField, sortField) => {
-            const res = await collection.aggregate([
-                { $group: { _id: "$userId", val: { $sum: groupField } } },
-                { $sort: { val: -1 } },
-                { $limit: 1 }
+            // 2. Сбор Легенд
+            const [
+                richest,        // Богач
+                richestShards,  // Магнат Осколков
+                chatty,         // Болтун
+                voice,          // Голос
+                taxPayer,       // Налогоплательщик
+                reputation,     // Авторитет
+                ghostHunter,    // Охотник
+                streakerData,   // Гриндер (Стрикер)
+                totalUsers
+            ] = await Promise.all([
+                UserProfile.findOne({ stars: { $gt: 0 } }).sort({ stars: -1 }).select('username avatar userId stars').lean(),
+                UserProfile.findOne({ shards: { $gt: 0 } }).sort({ shards: -1 }).select('username avatar userId shards').lean(),
+                UserProfile.findOne({ totalMessages: { $gt: 0 } }).sort({ totalMessages: -1 }).select('username avatar userId totalMessages').lean(),
+                UserProfile.findOne({ totalVoiceTime: { $gt: 0 } }).sort({ totalVoiceTime: -1 }).select('username avatar userId totalVoiceTime').lean(),
+                UserProfile.findOne({ totalStarsPaidInTax: { $gt: 0 } }).sort({ totalStarsPaidInTax: -1 }).select('username avatar userId totalStarsPaidInTax').lean(),
+                UserProfile.findOne({ reputation: { $gt: 0 } }).sort({ reputation: -1 }).select('username avatar userId reputation').lean(),
+                UserProfile.findOne({ event_ghostsCaught: { $gt: 0 } }).sort({ event_ghostsCaught: -1 }).select('username avatar userId event_ghostsCaught').lean(),
+                UserDailyStreak.findOne({ currentStreak: { $gt: 0 } }).sort({ currentStreak: -1 }).lean(),
+                UserProfile.countDocuments()
             ]);
 
-            if (res.length === 0) return null;
+            // Догружаем данные стриккера
+            let topStreaker = null;
+            if (streakerData) {
+                const u = await UserProfile.findOne({ userId: streakerData.userId }).select('username avatar userId').lean();
+                if (u) topStreaker = { ...u, streak: streakerData.currentStreak };
+            }
 
-            const u = await UserProfile.findOne({ userId: res[0]._id }).select('username avatar userId');
-            return u ? { ...u.toObject(), value: res[0].val } : null;
-        };
+            // 3. Агрегация Трофи Хантера
+            const topAchieverAgg = await UserProfile.aggregate([
+                { 
+                    $project: { 
+                        username: 1, avatar: 1, userId: 1, 
+                        achCount: { $size: "$achievements" } 
+                    } 
+                },
+                { $sort: { achCount: -1 } },
+                { $limit: 1 }
+            ]);
+            const topAchiever = topAchieverAgg[0] || null;
 
-        const topTraderAgg = await StockTransaction.aggregate([
-            { $group: { _id: "$userId", volume: { $sum: "$totalValue" }, count: { $sum: 1 } } },
-            { $sort: { volume: -1 } }, { $limit: 1 }
-        ]);
+            // 4. Трейдер Года
+            const topTraderAgg = await StockTransaction.aggregate([
+                { $group: { _id: "$userId", volume: { $sum: "$totalValue" } } },
+                { $sort: { volume: -1 } }, { $limit: 1 }
+            ]);
+            let topTrader = null;
+            if (topTraderAgg.length) {
+                const u = await UserProfile.findOne({ userId: topTraderAgg[0]._id }).select('username avatar userId').lean();
+                if (u) topTrader = { ...u, volume: topTraderAgg[0].volume };
+            }
 
-        let topTrader = null;
+            // 5. Акция года
+            const popularStockAgg = await StockTransaction.aggregate([
+                { $group: { _id: "$ticker", count: { $sum: 1 } } }, 
+                { $sort: { count: -1 } }, { $limit: 1 }
+            ]);
+            const popularStock = popularStockAgg[0] ? popularStockAgg[0]._id : 'N/A';
 
-        if (topTraderAgg.length) {
-            const u = await UserProfile.findOne({ userId: topTraderAgg[0]._id });
-            if (u) topTrader = { ...u.toObject(), volume: topTraderAgg[0].volume, trades: topTraderAgg[0].count };
+            wrappedData = {
+                totalUsers,
+                global: globalAgg[0] || { totalMsgs: 0, totalMoney: 0, totalVoice: 0, totalItems: 0, totalGhosts: 0 },
+                market: { 
+                    volume: marketAgg[0]?.volume || 0, 
+                    trades: marketAgg[0]?.trades || 0,
+                    popularStock 
+                },
+                richest, richestShards, chatty, voice, 
+                taxPayer, reputation, ghostHunter, 
+                topAchiever, topTrader, topStreaker
+            };
+
+            cache.set(cacheKey, wrappedData, 600);
         }
 
-        const topDepositorAgg = await Deposit.aggregate([
-            { $group: { _id: "$userId", total: { $sum: "$amount" } } },
-            { $sort: { total: -1 } }, { $limit: 1 }
-        ]);
-
-        let topDepositor = null;
-
-        if (topDepositorAgg.length) {
-            const u = await UserProfile.findOne({ userId: topDepositorAgg[0]._id });
-            if (u) topDepositor = { ...u.toObject(), total: topDepositorAgg[0].total };
-        }
-
-        const shopaholicAgg = await UserProfile.aggregate([
-            { $project: { username: 1, avatar: 1, userId: 1, count: { $size: "$inventory" } } },
-            { $sort: { count: -1 } }, { $limit: 1 }
-        ]);
-
-        const topShopaholic = shopaholicAgg[0];
-
-        const achieverAgg = await UserProfile.aggregate([
-            { $project: { username: 1, avatar: 1, userId: 1, count: { $size: "$achievements" } } },
-            { $sort: { count: -1 } }, { $limit: 1 }
-        ]);
-
-        const topAchiever = achieverAgg[0];
-
-        const sheriffAgg = await UserProfile.aggregate([
-            { $project: { username: 1, avatar: 1, userId: 1, score: { $add: ["$mutesIssued", "$warningsIssued"] } } },
-            { $sort: { score: -1 } }, { $limit: 1 }
-        ]);
-
-        const topSheriff = sheriffAgg[0] && sheriffAgg[0].score > 0 ? sheriffAgg[0] : null;
-
-        const popularStockAgg = await StockTransaction.aggregate([
-            { $group: { _id: "$ticker", count: { $sum: 1 } } },
-            { $sort: { count: -1 } }, { $limit: 1 }
-        ]);
-
-        const popularStock = popularStockAgg[0] ? popularStockAgg[0]._id : 'TXT';
-
-        let topStreaker = null;
-
-        if (streakerData) {
-            const u = await UserProfile.findOne({ userId: streakerData.userId });
-            if (u) topStreaker = { ...u.toObject(), streak: streakerData.currentStreak };
-        }
-
-        const global = globalAgg[0] || {};
-        const market = marketAgg[0] || { volume: 0, trades: 0 };
-        const deposits = depositsAgg[0] || { totalValue: 0, count: 0 };
-
-const statsData = {
-            richest, richestShards, chatty, voice, taxPayer, reputation,
-            ghostHunter, candyBaron, oldest, topStreaker,
-            topTrader, topDepositor, topShopaholic, topAchiever, topSheriff,
-            
-            mostExpensiveStock, cheapestStock, popularStock,
-            
-            totalUsers, premiumCount, investorCount, debtorCount, activeChatUsers, activeVoiceUsers,
-            
-            global, market, deposits
-        };
-
-        res.render('wrapped', {
-            user: req.user,
-            stats: statsData,
+        res.render('wrapped', { 
+            user: req.user, 
+            stats: wrappedData, 
             title: 'Итоги 2025 | Дача Зейна',
-            description: 'Глобальная статистика сервера за 2025 год. Узнай, кто стал богатейшим игроком, сколько сообщений было написано и какие акции взлетели.',
+            description: `Итоги года сервера. Всего сообщений: ${(wrappedData.global.totalMsgs / 1000000).toFixed(1)}M. Участников: ${wrappedData.totalUsers}.`,
             currentPath: '/wrapped',
             jsonLD: null 
         });
 
     } catch (e) {
         console.error("Wrapped Error:", e);
-        res.status(500).render('404', { 
-            user: req.user, 
-            title: 'Ошибка', 
-            currentPath: '/error' 
-        });
+        res.status(500).render('500', { user: req.user, error: e });
     }
 });
 
@@ -270,43 +208,76 @@ router.get('/wiki', async (req, res) => {
 
 router.get('/wiki/:slug', async (req, res) => {
     try {
-        const article = await Article.findOne({ slug: req.params.slug, isPublished: true }).lean();
-        if (!article) return res.status(404).render('404', { user: req.user });
+        const article = await Article.findOne({ slug: req.params.slug });
 
-        if (article.updatedAt) {
-            res.setHeader('Last-Modified', new Date(article.updatedAt).toUTCString());
+        if (!article) {
+            // Если статья не найдена — 404
+            return res.status(404).render('404', { 
+                user: req.user, 
+                title: 'Страница не найдена' 
+            });
         }
 
-        Article.updateOne({ _id: article._id }, { $inc: { views: 1 } }).exec();
+        // --- 🧠 УМНАЯ СИСТЕМА ПРОСМОТРОВ ---
+        
+        let shouldCount = true;
+        const userAgent = req.get('User-Agent') || '';
 
-        const related = await Article.find({ category: article.category, slug: { $ne: article.slug }, isPublished: true }).limit(3).select('title slug icon').lean();
+        // 1. Отсеиваем ботов (Google, Yandex, Discordbot и т.д.)
+        const isBot = /bot|googlebot|crawler|spider|robot|crawling/i.test(userAgent);
+        if (isBot) {
+            shouldCount = false;
+        }
 
-        const jsonLD = {
-            "@context": "https://schema.org",
-            "@graph": [
-                {
-                    "@type": "BreadcrumbList",
-                    "itemListElement": [
-                        { "@type": "ListItem", "position": 1, "name": "Главная", "item": "https://dachazeyna.com" },
-                        { "@type": "ListItem", "position": 2, "name": "Вики", "item": "https://dachazeyna.com/wiki" },
-                        { "@type": "ListItem", "position": 3, "name": article.title, "item": `https://dachazeyna.com/wiki/${article.slug}` }
-                    ]
-                },
-                {
-                    "@type": "Article",
-                    "headline": article.title,
-                    "image": article.image || "https://dachazeyna.com/img/wiki_default.png",
-                    "author": { "@type": "Person", "name": article.author },
-                    "publisher": { "@type": "Organization", "name": "Дача Зейна" },
-                    "datePublished": article.createdAt,
-                    "dateModified": article.updatedAt,
-                    "description": article.description
-                }
-            ]
-        };
+        // 2. Инициализируем массив просмотренных статей в сессии, если его нет
+        if (!req.session.viewedArticles) {
+            req.session.viewedArticles = [];
+        }
 
-        res.render('wiki-article', { user: req.user, article, related, title: `${article.title} | Wiki`, description: article.description || `Читать статью ${article.title} на Вики Дача Зейна.`, currentPath: `/wiki/${article.slug}`, jsonLD });
-    } catch (e) { res.status(500).render('404', { user: req.user }); }
+        // 3. Проверяем, есть ли ID этой статьи в сессии пользователя
+        const articleIdStr = article._id.toString();
+        if (req.session.viewedArticles.includes(articleIdStr)) {
+            shouldCount = false; // Уже смотрел в этой сессии
+        }
+
+        // 4. (Опционально) Автор статьи не накручивает просмотры сам себе
+        if (req.user && req.user.username === article.author) {
+            shouldCount = false; 
+        }
+
+        // Если все проверки пройдены — засчитываем просмотр
+        if (shouldCount) {
+            // Атомарно увеличиваем счетчик в базе (лучше, чем article.views++)
+            await Article.findByIdAndUpdate(article._id, { $inc: { views: 1 } });
+            
+            // Добавляем ID в сессию, чтобы больше не считать этот просмотр
+            req.session.viewedArticles.push(articleIdStr);
+            
+            // Визуально обновляем объект article для текущего рендера, 
+            // чтобы пользователь сразу увидел +1
+            article.views += 1;
+        }
+
+        // --- КОНЕЦ ЛОГИКИ ПРОСМОТРОВ ---
+
+        // Поиск похожих статей (как у тебя было)
+        const related = await Article.find({ 
+            category: article.category, 
+            _id: { $ne: article._id },
+            isPublished: true 
+        }).limit(3);
+
+        res.render('wiki-article', { 
+            user: req.user, 
+            article, 
+            related, 
+            title: article.title 
+        });
+
+    } catch (e) {
+        console.error(e);
+        res.status(500).render('500', { user: req.user, error: e });
+    }
 });
 
 router.get('/profile', checkAuth, async (req, res) => res.redirect(`/profile/${req.user.id}`));
@@ -632,6 +603,17 @@ router.get('/giveaways', checkAuth, async (req, res) => {
         console.error('[Page Giveaways] Error:', e);
         res.status(500).render('404', { user: req.user });
     }
+});
+
+router.get('/banned', (req, res) => {
+    // Пускаем только если реально забанен
+    if (!req.user || !req.user.isBanned) return res.redirect('/');
+    
+    res.render('banned', { 
+        user: req.user, 
+        title: 'Доступ ограничен',
+        reason: req.user.banReason || 'Нарушение правил'
+    });
 });
 
 export default router;

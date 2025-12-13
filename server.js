@@ -7,7 +7,7 @@ import session from 'express-session';
 import passport from 'passport';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
-import UserProfile from './models/UserProfile.js';
+import UserProfile from './src/models/UserProfile.js';
 import MongoStore from 'connect-mongo';
 import { Strategy as DiscordStrategy } from 'passport-discord';
 import compression from 'compression';
@@ -31,7 +31,7 @@ const io = new Server(httpServer, {
     }
 });
 
-app.set('trust proxy', 1); 
+// app.set('trust proxy', 1); 
 app.use(compression());
 
 app.use((req, res, next) => {
@@ -60,7 +60,8 @@ app.use(helmet({
                 "https://cdn.discordapp.com", 
                 "https://media.discordapp.net", 
                 "https://dachazeyna.com", 
-                "https://i.ibb.co"
+                "https://i.ibb.co",
+                "https://ik.imagekit.io" // <--- ДОБАВИТЬ ЭТУ СТРОКУ
             ],
             fontSrc: ["'self'", "https://fonts.gstatic.com"],
             connectSrc: [
@@ -165,7 +166,28 @@ passport.use(new DiscordStrategy({
 }));
 
 passport.serializeUser((user, done) => done(null, { id: user.id, username: user.username, avatar: user.avatar }));
-passport.deserializeUser((obj, done) => done(null, obj));
+passport.deserializeUser(async (obj, done) => {
+    try {
+        // [FIX] Используем .lean(), чтобы получить обычный объект, а не Mongoose-документ
+        const user = await UserProfile.findOne({ userId: obj.id }).lean();
+        
+        if (user) {
+            // Теперь можно безопасно перезаписывать поля
+            user.avatar = obj.avatar; 
+            user.discordUsername = obj.username;
+            
+            // [КРИТИЧНО] Принудительно делаем user.id равным Discord ID
+            // Чтобы проверки типа (user.id === targetId) работали правильно
+            user.id = user.userId; 
+            
+            done(null, user);
+        } else {
+            done(null, obj);
+        }
+    } catch (err) {
+        done(err, null);
+    }
+});
 
 app.use(async (req, res, next) => {
     const start = Date.now();
@@ -176,9 +198,48 @@ app.use(async (req, res, next) => {
     next();
 });
 
+app.use((req, res, next) => {
+    // Проверяем только если юзер авторизован И забанен
+    if (req.user && req.user.isBanned) {
+        
+        // Список страниц, куда МОЖНО заходить забаненным
+        // (Начало пути)
+        const allowedPaths = [
+            '/banned',       // Страница с причиной бана
+            '/auth/logout',  // Выход
+            '/bot',          // О боте
+            '/terms',        // Условия (чтобы почитать правила)
+            '/privacy',      // Политика
+            '/wiki',         // Вики (читать гайды можно)
+            '/css/',         // Стили
+            '/js/',          // Скрипты
+            '/assets/',      // Картинки
+            '/img/'
+        ];
+
+        // Разрешаем Главную страницу (точное совпадение)
+        if (req.path === '/') return next();
+
+        // Проверяем, начинается ли путь с разрешенного
+        const isAllowed = allowedPaths.some(prefix => req.path.startsWith(prefix));
+
+        if (!isAllowed) {
+            // Если это API запрос (например, попытка купить акцию через консоль)
+            if (req.path.startsWith('/api/')) {
+                return res.status(403).json({ error: 'Ваш аккаунт заблокирован.' });
+            }
+            
+            // Если пытается зайти в профиль, инвентарь, магазин и т.д. -> на страницу бана
+            return res.redirect('/banned');
+        }
+    }
+    next();
+});
+
+// === ПОДКЛЮЧЕНИЕ МАРШРУТОВ ===
 app.use('/auth', authRouter); 
 app.use('/api', apiRouter);   
-app.use('/', pagesRouter);    
+app.use('/', pagesRouter);
 
 app.use((req, res) => { res.status(404).render('404', { user: req.user, profile: null }); });
 app.use((err, req, res, next) => {

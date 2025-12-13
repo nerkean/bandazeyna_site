@@ -39,6 +39,10 @@
                 <h1>Market <span style="color: var(--primary);">Terminal</span></h1>
                 <p>Профессиональный инструмент для торговли</p>
             </div>
+
+            <button class="m-tab" id="toggleLiteMode" onclick="toggleLiteMode()" style="margin-left: auto;">
+    <i class="fas fa-leaf"></i> <span>3D: ON</span>
+</button>
             
             <% if (user) { %>
                 <div class="mh-balance">
@@ -165,8 +169,55 @@
     <script nonce="<%= nonce %>" src="https://cdn.jsdelivr.net/npm/apexcharts" defer></script>
     <script nonce="<%= nonce %>" src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" defer></script>
     <script nonce="<%= nonce %>" src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js" defer></script>
+    <script nonce="<%= nonce %>" src="/socket.io/socket.io.js"></script>
 
     <script nonce="<%= nonce %>">
+        const socket = io();
+
+    // Слушаем событие от сервера
+    socket.on('market_update', (data) => {
+        console.log('Получено обновление биржи!', data);
+        
+        const { updates } = data;
+        
+        // 1. Обновляем карточки в списке (слева)
+        updates.forEach(update => {
+            // Находим карточку акции по тикеру (нужно будет добавить data-ticker в HTML, см. ниже)
+            // Но пока найдем по тексту, так как у тебя нет ID
+            const cards = document.querySelectorAll('.stock-card');
+            cards.forEach(card => {
+                if (card.innerText.includes(update.ticker)) {
+                    // Обновляем цену
+                    const priceEl = card.querySelector('.sc-price');
+                    if (priceEl) priceEl.innerText = update.price.toFixed(2);
+                    
+                    // Обновляем процент
+                    const changeEl = card.querySelector('.sc-change');
+                    if (changeEl) {
+                        const sign = update.change >= 0 ? '+' : '';
+                        changeEl.innerText = `${sign}${(update.change * 100).toFixed(2)}%`;
+                        // Меняем цвет
+                        changeEl.className = `sc-change ${update.change >= 0 ? 'up' : 'down'}`;
+                    }
+                    
+                    // Анимация вспышки (для красоты)
+                    card.style.transition = 'background 0.3s';
+                    card.style.backgroundColor = update.change >= 0 ? 'rgba(46, 204, 113, 0.2)' : 'rgba(231, 76, 60, 0.2)';
+                    setTimeout(() => card.style.backgroundColor = '', 500);
+                }
+            });
+
+            // 2. Если эта акция сейчас открыта в центре — обновляем главный график и цену
+            if (currentStock && currentStock.ticker === update.ticker) {
+                document.getElementById('selectedPrice').innerText = update.price.toFixed(2);
+                currentStock.currentPrice = update.price; // Обновляем в памяти
+                updateCalc(); // Пересчитываем калькулятор покупки
+            }
+        });
+        
+        // (Опционально) Обновить бегущую строку сверху
+    });
+    
         const allStocks = JSON.parse('<%- JSON.stringify(stocks).replace(/'/g, "\\'").replace(/\\/g, "\\\\") %>');
         const userPortfolio = <%- typeof portfolio !== 'undefined' ? JSON.stringify(portfolio) : '[]' %>;
         
@@ -324,6 +375,14 @@
         }
 
         function init3D() {
+        const isLite = localStorage.getItem('liteMode') === 'true';
+            if (isLite) {
+                console.log('🚀 Lite Mode: 3D Animation skipped');
+                document.getElementById('toggleLiteMode').innerHTML = '<i class="fas fa-leaf"></i> <span>3D: OFF</span>';
+                document.getElementById('toggleLiteMode').style.opacity = '0.5';
+                return;
+            }
+
             if (typeof THREE === 'undefined' || typeof THREE.GLTFLoader === 'undefined') {
                 setTimeout(init3D, 500); return; 
             }
@@ -387,6 +446,22 @@
                 camera.updateProjectionMatrix();
                 renderer.setSize(window.innerWidth, window.innerHeight);
             });
+        }
+
+        function toggleLiteMode() {
+            const current = localStorage.getItem('liteMode') === 'true';
+            const newState = !current;
+            localStorage.setItem('liteMode', newState);
+            
+            if (newState) {
+                // Включили Lite Mode (Выключили 3D)
+                alert('Экономичный режим включен. 3D отключено.');
+                location.reload(); // Перезагружаем, чтобы очистить память
+            } else {
+                // Выключили Lite Mode
+                alert('3D эффекты включены!');
+                location.reload();
+            }
         }
     </script>
 </body>

@@ -1,3 +1,4 @@
+// src/models/Stock.js
 import { Schema, model } from 'mongoose';
 
 const mentionHistorySchema = new Schema({
@@ -21,11 +22,13 @@ const stockSchema = new Schema({
     lastChange: { type: Number, default: 0 },
     mentionHistory: { type: [mentionHistorySchema], default: [] },
 priceHistory: { type: [priceHistorySchema], default: [] },
+    // --- НАЧАЛО ИЗМЕНЕНИЙ ---
     description: {
         type: String,
-        required: false, 
-        maxLength: 250  
+        required: false, // Необязательное поле
+        maxLength: 250   // Ограничим длину описания
     },
+    // --- КОНЕЦ ИЗМЕНЕНИЙ ---
 
 }, { timestamps: true });
 

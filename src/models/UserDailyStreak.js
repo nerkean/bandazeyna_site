@@ -9,8 +9,25 @@ const userDailyStreakSchema = new mongoose.Schema({
 
 userDailyStreakSchema.index({ userId: 1, guildId: 1 }, { unique: true });
 
+// === [НОВОЕ] СТАТИЧЕСКИЙ МЕТОД ПОЛУЧЕНИЯ ДАННЫХ ===
+// Этот метод вызывается как UserDailyStreak.fetchStreakData(...)
+userDailyStreakSchema.statics.fetchStreakData = async function(userId, guildId) {
+    let streak = await this.findOne({ userId, guildId });
+    
+    // Если данных нет, возвращаем объект-заглушку, чтобы код не падал
+    if (!streak) {
+        return { 
+            currentStreak: 0, 
+            lastClaimTimestamp: null,
+            userId,
+            guildId
+        };
+    }
+    return streak;
+};
+
 /**
- * @returns {Promise<{status: boolean, nextClaimIn: string}>}
+ * Проверяет, может ли пользователь забрать ежедневную награду.
  */
 userDailyStreakSchema.methods.canClaim = async function() {
     const now = new Date();
@@ -21,20 +38,20 @@ userDailyStreakSchema.methods.canClaim = async function() {
     const lastClaimDate = new Date(this.lastClaimTimestamp);
     const nextClaimDate = new Date(lastClaimDate);
     nextClaimDate.setDate(lastClaimDate.getDate() + 1);
-    nextClaimDate.setHours(0, 0, 0, 0); 
+    nextClaimDate.setHours(0, 0, 0, 0);
 
     if (now >= nextClaimDate) {
         return { status: true, nextClaimIn: 'Сейчас' };
     } else {
         const timeDiffMs = nextClaimDate.getTime() - now.getTime();
-        const { formatDuration } = await import('../utils/voiceUtils.js');
+        const { formatDuration } = await import('../utils/helpers.js');
         const nextClaimInFormatted = formatDuration(timeDiffMs / 1000);
         return { status: false, nextClaimIn: `через ${nextClaimInFormatted}` };
     }
 };
 
 /**
- * @returns {Promise<number>}
+ * Засчитывает получение награды и обновляет стрик.
  */
 userDailyStreakSchema.methods.claim = async function() {
     const now = new Date();

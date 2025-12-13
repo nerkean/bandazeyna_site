@@ -1,12 +1,13 @@
 import express from 'express';
-import UserProfile from '../models/UserProfile.js';
+import UserProfile from '../src/models/UserProfile.js';
 import { checkAuth } from '../middleware/checkAuth.js';
-import Message from '../models/Message.js';
-import Article from '../models/Article.js'
+import Message from '../src/models/Message.js';
+import Article from '../src/models/Article.js'
 import multer from 'multer';
 import fs from 'fs';
 import path from 'path';
 import jwt from 'jsonwebtoken';
+import ImageKit from 'imagekit';
 import { fileURLToPath } from 'url';
 import { body, validationResult } from 'express-validator';
 
@@ -14,6 +15,72 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const router = express.Router();
 
+// ==========================================
+// 1. НАСТРОЙКА IMAGEKIT (ОБЛАКО)
+// ==========================================
+const imagekit = new ImageKit({
+    publicKey: process.env.IMAGEKIT_PUBLIC_KEY,
+    privateKey: process.env.IMAGEKIT_PRIVATE_KEY,
+    urlEndpoint: process.env.IMAGEKIT_URL_ENDPOINT
+});
+
+// Настройка Multer для ОБЛАКА (храним в памяти, чтобы отправить в ImageKit)
+const memoryStorage = multer.memoryStorage();
+const uploadCloud = multer({ 
+    storage: memoryStorage,
+    limits: { fileSize: 50 * 1024 * 1024 } // 50MB
+});
+
+// Вспомогательная функция загрузки
+async function uploadToCloud(fileBuffer, fileName, folder = '/wiki') {
+    return new Promise((resolve, reject) => {
+        imagekit.upload({
+            file: fileBuffer,
+            fileName: fileName,
+            folder: folder,
+            useUniqueFileName: true
+        }, (err, response) => {
+            if (err) return reject(err);
+            resolve(response);
+        });
+    });
+}
+
+// ==========================================
+// 2. НАСТРОЙКА ЛОКАЛЬНОЙ ЗАГРУЗКИ (ДЛЯ ЧАТА)
+// ==========================================
+// Внимание: На Render файлы чата будут пропадать при перезагрузке.
+// Если нужно хранить вечно — переведи чат тоже на uploadToCloud.
+const chatUploadDir = path.join(__dirname, '../public/uploads/chat');
+if (!fs.existsSync(chatUploadDir)) {
+    fs.mkdirSync(chatUploadDir, { recursive: true });
+}
+
+const chatDiskStorage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, chatUploadDir);
+    },
+    filename: (req, file, cb) => {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, uniqueSuffix + path.extname(file.originalname));
+    }
+});
+
+const uploadChat = multer({ 
+    storage: chatDiskStorage,
+    limits: { fileSize: 5 * 1024 * 1024 },
+    fileFilter: (req, file, cb) => {
+        if (file.mimetype.startsWith('image/')) {
+            cb(null, true);
+        } else {
+            cb(new Error('Можно загружать только изображения!'), false);
+        }
+    }
+});
+
+// ==========================================
+// PROXY ФУНКЦИЯ ДЛЯ БОТА
+// ==========================================
 const BOT_API_URL = process.env.BOT_API_URL || 'http://154.43.62.60:9818/api/v1'; 
 const JWT_SECRET = process.env.JWT_SECRET || 'secret'; 
 
@@ -53,54 +120,24 @@ async function proxyToBot(endpoint, method, body, userId) {
     }
 }
 
-const uploadDir = path.join(__dirname, '../public/uploads/chat');
-if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir, { recursive: true });
-}
-
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, uploadDir);
-    },
-    filename: (req, file, cb) => {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        cb(null, uniqueSuffix + path.extname(file.originalname));
-    }
-});
-
-const upload = multer({ 
-    storage: storage,
-    limits: { fileSize: 5 * 1024 * 1024 },
-    fileFilter: (req, file, cb) => {
-        if (file.mimetype.startsWith('image/')) {
-            cb(null, true);
-        } else {
-            cb(new Error('Можно загружать только изображения!'), false);
-        }
-    }
-});
+// ==========================================
+// РОУТЫ (ТОРГОВЛЯ, МАГАЗИН И Т.Д.)
+// ==========================================
 
 router.post('/trade', checkAuth, [
     body('ticker').isString().isLength({ min: 2, max: 5 }).trim().escape(),
     body('amount').isInt({ min: 1 }).withMessage('Количество должно быть числом > 0'),
     body('action').isIn(['BUY', 'SELL']),
 ], async (req, res) => {
-    
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
         return res.status(400).json({ success: false, error: errors.array()[0].msg });
     }
     const { ticker, amount, action } = req.body;
     
-    const payload = {
-        ticker: ticker,
-        quantity: parseInt(amount)
-    };
-
+    const payload = { ticker, quantity: parseInt(amount) };
     const endpoint = action === 'BUY' ? '/stocks/buy' : '/stocks/sell';
-
     const result = await proxyToBot(endpoint, 'POST', payload, req.user.id);
-    
     res.json(result);
 });
 
@@ -132,6 +169,10 @@ router.post('/deposit/action', checkAuth, async (req, res) => {
     const result = await proxyToBot('/deposit/action', 'POST', { depositId, action }, req.user.id);
     res.json(result);
 });
+
+// ==========================================
+// СООБЩЕНИЯ (ЧАТ)
+// ==========================================
 
 router.get('/messages/conversations', checkAuth, async (req, res) => {
     const myId = req.user.id;
@@ -228,8 +269,9 @@ router.post('/messages/mark_read', checkAuth, async (req, res) => {
     } catch (e) { res.status(500).json({ error: 'Err' }); }
 });
 
+// ИСПОЛЬЗУЕМ uploadChat (локальная загрузка)
 router.post('/messages/send', checkAuth, (req, res) => {
-    upload.single('image')(req, res, async (err) => {
+    uploadChat.single('image')(req, res, async (err) => {
         if (err) return res.status(400).json({ error: err.message });
 
         const { receiverId, content } = req.body;
@@ -294,23 +336,32 @@ router.post('/user/block', checkAuth, async (req, res) => {
 
 router.post('/profile/comment', checkAuth, async (req, res) => {
     const { targetUserId, text } = req.body;
+    const authorId = req.user.userId; 
+
     if (!text || text.length > 250) return res.status(400).json({ error: 'Некорректный текст' });
 
     try {
         const targetProfile = await UserProfile.findOne({ userId: targetUserId, guildId: process.env.GUILD_ID });
-        const authorProfile = await UserProfile.findOne({ userId: req.user.id, guildId: process.env.GUILD_ID });
+        const authorProfile = await UserProfile.findOne({ userId: authorId, guildId: process.env.GUILD_ID });
         
+        const avatarHash = authorProfile ? authorProfile.avatar : req.user.avatar;
+
         targetProfile.profileComments.push({
-            authorId: req.user.id,
+            authorId: authorId,
             authorUsername: req.user.username,
-            authorAvatar: authorProfile ? authorProfile.avatar : req.user.avatar,
+            authorAvatar: avatarHash,
             comment: text.trim(),
             timestamp: new Date()
         });
+
         if (targetProfile.profileComments.length > 50) targetProfile.profileComments = targetProfile.profileComments.slice(-50);
+        
         await targetProfile.save();
         res.json({ success: true });
-    } catch (e) { res.status(500).json({ error: 'Ошибка' }); }
+    } catch (e) { 
+        console.error(e);
+        res.status(500).json({ error: 'Ошибка сервера' }); 
+    }
 });
 
 router.get('/profile/comments/:userId', async (req, res) => {
@@ -340,6 +391,10 @@ router.get('/profile/comments/:userId', async (req, res) => {
     }
 });
 
+// ==========================================
+// WIKI РОУТЫ (ОБЛАЧНАЯ ЗАГРУЗКА)
+// ==========================================
+
 router.post('/admin/wiki/delete', checkAuth, async (req, res) => {
     const ADMIN_IDS = ['438744415734071297']; 
     if (!ADMIN_IDS.includes(req.user.id)) return res.status(403).json({ error: 'Нет доступа' });
@@ -353,16 +408,30 @@ router.post('/admin/wiki/delete', checkAuth, async (req, res) => {
     }
 });
 
-router.post('/admin/wiki', checkAuth, async (req, res) => {
+// ИСПОЛЬЗУЕМ uploadCloud (MemoryStorage для ImageKit)
+router.post('/admin/wiki', checkAuth, uploadCloud.fields([
+    { name: 'mainImage', maxCount: 1 },
+    { name: 'gallery', maxCount: 10 },
+    { name: 'files', maxCount: 5 }
+]), async (req, res) => {
     const ADMIN_IDS = ['438744415734071297'];
     if (!ADMIN_IDS.includes(req.user.id)) return res.status(403).json({ error: 'Нет доступа' });
 
     try {
-        const { id, title, slug, description, content, category, icon, image, tags, isPublished } = req.body;
+        const { id, title, slug, description, content, category, icon, tags, isPublished, currentImage } = req.body;
 
         const finalSlug = slug || title.toLowerCase()
             .replace(/ /g, '-')
             .replace(/[^\w-]+/g, '');
+
+        // 1. ГЛАВНАЯ КАРТИНКА
+        let mainImagePath = currentImage || null;
+
+        if (req.files['mainImage'] && req.files['mainImage'][0]) {
+            const file = req.files['mainImage'][0];
+            const result = await uploadToCloud(file.buffer, file.originalname, '/wiki/covers');
+            mainImagePath = result.url;
+        }
 
         const articleData = {
             title,
@@ -370,16 +439,50 @@ router.post('/admin/wiki', checkAuth, async (req, res) => {
             description,
             content,
             category,
-            icon: icon || 'fas fa-book', 
-            image: image || null,
+            icon: icon || 'fas fa-book',
+            image: mainImagePath,
             tags: tags ? tags.split(',').map(t => t.trim()) : [],
-            isPublished: isPublished === 'on' || isPublished === true, 
+            isPublished: isPublished === 'true' || isPublished === 'on',
             author: req.user.username
         };
 
+        // 2. ГАЛЕРЕЯ
+        const newGalleryUrls = [];
+        if (req.files['gallery']) {
+            for (const file of req.files['gallery']) {
+                const result = await uploadToCloud(file.buffer, file.originalname, '/wiki/gallery');
+                newGalleryUrls.push(result.url);
+            }
+        }
+
+        // 3. ФАЙЛЫ
+        const newAttachments = [];
+        if (req.files['files']) {
+            for (const file of req.files['files']) {
+                const result = await uploadToCloud(file.buffer, file.originalname, '/wiki/files');
+                newAttachments.push({
+                    name: Buffer.from(file.originalname, 'latin1').toString('utf8'),
+                    path: result.url
+                });
+            }
+        }
+
         if (id) {
-            await Article.findByIdAndUpdate(id, articleData);
+            // ОБНОВЛЕНИЕ
+            const updateQuery = { ...articleData };
+            const mongoUpdate = { $set: updateQuery };
+            
+            if (newGalleryUrls.length > 0 || newAttachments.length > 0) {
+                mongoUpdate.$push = {};
+                if (newGalleryUrls.length > 0) mongoUpdate.$push.gallery = { $each: newGalleryUrls };
+                if (newAttachments.length > 0) mongoUpdate.$push.attachments = { $each: newAttachments };
+            }
+            await Article.findByIdAndUpdate(id, mongoUpdate);
         } else {
+            // СОЗДАНИЕ
+            if (newGalleryUrls.length > 0) articleData.gallery = newGalleryUrls;
+            if (newAttachments.length > 0) articleData.attachments = newAttachments;
+            
             const existing = await Article.findOne({ slug: finalSlug });
             if (existing) return res.status(400).json({ error: 'Такая ссылка (slug) уже существует!' });
             
@@ -390,6 +493,57 @@ router.post('/admin/wiki', checkAuth, async (req, res) => {
     } catch (e) {
         console.error(e);
         res.status(500).json({ error: 'Ошибка сохранения: ' + e.message });
+    }
+});
+
+// Маршрут для Бота: Обновление биржи
+router.post('/market/webhook', async (req, res) => {
+    try {
+        // 1. Проверка безопасности
+        const token = req.headers['x-internal-token'];
+        if (token !== process.env.INTERNAL_API_TOKEN) {
+            return res.status(403).json({ error: 'Доступ запрещен' });
+        }
+
+        // 2. Получаем данные от бота
+        const { updates, marketTrend } = req.body;
+
+        // 3. Отправляем всем игрокам через Socket.io
+        // req.io мы добавили в server.js, он тут доступен
+        if (req.io) {
+            req.io.emit('market_update', { updates, marketTrend });
+            console.log(`📡 [Socket] Разослано обновление биржи (${updates.length} акций)`);
+        }
+
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Ошибка вебхука биржи:', error);
+        res.status(500).json({ error: 'Internal Error' });
+    }
+});
+
+// Вебхук для обновления данных пользователя (Баланс, Инвентарь)
+router.post('/webhook/user', async (req, res) => {
+    try {
+        // 1. Проверка пароля (тот же токен, что мы ставили ранее)
+        const token = req.headers['x-internal-token'];
+        if (token !== process.env.INTERNAL_API_TOKEN) {
+            return res.status(403).json({ error: 'Access Denied' });
+        }
+
+        const { userId, updates } = req.body;
+
+        // 2. Отправляем в сокет конкретному пользователю
+        // Пользователь подписан на комнату с именем своего userId (см. server.js)
+        if (req.io) {
+            req.io.to(userId).emit('user_update', updates);
+            // console.log(`📡 [Socket] Обновлен юзер ${userId}`);
+        }
+
+        res.json({ success: true });
+    } catch (e) {
+        console.error(e);
+        res.status(500).json({ error: 'Server Error' });
     }
 });
 

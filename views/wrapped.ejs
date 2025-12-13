@@ -1,12 +1,31 @@
+<%
+    // --- ХЕЛПЕР ДЛЯ ЧИСЕЛ ---
+    function formatBigNum(num, type = 'standard') {
+        if (!num) return '0';
+        if (type === 'voice') return Math.floor(num / 3600) + ' ч.';
+        if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M'; 
+        if (num >= 1000) return (num / 1000).toFixed(1) + 'K';       
+        return num.toLocaleString();
+    }
+%>
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <%- include('partials/head', { title: title || 'Итоги 2025 | Дача Зейна' }) %>
-    
+    <%- include('partials/head', { title: title }) %>
     <link rel="stylesheet" href="/css/wrapped.css">
-
     <link rel="stylesheet" href="https://unpkg.com/aos@2.3.1/dist/aos.css" media="print" onload="this.media='all'">
     <noscript><link rel="stylesheet" href="https://unpkg.com/aos@2.3.1/dist/aos.css"></noscript>
+    <style>
+        /* Доп. стиль для секции на всю ширину */
+        .full-width-chapter {
+            width: 100%;
+            padding: 80px 20px;
+            background: linear-gradient(to bottom, transparent, rgba(0,0,0,0.8), transparent);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+    </style>
 </head>
 <body>
     <%- include('partials/navbar') %>
@@ -23,38 +42,49 @@
                 <div class="hero-year">2025</div>
                 <h1 class="hero-sub">WRAPPED</h1>
             </div>
-            <div class="scroll-hint">
-                <i class="fas fa-chevron-down"></i> Листай вниз
-            </div>
+            <div class="scroll-hint"><i class="fas fa-chevron-down"></i> Листай вниз</div>
         </div>
 
         <div class="chapter">
-            <h2 class="chapter-title" data-aos="fade-right">Глава 1: Пульс Сервера</h2>
+            <h2 class="chapter-title" data-aos="fade-right">Глава 1: Масштаб</h2>
             
             <div class="stat-row">
                 <div class="big-stat" data-tilt data-aos="fade-up" data-aos-delay="100">
                     <div class="bs-icon">👥</div>
                     <div class="bs-val counter" data-target="<%= stats.totalUsers %>">0</div>
-                    <div class="bs-lbl">Участников</div>
+                    <div class="bs-lbl">Пчеловодов</div>
                 </div>
                 <div class="big-stat" data-tilt data-aos="fade-up" data-aos-delay="200">
                     <div class="bs-icon">💬</div>
-                    <div class="bs-val counter" data-target="<%= Math.floor(stats.global.totalMsgs / 1000) %>">0</div>
-                    <div class="bs-lbl">Тыс. сообщений</div>
+                    <div class="bs-val" title="<%= stats.global.totalMsgs.toLocaleString() %>">
+                        <%= formatBigNum(stats.global.totalMsgs) %>
+                    </div>
+                    <div class="bs-lbl">Сообщений</div>
                 </div>
             </div>
 
             <div class="stat-row">
                 <div class="big-stat" style="border-color: var(--rose);" data-tilt data-aos="fade-up">
                     <div class="bs-icon">🎙️</div>
-                    <div class="bs-val counter" data-target="<%= Math.floor(stats.global.totalVoice / 3600) %>">0</div>
-                    <div class="bs-lbl">Часов разговоров</div>
+                    <div class="bs-val" title="<%= Math.floor(stats.global.totalVoice / 3600).toLocaleString() %> часов">
+                        <%= formatBigNum(stats.global.totalVoice, 'voice') %>
+                    </div>
+                    <div class="bs-lbl">Голосового актива</div>
+                </div>
+                
+                <div class="big-stat" style="border-color: var(--gold);" data-tilt data-aos="fade-up" data-aos-delay="100">
+                    <div class="bs-icon">👻</div>
+                    <div class="bs-val"><%= formatBigNum(stats.global.totalGhosts) %></div>
+                    <div class="bs-lbl">Поймано призраков</div>
+                    <div style="font-size: 0.7rem; color: #666; margin-top: 5px; font-weight: 600;">
+                        Хэллоуин ивент (18 окт - 1 ноя)
+                    </div>
                 </div>
             </div>
         </div>
 
         <div class="chapter">
-            <h2 class="chapter-title" data-aos="fade-right">Глава 2: Империя Денег</h2>
+            <h2 class="chapter-title" data-aos="fade-right">Глава 2: Титаны</h2>
 
             <% if (stats.richest) { %>
             <div class="leader-spotlight" data-aos="zoom-in">
@@ -62,37 +92,35 @@
                 <div class="ls-avatar-wrap">
                     <div class="ls-crown">👑</div>
                     <img src="/img/proxy/avatar/<%= stats.richest.userId %>/<%= stats.richest.avatar %>" 
-                         class="ls-avatar" 
-                         alt="Аватар <%= stats.richest.username %>"
-                         width="180" height="180" loading="lazy">
+                         class="ls-avatar" alt="<%= stats.richest.username %>" loading="lazy">
                 </div>
                 <div class="ls-info">
                     <h3>Богатейший игрок</h3>
-                    <div class="ls-name" style="font-size: 2rem; font-weight: 900; margin: 10px 0;"><%= stats.richest.username %></div>
-                    <div class="ls-stat"><span class="counter" data-target="<%= Math.floor(stats.richest.stars) %>">0</span> ⭐</div>
+                    <div class="ls-name"><%= stats.richest.username %></div>
+                    <div class="ls-stat"><%= formatBigNum(stats.richest.stars) %> ⭐</div>
                 </div>
             </div>
             <% } %>
 
             <div class="grid-leaders">
-                <% if (stats.topDepositor) { %>
-                <div class="l-card" data-aos="fade-up" data-aos-delay="100">
-                    <img src="/img/proxy/avatar/<%= stats.topDepositor.userId %>/<%= stats.topDepositor.avatar %>" class="l-ava" alt="<%= stats.topDepositor.username %>" loading="lazy">
+                <% if (stats.topTrader) { %>
+                <div class="l-card" data-aos="fade-up" style="border-color: var(--cyan);">
+                    <div class="l-icon">📈</div>
                     <div class="l-info">
-                        <h4>Банкир года</h4>
-                        <h3><%= stats.topDepositor.username %></h3>
-                        <p><%= Math.floor(stats.topDepositor.total).toLocaleString() %> в банке</p>
+                        <h4>Трейдер Года</h4>
+                        <h3><%= stats.topTrader.username %></h3>
+                        <p style="color: var(--cyan);">Оборот: <%= formatBigNum(stats.topTrader.volume) %> ⭐</p>
                     </div>
                 </div>
                 <% } %>
 
-                <% if (stats.taxPayer) { %>
-                <div class="l-card" data-aos="fade-up" data-aos-delay="200">
-                    <img src="/img/proxy/avatar/<%= stats.taxPayer.userId %>/<%= stats.taxPayer.avatar %>" class="l-ava" alt="<%= stats.taxPayer.username %>" loading="lazy">
+                <% if (stats.richestShards) { %>
+                <div class="l-card" data-aos="fade-up" data-aos-delay="100" style="border-color: #00f3ff;">
+                    <div class="l-icon">✨</div>
                     <div class="l-info">
-                        <h4>Налогоплательщик</h4>
-                        <h3><%= stats.taxPayer.username %></h3>
-                        <p><%= Math.floor(stats.taxPayer.totalStarsPaidInTax).toLocaleString() %> уплачено</p>
+                        <h4>Магнат Осколков</h4>
+                        <h3><%= stats.richestShards.username %></h3>
+                        <p style="color: #00f3ff;"><%= stats.richestShards.shards %> шт.</p>
                     </div>
                 </div>
                 <% } %>
@@ -101,61 +129,194 @@
 
         <div class="market-strip">
             <div class="ticker-move">
-                <span class="t-item">ОБЩИЙ ОБОРОТ: <b><%= (stats.market.volume / 1000000).toFixed(2) %>M</b></span>
-                <span class="t-item">ВСЕГО СДЕЛОК: <b><%= stats.market.trades %></b></span>
-                <span class="t-item">САМАЯ ДОРОГАЯ: <b><%= stats.mostExpensiveStock ? stats.mostExpensiveStock.ticker : 'N/A' %></b></span>
-                <span class="t-item">ХАЙП ГОДА: <b><%= stats.popularStock %></b></span>
+                <span class="t-item">ОБОРОТ БИРЖИ: <b><%= formatBigNum(stats.market.volume) %> ⭐</b></span>
+                <span class="t-item">СДЕЛОК: <b><%= stats.market.trades %></b></span>
+                <span class="t-item">АКЦИЯ ГОДА: <b>$<%= stats.market.popularStock %></b></span>
+                <span class="t-item">ОБОРОТ БИРЖИ: <b><%= formatBigNum(stats.market.volume) %> ⭐</b></span>
+                <span class="t-item">СДЕЛОК: <b><%= stats.market.trades %></b></span>
             </div>
         </div>
 
         <div class="chapter">
-            <h2 class="chapter-title" data-aos="fade-right">Глава 3: Легенды Сервера</h2>
+            <h2 class="chapter-title" data-aos="fade-right">Глава 3: Легенды</h2>
             
             <div class="grid-leaders">
+                
                 <% if (stats.chatty) { %>
                 <div class="l-card" data-aos="fade-up">
-                    <div style="font-size:2rem;">💬</div>
+                    <div class="l-icon">💬</div>
                     <div class="l-info">
-                        <h4>Болтун</h4>
+                        <h4>Душа Чата</h4>
                         <h3><%= stats.chatty.username %></h3>
-                        <p><%= stats.chatty.totalMessages.toLocaleString() %></p>
+                        <p><%= formatBigNum(stats.chatty.totalMessages) %> смс</p>
                     </div>
                 </div>
                 <% } %>
 
                 <% if (stats.voice) { %>
                 <div class="l-card" data-aos="fade-up" data-aos-delay="100">
-                    <div style="font-size:2rem;">🎙️</div>
+                    <div class="l-icon">🎙️</div>
                     <div class="l-info">
-                        <h4>Голос</h4>
+                        <h4>Голос Сервера</h4>
                         <h3><%= stats.voice.username %></h3>
-                        <p><%= (stats.voice.totalVoiceTime / 3600).toFixed(0) %> часов</p>
+                        <p><%= formatBigNum(stats.voice.totalVoiceTime, 'voice') %></p>
                     </div>
                 </div>
                 <% } %>
 
-                <% if (stats.topStreaker) { %>
+                <% if (stats.taxPayer) { %>
                 <div class="l-card" data-aos="fade-up" data-aos-delay="200">
-                    <div style="font-size:2rem;">🔥</div>
+                    <div class="l-icon">💸</div>
                     <div class="l-info">
-                        <h4>Гриндер</h4>
-                        <h3><%= stats.topStreaker.username %></h3>
-                        <p><%= stats.topStreaker.streak %> дней</p>
+                        <h4>Спонсор Казны</h4>
+                        <h3><%= stats.taxPayer.username %></h3>
+                        <p>Налог: <%= formatBigNum(stats.taxPayer.totalStarsPaidInTax) %></p>
                     </div>
                 </div>
                 <% } %>
+
+                <% if (stats.reputation) { %>
+                <div class="l-card" data-aos="fade-up" data-aos-delay="300">
+                    <div class="l-icon">👍</div>
+                    <div class="l-info">
+                        <h4>Авторитет</h4>
+                        <h3><%= stats.reputation.username %></h3>
+                        <p>Репутация: <%= stats.reputation.reputation %></p>
+                    </div>
+                </div>
+                <% } %>
+
+                <% if (stats.ghostHunter) { %>
+                <div class="l-card" data-aos="fade-up" data-aos-delay="400">
+                    <div class="l-icon">👻</div>
+                    <div class="l-info">
+                        <h4>Охотник</h4>
+                        <h3><%= stats.ghostHunter.username %></h3>
+                        <p>Поймал: <%= stats.ghostHunter.event_ghostsCaught %></p>
+                    </div>
+                </div>
+                <% } %>
+                
+                <% if (stats.topAchiever) { %>
+                <div class="l-card" data-aos="fade-up" data-aos-delay="500" style="border-color: #e91e63;">
+                    <div class="l-icon">🏆</div>
+                    <div class="l-info">
+                        <h4>Трофи Хантер</h4>
+                        <h3><%= stats.topAchiever.username %></h3>
+                        <p><%= stats.topAchiever.achCount %> ачивок</p>
+                    </div>
+                </div>
+                <% } %>
+
             </div>
         </div>
 
-        <div class="chapter" style="min-height: 50vh; text-align: center;">
+    </div> <div class="full-width-chapter">
+        <h2 class="chapter-title" data-aos="fade-down">Глава 4: Путь Героев</h2>
+        
+       <div class="timeline-feed" style="max-width: 1200px; width: 100%;">
+
+                <div class="story-block" data-aos="fade-right">
+                    <div class="sb-image">
+                        <div class="img-placeholder icon-web">🌍</div>
+                    </div>
+                    <div class="sb-content">
+                        <span class="sb-date">1 Февраля 2025</span>
+                        <h3>Великое Начало</h3>
+                        <p>Мы запустили первый сайт bandazeyna.com для просмотра статистики. Это был простой шаг, который заложил фундамент для всей текущей экосистемы.</p>
+                    </div>
+                </div>
+
+                <div class="story-block reverse" data-aos="fade-left">
+                    <div class="sb-image">
+                        <div class="img-placeholder icon-bot">🎂</div>
+                    </div>
+                    <div class="sb-content">
+                        <span class="sb-date">12 Мая 2025</span>
+                        <h3>Год Организатору</h3>
+                        <p>Нашему боту исполнился ровно год. За это время он встретил тысячи участников, попрощался с сотнями, но всегда оставался сердцем сервера, обеспечивая уют и порядок.</p>
+                    </div>
+                </div>
+
+                <div class="story-block" data-aos="fade-right">
+                    <div class="sb-image">
+                        <div class="img-placeholder icon-war">🚀</div>
+                    </div>
+                    <div class="sb-content">
+                        <span class="sb-date">1 Июня 2025</span>
+                        <h3>Эпоха 2.0</h3>
+                        <p>Глобальная переработка бота. Мы переписали код с нуля, обнулили экономику и дали всем старт с чистого листа. Новые механики, новые возможности, новая жизнь.</p>
+                    </div>
+                </div>
+
+                <div class="story-block reverse" data-aos="fade-left">
+                    <div class="sb-image">
+                        <div class="img-placeholder icon-web">📈</div>
+                    </div>
+                    <div class="sb-content">
+                        <span class="sb-date">31 Июля 2025</span>
+                        <h3>Рождение Биржи</h3>
+                        <p>Введена система акций. Игроки получили возможность инвестировать свои Звезды, анализировать рынок и зарабатывать на росте курсов. Экономика вышла на новый уровень.</p>
+                    </div>
+                </div>
+
+                <div class="story-block" data-aos="fade-right">
+                    <div class="sb-image">
+                        <div class="img-placeholder icon-xmas">👑</div>
+                    </div>
+                    <div class="sb-content">
+                        <span class="sb-date">9 Августа 2025</span>
+                        <h3>Королевская Битва</h3>
+                        <p>Самый крупный турнир по Fall Guys: 30+ участников, прямая трансляция на Twitch с пиковым онлайном и горы призов. Это было легендарно!</p>
+                    </div>
+                </div>
+
+                <div class="story-block reverse" data-aos="fade-left">
+                    <div class="sb-image">
+                        <div class="img-placeholder icon-bot">🛡️</div>
+                    </div>
+                    <div class="sb-content">
+                        <span class="sb-date">23 Августа 2025</span>
+                        <h3>Рубеж 20,000</h3>
+                        <p>Нас стало 20 тысяч! В честь этого мы ввели систему Гарантов для безопасных сделок. (Временно приостановлена из-за отключения трейдов в игре, но мы ждем возвращения!).</p>
+                    </div>
+                </div>
+
+                <div class="story-block" data-aos="fade-right">
+                    <div class="sb-image">
+                        <div class="img-placeholder icon-hween">👻</div>
+                    </div>
+                    <div class="sb-content">
+                        <span class="sb-date">18 Октября 2025</span>
+                        <h3>Охота на Призраков</h3>
+                        <p>Старт масштабного Хэллоуинского ивента. Весь сервер ловил духов в чате, собирал конфеты и крафтил уникальные маски. Самый активный период года.</p>
+                    </div>
+                </div>
+
+                <div class="story-block reverse" data-aos="fade-left">
+                    <div class="sb-image">
+                        <div class="img-placeholder icon-war" style="background: linear-gradient(135deg, #ef4444, #7f1d1d);">📉</div>
+                    </div>
+                    <div class="sb-content">
+                        <span class="sb-date" style="color: #ef4444; border-color: #ef4444;">27 Октября 2025</span>
+                        <h3>Черный Понедельник</h3>
+                        <p>День, когда рынок изменился. Мы ввели налоги и комиссии на бирже, чтобы остановить манипуляции и спасти экономику от инфляции. Жестко, но необходимо.</p>
+                    </div>
+                </div>
+
+            </div>
+    </div>
+
+
+<div class="chapter final-chapter">
             <h2 data-aos="zoom-in">Спасибо за этот год!</h2>
-            <p style="color: #888; max-width: 500px; margin: 20px auto;">Мы растем и развиваемся благодаря вам.</p>
-            <a href="/profile" class="btn-profile-big" style="display: inline-block; background: var(--primary); color: #fff; padding: 15px 40px; border-radius: 50px; font-weight: 800; text-decoration: none; box-shadow: 0 10px 30px rgba(88, 101, 242, 0.3); transition: 0.3s;">
-                Посмотреть мой профиль <i class="fas fa-arrow-right"></i>
+            <p data-aos="fade-up" data-aos-delay="200">
+                Мы растем и развиваемся благодаря вам.
+            </p>
+            <a href="/profile" class="btn-profile-big" data-aos="fade-up" data-aos-delay="400">
+                МОЙ ПРОФИЛЬ <i class="fas fa-arrow-right"></i>
             </a>
         </div>
-
-    </div>
 
     <%- include('partials/footer') %>
 
@@ -167,27 +328,20 @@
             if (typeof AOS !== 'undefined') AOS.init({ duration: 1000, once: true });
             else setTimeout(() => AOS.init({ duration: 1000, once: true }), 500);
 
-            const starfield = document.getElementById('starfield');
-            if (starfield) {
-                for(let i=0; i<50; i++) {
-                    const star = document.createElement('div');
-                    star.className = 'star';
-                    star.style.top = Math.random() * 100 + '%';
-                    star.style.left = Math.random() * 100 + '%';
-                    star.style.setProperty('--duration', (Math.random() * 3 + 2) + 's');
-                    star.style.animationDelay = Math.random() * 5 + 's';
-                    starfield.appendChild(star);
-                }
-            }
-
             const counters = document.querySelectorAll('.counter');
             const observer = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
                     if (entry.isIntersecting) {
                         const counter = entry.target;
-                        const target = +counter.getAttribute('data-target');
+                        const target = parseInt(counter.getAttribute('data-target')) || 0;
+                        
+                        if (target === 0) {
+                            counter.innerText = "0";
+                            return;
+                        }
+
                         let current = 0;
-                        const inc = Math.ceil(target / 50); 
+                        const inc = Math.max(1, Math.ceil(target / 100)); 
                         
                         const update = () => {
                             current += inc;
@@ -206,17 +360,23 @@
 
             counters.forEach(c => observer.observe(c));
 
-            if (window.innerWidth > 768) { 
-                const checkTilt = setInterval(() => {
-                    if (typeof VanillaTilt !== 'undefined') {
-                        VanillaTilt.init(document.querySelectorAll("[data-tilt]"), {
-                            max: 10, speed: 400, glare: true, "max-glare": 0.2
-                        });
-                        clearInterval(checkTilt);
-                    }
-                }, 100);
+            const starfield = document.getElementById('starfield');
+            if (starfield) {
+                for(let i=0; i<50; i++) {
+                    const star = document.createElement('div');
+                    star.className = 'star';
+                    star.style.top = Math.random() * 100 + '%';
+                    star.style.left = Math.random() * 100 + '%';
+                    star.style.setProperty('--duration', (Math.random() * 3 + 2) + 's');
+                    star.style.animationDelay = Math.random() * 5 + 's';
+                    starfield.appendChild(star);
+                }
             }
         });
     </script>
+
+    <style>
+        .l-icon { font-size: 2.5rem; margin-right: 15px; }
+    </style>
 </body>
 </html>
