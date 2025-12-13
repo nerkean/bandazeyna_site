@@ -113,7 +113,7 @@ connection.once('open', () => {
             // Если изменились звезды или осколки
             if (updatedFields.stars !== undefined || updatedFields.shards !== undefined) {
                 // Шлем ивент в навбар
-                io.to(doc.userId).emit('balanceUpdate', { 
+                io.to(doc.userId).emit('user_update', { 
                     stars: doc.stars, 
                     shards: doc.shards 
                 });
