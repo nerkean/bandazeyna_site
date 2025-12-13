@@ -95,6 +95,33 @@ mongoose.connect(process.env.MONGODB_URI)
     .then(() => console.log('🌍 Сайт подключен к MongoDB'))
     .catch(err => console.error('Ошибка БД:', err));
 
+// В server.js (Сайт)
+const connection = mongoose.connection;
+
+connection.once('open', () => {
+    console.log('👀 Сайт следит за балансом пользователей...');
+    
+    // Следим за изменениями в таблице userprofiles
+    const changeStream = UserProfile.watch([], { fullDocument: 'updateLookup' });
+
+    changeStream.on('change', (change) => {
+        // Если что-то обновилось
+        if (change.operationType === 'update') {
+            const doc = change.fullDocument;
+            const updatedFields = change.updateDescription.updatedFields;
+
+            // Если изменились звезды или осколки
+            if (updatedFields.stars !== undefined || updatedFields.shards !== undefined) {
+                // Шлем ивент в навбар
+                io.to(doc.userId).emit('balanceUpdate', { 
+                    stars: doc.stars, 
+                    shards: doc.shards 
+                });
+            }
+        }
+    });
+});
+
 const sessionMiddleware = session({
     secret: process.env.SESSION_SECRET,
     resave: false,
