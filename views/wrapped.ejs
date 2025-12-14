@@ -450,8 +450,16 @@
 
     <script nonce="<%= nonce %>">
         document.addEventListener('DOMContentLoaded', () => {
-            if (typeof AOS !== 'undefined') AOS.init({ duration: 1000, once: true });
-            else setTimeout(() => AOS.init({ duration: 1000, once: true }), 500);
+            // КОНФИГУРАЦИЯ AOS (Уменьшили offset чтобы срабатывало раньше)
+            const aosConfig = {
+                duration: 1000,
+                once: true,
+                offset: 20, // <-- ВАЖНО: Срабатывает, как только край элемента касается экрана (было 120)
+                anchorPlacement: 'top-bottom' // Анимировать, когда верх элемента доходит до низа экрана
+            };
+
+            if (typeof AOS !== 'undefined') AOS.init(aosConfig);
+            else setTimeout(() => AOS.init(aosConfig), 500);
 
             const counters = document.querySelectorAll('.counter');
             const observer = new IntersectionObserver((entries) => {
