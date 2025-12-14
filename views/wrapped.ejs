@@ -4,7 +4,7 @@
         if (!num) return '0';
         if (type === 'voice') return Math.floor(num / 3600) + ' ч.';
         if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M'; 
-        if (num >= 1000) return (num / 1000).toFixed(1) + 'K';       
+        if (num >= 1000) return (num / 1000).toFixed(1) + 'K';      
         return num.toLocaleString();
     }
 %>
@@ -24,6 +24,22 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+        }
+
+        /* Само изображение */
+        .sb-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* Чтобы фото заполняло круг без искажений */
+            display: block;
+        }
+        
+        /* Модификатор для мобилок (если нужно) */
+        @media (max-width: 768px) {
+            .sb-image {
+                width: 60px;
+                height: 60px;
+            }
         }
     </style>
 </head>
@@ -218,7 +234,7 @@
 
                 <div class="story-block" data-aos="fade-right">
                     <div class="sb-image">
-                        <div class="img-placeholder icon-web">🌍</div>
+                        <img src="/assets/img/wrapped/1_start.png" alt="Start">
                     </div>
                     <div class="sb-content">
                         <span class="sb-date">1 Февраля 2025</span>
@@ -229,7 +245,7 @@
 
                 <div class="story-block reverse" data-aos="fade-left">
                     <div class="sb-image">
-                        <div class="img-placeholder icon-bot">🎂</div>
+                        <img src="/assets/img/wrapped/2_year.png" alt="Anniversary">
                     </div>
                     <div class="sb-content">
                         <span class="sb-date">12 Мая 2025</span>
@@ -240,7 +256,7 @@
 
                 <div class="story-block" data-aos="fade-right">
                     <div class="sb-image">
-                        <div class="img-placeholder icon-war">🚀</div>
+                        <img src="/assets/img/wrapped/3_epoch.png" alt="Epoch 2.0">
                     </div>
                     <div class="sb-content">
                         <span class="sb-date">1 Июня 2025</span>
@@ -251,7 +267,7 @@
 
                 <div class="story-block reverse" data-aos="fade-left">
                     <div class="sb-image">
-                        <div class="img-placeholder icon-web">📈</div>
+                        <img src="/assets/img/wrapped/4_market.png" alt="Market">
                     </div>
                     <div class="sb-content">
                         <span class="sb-date">31 Июля 2025</span>
@@ -262,7 +278,7 @@
 
                 <div class="story-block" data-aos="fade-right">
                     <div class="sb-image">
-                        <div class="img-placeholder icon-xmas">👑</div>
+                        <img src="/assets/img/wrapped/5_battle.png" alt="Battle">
                     </div>
                     <div class="sb-content">
                         <span class="sb-date">9 Августа 2025</span>
@@ -273,18 +289,18 @@
 
                 <div class="story-block reverse" data-aos="fade-left">
                     <div class="sb-image">
-                        <div class="img-placeholder icon-bot">🛡️</div>
+                         <img src="/assets/img/wrapped/6_20k.png" alt="20k">
                     </div>
                     <div class="sb-content">
                         <span class="sb-date">23 Августа 2025</span>
                         <h3>Рубеж 20,000</h3>
-                        <p>Нас стало 20 тысяч! В честь этого мы ввели систему Гарантов для безопасных сделок. (Временно приостановлена из-за отключения трейдов в игре, но мы ждем возвращения!).</p>
+                        <p>Нас стало 20 тысяч! В честь этого мы ввели систему Гарантов для безопасных сделок в BSS. (Временно приостановлена из-за отключения трейдов в игре, но мы ждем возвращения!).</p>
                     </div>
                 </div>
 
                 <div class="story-block" data-aos="fade-right">
                     <div class="sb-image">
-                        <div class="img-placeholder icon-hween">👻</div>
+                        <img src="/assets/img/wrapped/7_ghosts.png" alt="Ghosts">
                     </div>
                     <div class="sb-content">
                         <span class="sb-date">18 Октября 2025</span>
@@ -295,7 +311,7 @@
 
                 <div class="story-block reverse" data-aos="fade-left">
                     <div class="sb-image">
-                        <div class="img-placeholder icon-war" style="background: linear-gradient(135deg, #ef4444, #7f1d1d);">📉</div>
+                        <img src="/assets/img/wrapped/8_black_monday.png" alt="Black Monday">
                     </div>
                     <div class="sb-content">
                         <span class="sb-date" style="color: #ef4444; border-color: #ef4444;">27 Октября 2025</span>
