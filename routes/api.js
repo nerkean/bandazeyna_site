@@ -3,6 +3,7 @@ import UserProfile from '../src/models/UserProfile.js';
 import { checkAuth } from '../middleware/checkAuth.js';
 import Message from '../src/models/Message.js';
 import Article from '../src/models/Article.js'
+import BanAppeal from '../src/models/BanAppeal.js';
 import multer from 'multer';
 import fs from 'fs';
 import path from 'path';
@@ -544,6 +545,66 @@ router.post('/webhook/user', async (req, res) => {
     } catch (e) {
         console.error(e);
         res.status(500).json({ error: 'Server Error' });
+    }
+});
+
+router.post('/appeal', checkAuth, async (req, res) => {
+    try {
+        const { text } = req.body;
+        if (!req.user.isBanned) return res.status(400).json({ error: 'Вы не забанены!' });
+        if (!text || text.length < 10) return res.status(400).json({ error: 'Опишите ситуацию подробнее.' });
+
+        // Проверяем, нет ли уже активной заявки
+        const existing = await BanAppeal.findOne({ userId: req.user.id, status: 'PENDING' });
+        if (existing) return res.status(400).json({ error: 'Ваша заявка уже на рассмотрении.' });
+
+        await BanAppeal.create({
+            userId: req.user.id,
+            username: req.user.username,
+            banReason: req.user.banReason || 'Неизвестно',
+            appealText: text.trim()
+        });
+
+        res.json({ success: true, message: 'Апелляция отправлена!' });
+    } catch (e) {
+        console.error(e);
+        res.status(500).json({ error: 'Ошибка сервера' });
+    }
+});
+
+// 2. Решение по апелляции (Только Админ)
+router.post('/admin/appeal/decide', checkAuth, async (req, res) => {
+    const ADMIN_IDS = ['438744415734071297']; // Твой ID
+    if (!ADMIN_IDS.includes(req.user.id)) return res.status(403).json({ error: 'Нет доступа' });
+
+    try {
+        const { appealId, action } = req.body; // action: 'approve' | 'reject'
+        
+        const appeal = await BanAppeal.findById(appealId);
+        if (!appeal) return res.status(404).json({ error: 'Заявка не найдена' });
+        if (appeal.status !== 'PENDING') return res.status(400).json({ error: 'Заявка уже закрыта' });
+
+        appeal.handledBy = req.user.username;
+        appeal.handledAt = new Date();
+
+        if (action === 'approve') {
+            appeal.status = 'APPROVED';
+            // Снимаем бан с профиля
+            await UserProfile.updateOne({ userId: appeal.userId }, { 
+                isBanned: false, 
+                banReason: null 
+            });
+            // ! Тут можно добавить запрос к боту, чтобы снять роль бана в Discord, если нужно
+        } else {
+            appeal.status = 'REJECTED';
+        }
+
+        await appeal.save();
+        res.json({ success: true, status: appeal.status });
+
+    } catch (e) {
+        console.error(e);
+        res.status(500).json({ error: 'Ошибка обработки' });
     }
 });
 

@@ -36,6 +36,10 @@ app.use(compression());
 
 app.use((req, res, next) => {
     res.locals.nonce = crypto.randomBytes(16).toString('base64');
+    
+    // ДОБАВЛЯЕМ ЭТУ СТРОКУ:
+    res.locals.gaId = process.env.GOOGLE_ANALYTICS_ID; 
+    
     next();
 });
 
@@ -46,7 +50,8 @@ app.use(helmet({
             scriptSrc: [
                 "'self'", "'unsafe-inline'", 
                 "https://cdn.jsdelivr.net", "https://unpkg.com", "https://cdnjs.cloudflare.com",
-                "https://dachazeyna.com"
+                "https://dachazeyna.com",
+                "https://www.googletagmanager.com" // <--- ДОБАВЛЕНО (для загрузки скрипта)
             ],
             scriptSrcAttr: ["'unsafe-inline'"], 
             styleSrc: [
@@ -61,12 +66,16 @@ app.use(helmet({
                 "https://media.discordapp.net", 
                 "https://dachazeyna.com", 
                 "https://i.ibb.co",
-                "https://ik.imagekit.io" // <--- ДОБАВИТЬ ЭТУ СТРОКУ
+                "https://ik.imagekit.io",
+                "https://www.google-analytics.com", // <--- ДОБАВЛЕНО (для пикселей отслеживания)
+                "https://www.googletagmanager.com"  // <--- ДОБАВЛЕНО
             ],
             fontSrc: ["'self'", "https://fonts.gstatic.com"],
             connectSrc: [
                 "'self'", "https://dachazeyna.com", "https://cdn.jsdelivr.net",
-                "ws:", "wss:", "https://discord.com"
+                "ws:", "wss:", "https://discord.com",
+                "https://www.google-analytics.com", // <--- ДОБАВЛЕНО (куда отправлять данные)
+                "https://region1.google-analytics.com" // <--- ДОБАВЛЕНО (иногда нужно для регионов)
             ],
             objectSrc: ["'none'"],
             upgradeInsecureRequests: [],
@@ -229,19 +238,18 @@ app.use((req, res, next) => {
     // Проверяем только если юзер авторизован И забанен
     if (req.user && req.user.isBanned) {
         
-        // Список страниц, куда МОЖНО заходить забаненным
-        // (Начало пути)
         const allowedPaths = [
-            '/banned',       // Страница с причиной бана
-            '/auth/logout',  // Выход
-            '/bot',          // О боте
-            '/terms',        // Условия (чтобы почитать правила)
-            '/privacy',      // Политика
-            '/wiki',         // Вики (читать гайды можно)
-            '/css/',         // Стили
-            '/js/',          // Скрипты
-            '/assets/',      // Картинки
-            '/img/'
+            '/banned',       
+            '/auth/logout',  
+            '/bot',          
+            '/terms',        
+            '/privacy',      
+            '/wiki',         
+            '/css/',         
+            '/js/',          
+            '/assets/',      
+            '/img/',
+            '/api/appeal' // <--- ДОБАВИТЬ ЭТУ СТРОКУ (Разрешаем отправку формы)
         ];
 
         // Разрешаем Главную страницу (точное совпадение)

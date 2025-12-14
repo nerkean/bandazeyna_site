@@ -84,58 +84,63 @@
 
 <div id="navOverlay" onclick="closeAllMenus()"></div>
 
-<script nonce="<%= nonce %>" src="/socket.io/socket.io.js"></script>
-
 <script nonce="<%= nonce %>">
     document.addEventListener('DOMContentLoaded', () => {
-        // Подключаемся
-        const socket = io();
         
-        // Слушаем личные обновления (баланс, инвентарь)
-        socket.on('user_update', (data) => {
-            console.log('⚡ User Update:', data);
-            
-            // 1. ОБНОВЛЕНИЕ ЗВЕЗД
-            if (typeof data.stars !== 'undefined') {
-                // Ищем:
-                // 1. .nav-balance.stars .nb-val (в шапке)
-                // 2. #userBalanceDisplay (на странице биржи, если открыта)
-                const starsElements = document.querySelectorAll('.nav-balance.stars .nb-val, #userBalanceDisplay');
-                
-                starsElements.forEach(el => {
-                    // Сохраняем символ (⭐) если он есть, или добавляем его
-                    // Проверяем, это шапка или биржа (в шапке символ отдельно, на бирже вместе)
-                    const isNavbar = el.classList.contains('nb-val');
-                    
-                    if (isNavbar) {
-                        // В шапке просто число
-                        el.innerText = Math.floor(data.stars).toLocaleString();
-                    } else {
-                        // На бирже число + символ
-                        el.innerText = Math.floor(data.stars).toLocaleString() + ' ⭐';
-                    }
-                    
-                    // Эффект зеленой вспышки
-                    el.style.transition = 'color 0.3s';
-                    el.style.color = '#2ecc71';
-                    setTimeout(() => el.style.color = '', 500);
-                });
-            }
+        // 1. ДИНАМИЧЕСКАЯ ЗАГРУЗКА SOCKET.IO (Чтобы не тормозить LCP)
+        const script = document.createElement('script');
+        script.src = '/socket.io/socket.io.js';
+        script.nonce = '<%= nonce %>';
+        script.async = true; // Важно: асинхронная загрузка
 
-            // 2. ОБНОВЛЕНИЕ ОСКОЛКОВ
-            if (typeof data.shards !== 'undefined') {
-                document.querySelectorAll('.nav-balance.shards .nb-val').forEach(el => {
-                    el.innerText = Math.floor(data.shards).toLocaleString();
+        script.onload = () => {
+            // Код запускается только когда библиотека загружена
+            try {
+                const socket = io();
+                
+                // Слушаем личные обновления (баланс, инвентарь)
+                socket.on('user_update', (data) => {
+                    // console.log('⚡ User Update:', data);
                     
-                    el.style.transition = 'color 0.3s';
-                    el.style.color = '#e67e22'; // Оранжевый для осколков
-                    setTimeout(() => el.style.color = '', 500);
+                    // 1. ОБНОВЛЕНИЕ ЗВЕЗД
+                    if (typeof data.stars !== 'undefined') {
+                        const starsElements = document.querySelectorAll('.nav-balance.stars .nb-val, #userBalanceDisplay');
+                        
+                        starsElements.forEach(el => {
+                            const isNavbar = el.classList.contains('nb-val');
+                            if (isNavbar) {
+                                el.innerText = Math.floor(data.stars).toLocaleString();
+                            } else {
+                                el.innerText = Math.floor(data.stars).toLocaleString() + ' ⭐';
+                            }
+                            
+                            el.style.transition = 'color 0.3s';
+                            el.style.color = '#2ecc71';
+                            setTimeout(() => el.style.color = '', 500);
+                        });
+                    }
+
+                    // 2. ОБНОВЛЕНИЕ ОСКОЛКОВ
+                    if (typeof data.shards !== 'undefined') {
+                        document.querySelectorAll('.nav-balance.shards .nb-val').forEach(el => {
+                            el.innerText = Math.floor(data.shards).toLocaleString();
+                            
+                            el.style.transition = 'color 0.3s';
+                            el.style.color = '#e67e22';
+                            setTimeout(() => el.style.color = '', 500);
+                        });
+                    }
                 });
+            } catch (e) {
+                console.warn('Socket.io failed to init:', e);
             }
-        });
+        };
+
+        // Добавляем скрипт в конец body, запуская загрузку
+        document.body.appendChild(script);
     });
 
-    // --- Логика меню (без изменений) ---
+    // --- Логика меню (глобальные функции) ---
     function toggleMobileMenu() {
         const menu = document.getElementById('navMenu');
         const btn = document.querySelector('.mobile-menu-btn');

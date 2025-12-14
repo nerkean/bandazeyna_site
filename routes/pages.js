@@ -6,6 +6,7 @@ import StockTransaction from '../src/models/StockTransaction.js';
 import Deposit from '../src/models/Deposit.js';
 import Article from '../src/models/Article.js';
 import UserDailyStreak from '../src/models/UserDailyStreak.js';
+import BanAppeal from '../src/models/BanAppeal.js';
 import { checkAuth } from '../middleware/checkAuth.js';
 import { getShopItems, getItemDefinition } from '../src/utils/definitions/itemDefinitions.js';
 import { getQuestDefinition } from '../src/utils/definitions/questDefinitions.js';
@@ -68,11 +69,9 @@ router.get('/', async (req, res) => {
     } catch (e) { res.render('index', { user: req.user, stats: { users: 0, stars: 0 }, heroStock: {}, myProfile: null }); }
 });
 
-// --- WRAPPED (ИТОГИ ГОДА) ---
-// --- WRAPPED (ИТОГИ ГОДА) ---
 router.get('/wrapped', async (req, res) => {
     try {
-        const cacheKey = 'wrapped_data_v3';
+        const cacheKey = 'wrapped_data_v5'; // Версия 5
         let wrappedData = cache.get(cacheKey);
 
         if (!wrappedData) {
@@ -91,16 +90,46 @@ router.get('/wrapped', async (req, res) => {
 
             const marketAgg = await StockTransaction.aggregate([{ $group: { _id: null, volume: { $sum: "$totalValue" }, trades: { $sum: 1 } } }]);
 
+            // --- ЛОГИКА ДЛЯ ИМПЕРАТОРА (Net Worth) ---
+            const allStocks = await Stock.find({}).lean();
+            const priceMap = {};
+            allStocks.forEach(s => priceMap[s.ticker] = s.currentPrice);
+
+            const candidates = await UserProfile.find({
+                $or: [{ stars: { $gt: 1000 } }, { 'portfolio.0': { $exists: true } }]
+            }).select('username avatar userId stars portfolio').lean();
+
+            let richestNet = { netWorth: 0, username: 'Никто', userId: null, avatar: null };
+
+            candidates.forEach(user => {
+                let stockValue = 0;
+                if (user.portfolio && user.portfolio.length > 0) {
+                    user.portfolio.forEach(p => {
+                        const price = priceMap[p.ticker] || 0;
+                        stockValue += p.quantity * price;
+                    });
+                }
+                const totalNet = user.stars + stockValue;
+                if (totalNet > richestNet.netWorth) {
+                    richestNet = { ...user, netWorth: totalNet };
+                }
+            });
+
             // 2. Сбор Легенд
             const [
-                richest,        // Богач
+                richest,        // Богач (кэш)
                 richestShards,  // Магнат Осколков
                 chatty,         // Болтун
                 voice,          // Голос
                 taxPayer,       // Налогоплательщик
                 reputation,     // Авторитет
                 ghostHunter,    // Охотник
-                streakerData,   // Гриндер (Стрикер)
+                streakerData,   // Данные стриккера (из отдельной коллекции)
+                
+                // Новые номинации:
+                topCollectorAgg, // Коллекционер
+                mostPopularAgg,  // Любимчик (по комментам)
+                
                 totalUsers
             ] = await Promise.all([
                 UserProfile.findOne({ stars: { $gt: 0 } }).sort({ stars: -1 }).select('username avatar userId stars').lean(),
@@ -111,10 +140,28 @@ router.get('/wrapped', async (req, res) => {
                 UserProfile.findOne({ reputation: { $gt: 0 } }).sort({ reputation: -1 }).select('username avatar userId reputation').lean(),
                 UserProfile.findOne({ event_ghostsCaught: { $gt: 0 } }).sort({ event_ghostsCaught: -1 }).select('username avatar userId event_ghostsCaught').lean(),
                 UserDailyStreak.findOne({ currentStreak: { $gt: 0 } }).sort({ currentStreak: -1 }).lean(),
+                
+                // Коллекционер (длина инвентаря)
+                UserProfile.aggregate([
+                    { $project: { username: 1, avatar: 1, userId: 1, itemCount: { $size: { $ifNull: ["$inventory", []] } } } },
+                    { $sort: { itemCount: -1 } },
+                    { $limit: 1 }
+                ]),
+
+                // Любимчик (длина массива комментов)
+                UserProfile.aggregate([
+                    { $project: { username: 1, avatar: 1, userId: 1, commCount: { $size: { $ifNull: ["$profileComments", []] } } } },
+                    { $sort: { commCount: -1 } },
+                    { $limit: 1 }
+                ]),
+
                 UserProfile.countDocuments()
             ]);
 
-            // Догружаем данные стриккера
+            const topCollector = topCollectorAgg[0] || null;
+            const topPopular = mostPopularAgg[0] || null;
+
+            // Обработка Марафонца (Стриккера)
             let topStreaker = null;
             if (streakerData) {
                 const u = await UserProfile.findOne({ userId: streakerData.userId }).select('username avatar userId').lean();
@@ -123,12 +170,7 @@ router.get('/wrapped', async (req, res) => {
 
             // 3. Агрегация Трофи Хантера
             const topAchieverAgg = await UserProfile.aggregate([
-                { 
-                    $project: { 
-                        username: 1, avatar: 1, userId: 1, 
-                        achCount: { $size: "$achievements" } 
-                    } 
-                },
+                { $project: { username: 1, avatar: 1, userId: 1, achCount: { $size: "$achievements" } } },
                 { $sort: { achCount: -1 } },
                 { $limit: 1 }
             ]);
@@ -162,7 +204,12 @@ router.get('/wrapped', async (req, res) => {
                 },
                 richest, richestShards, chatty, voice, 
                 taxPayer, reputation, ghostHunter, 
-                topAchiever, topTrader, topStreaker
+                topAchiever, topTrader, topStreaker,
+                
+                // Новые поля:
+                richestNet,
+                topCollector,
+                topPopular // Вместо ветерана
             };
 
             cache.set(cacheKey, wrappedData, 600);
@@ -172,7 +219,7 @@ router.get('/wrapped', async (req, res) => {
             user: req.user, 
             stats: wrappedData, 
             title: 'Итоги 2025 | Дача Зейна',
-            description: `Итоги года сервера. Всего сообщений: ${(wrappedData.global.totalMsgs / 1000000).toFixed(1)}M. Участников: ${wrappedData.totalUsers}.`,
+            description: `Итоги года сервера. Всего сообщений: ${(wrappedData.global.totalMsgs / 1000000).toFixed(1)}M.`,
             currentPath: '/wrapped',
             jsonLD: null 
         });
@@ -605,14 +652,33 @@ router.get('/giveaways', checkAuth, async (req, res) => {
     }
 });
 
-router.get('/banned', (req, res) => {
-    // Пускаем только если реально забанен
+// routes/pages.js (внизу)
+router.get('/banned', async (req, res) => {
     if (!req.user || !req.user.isBanned) return res.redirect('/');
     
+    // Проверяем, есть ли активная заявка
+    const existingAppeal = await BanAppeal.findOne({ userId: req.user.id, status: 'PENDING' });
+
     res.render('banned', { 
         user: req.user, 
         title: 'Доступ ограничен',
-        reason: req.user.banReason || 'Нарушение правил'
+        reason: req.user.banReason || 'Нарушение правил',
+        hasPendingAppeal: !!existingAppeal // true/false
+    });
+});
+
+router.get('/admin/appeals', checkAuth, async (req, res) => {
+    const ADMIN_IDS = ['438744415734071297'];
+    if (!ADMIN_IDS.includes(req.user.id)) return res.redirect('/');
+
+    // Берем только ожидающие заявки
+    const appeals = await BanAppeal.find({ status: 'PENDING' }).sort({ createdAt: 1 }).lean();
+
+    res.render('admin-appeals', { 
+        user: req.user, 
+        appeals, 
+        title: 'Апелляции (Admin)',
+        noIndex: true
     });
 });
 

@@ -73,6 +73,19 @@
 </script>
 <% } %>
 
+<% if (typeof gaId !== 'undefined' && gaId) { %>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=<%= gaId %>" nonce="<%= nonce %>"></script>
+    <script nonce="<%= nonce %>">
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', '<%= gaId %>', {
+            'page_path': window.location.pathname
+        });
+    </script>
+<% } %>
+
 <script src="/libs/aos.js" defer></script> 
 <script src="/js/modals.js" defer></script>
 <script src="/js/main.js" defer></script>
