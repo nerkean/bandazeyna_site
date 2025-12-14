@@ -3,7 +3,7 @@
         <i class="fas fa-snowflake"></i> ДАЧА ЗЕЙНА
     </a>
 
-    <div class="mobile-menu-btn" onclick="toggleMobileMenu()">
+    <div class="mobile-menu-btn" id="mobileMenuBtn">
         <span></span>
         <span></span>
         <span></span>
@@ -43,7 +43,7 @@
                 <% } %>
 
                 <div class="profile-dropdown-wrapper">
-                    <div class="profile-trigger" onclick="toggleDropdown()">
+                    <div class="profile-trigger" id="profileTrigger">
                         <% if (user.avatar) { %>
                             <img src="/img/proxy/avatar/<%= user.id %>/<%= user.avatar %>" alt="Ava">
                         <% } else { %>
@@ -66,7 +66,7 @@
                         </div>
 
                         <div class="dropdown-footer">
-                            <a href="/auth/logout" class="dd-logout" onclick="confirmLogout(event)">
+                            <a href="/auth/logout" class="dd-logout" id="logoutBtn">
                                 <i class="fas fa-sign-out-alt"></i> Выйти
                             </a>
                         </div>
@@ -82,118 +82,117 @@
     </div>
 </nav>
 
-<div id="navOverlay" onclick="closeAllMenus()"></div>
+<div id="navOverlay"></div>
 
 <script nonce="<%= nonce %>">
     document.addEventListener('DOMContentLoaded', () => {
         
-        // 1. ДИНАМИЧЕСКАЯ ЗАГРУЗКА SOCKET.IO (Чтобы не тормозить LCP)
+        // --- 1. ЛОГИКА ИНТЕРФЕЙСА (МЕНЮ, ПРОФИЛЬ, СКРОЛЛ) ---
+        
+        const mobileBtn = document.getElementById('mobileMenuBtn');
+        const navMenu = document.getElementById('navMenu');
+        const overlay = document.getElementById('navOverlay');
+        
+        const profileTrigger = document.getElementById('profileTrigger');
+        const profileDropdown = document.getElementById('profileDropdown');
+        const triggerArrow = document.querySelector('.trigger-arrow');
+        
+        const logoutBtn = document.getElementById('logoutBtn');
+        const navbar = document.querySelector('.navbar');
+
+        // Функция закрытия всего
+        const closeAll = () => {
+            if(navMenu) navMenu.classList.remove('active');
+            if(mobileBtn) mobileBtn.classList.remove('open');
+            if(profileDropdown) profileDropdown.classList.remove('active');
+            if(triggerArrow) triggerArrow.classList.remove('rotate');
+            if(overlay) {
+                overlay.classList.remove('active');
+                overlay.classList.remove('active-desktop');
+            }
+        };
+
+        // Мобильное меню
+        if (mobileBtn && navMenu && overlay) {
+            mobileBtn.addEventListener('click', (e) => {
+                e.stopPropagation(); // Чтобы клик не ушел на body
+                navMenu.classList.toggle('active');
+                mobileBtn.classList.toggle('open');
+                overlay.classList.toggle('active');
+                // Если открываем мобильное меню, закрываем дропдаун профиля
+                if(profileDropdown) profileDropdown.classList.remove('active');
+            });
+        }
+
+        // Дропдаун профиля
+        if (profileTrigger && profileDropdown) {
+            profileTrigger.addEventListener('click', (e) => {
+                e.stopPropagation();
+                profileDropdown.classList.toggle('active');
+                if(triggerArrow) triggerArrow.classList.toggle('rotate');
+                if(overlay) overlay.classList.toggle('active-desktop');
+            });
+        }
+
+        // Клик по оверлею (затемнению) закрывает всё
+        if (overlay) {
+            overlay.addEventListener('click', closeAll);
+        }
+
+        // Скролл навбара
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 50) navbar.classList.add('scrolled');
+            else navbar.classList.remove('scrolled');
+        });
+
+        // Подтверждение выхода
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', async (e) => {
+                e.preventDefault();
+                let confirmed = false;
+                
+                if (typeof Modal !== 'undefined') {
+                    confirmed = await Modal.confirm("Выход", "Точно выйти?", "warning");
+                } else {
+                    confirmed = confirm("Выйти?");
+                }
+
+                if (confirmed) window.location.href = '/auth/logout';
+            });
+        }
+
+
+        // --- 2. SOCKET.IO (ЖИВОЙ БАЛАНС) ---
         const script = document.createElement('script');
         script.src = '/socket.io/socket.io.js';
         script.nonce = '<%= nonce %>';
-        script.async = true; // Важно: асинхронная загрузка
+        script.async = true;
 
         script.onload = () => {
-            // Код запускается только когда библиотека загружена
             try {
                 const socket = io();
-                
-                // Слушаем личные обновления (баланс, инвентарь)
                 socket.on('user_update', (data) => {
-                    // console.log('⚡ User Update:', data);
-                    
-                    // 1. ОБНОВЛЕНИЕ ЗВЕЗД
+                    // Обновление Звезд
                     if (typeof data.stars !== 'undefined') {
                         const starsElements = document.querySelectorAll('.nav-balance.stars .nb-val, #userBalanceDisplay');
-                        
                         starsElements.forEach(el => {
                             const isNavbar = el.classList.contains('nb-val');
-                            if (isNavbar) {
-                                el.innerText = Math.floor(data.stars).toLocaleString();
-                            } else {
-                                el.innerText = Math.floor(data.stars).toLocaleString() + ' ⭐';
-                            }
-                            
-                            el.style.transition = 'color 0.3s';
+                            el.innerText = Math.floor(data.stars).toLocaleString() + (isNavbar ? '' : ' ⭐');
                             el.style.color = '#2ecc71';
                             setTimeout(() => el.style.color = '', 500);
                         });
                     }
-
-                    // 2. ОБНОВЛЕНИЕ ОСКОЛКОВ
+                    // Обновление Осколков
                     if (typeof data.shards !== 'undefined') {
                         document.querySelectorAll('.nav-balance.shards .nb-val').forEach(el => {
                             el.innerText = Math.floor(data.shards).toLocaleString();
-                            
-                            el.style.transition = 'color 0.3s';
                             el.style.color = '#e67e22';
                             setTimeout(() => el.style.color = '', 500);
                         });
                     }
                 });
-            } catch (e) {
-                console.warn('Socket.io failed to init:', e);
-            }
+            } catch (e) { console.warn('Socket init error:', e); }
         };
-
-        // Добавляем скрипт в конец body, запуская загрузку
         document.body.appendChild(script);
     });
-
-    // --- Логика меню (глобальные функции) ---
-    function toggleMobileMenu() {
-        const menu = document.getElementById('navMenu');
-        const btn = document.querySelector('.mobile-menu-btn');
-        const overlay = document.getElementById('navOverlay');
-        
-        menu.classList.toggle('active');
-        btn.classList.toggle('open');
-        overlay.classList.toggle('active');
-        document.getElementById('profileDropdown')?.classList.remove('active');
-    }
-
-    function toggleDropdown() {
-        const dd = document.getElementById('profileDropdown');
-        const arrow = document.querySelector('.trigger-arrow');
-        const overlay = document.getElementById('navOverlay');
-        
-        dd.classList.toggle('active');
-        arrow.classList.toggle('rotate');
-        overlay.classList.toggle('active-desktop');
-    }
-
-    function closeAllMenus() {
-        const menu = document.getElementById('navMenu');
-        const btn = document.querySelector('.mobile-menu-btn');
-        const dd = document.getElementById('profileDropdown');
-        const arrow = document.querySelector('.trigger-arrow');
-        const overlay = document.getElementById('navOverlay');
-
-        menu.classList.remove('active');
-        btn.classList.remove('open');
-        if(dd) dd.classList.remove('active');
-        if(arrow) arrow.classList.remove('rotate');
-        overlay.classList.remove('active');
-        overlay.classList.remove('active-desktop');
-    }
-
-    window.addEventListener('scroll', () => {
-        const navbar = document.querySelector('.navbar');
-        if (window.scrollY > 50) navbar.classList.add('scrolled');
-        else navbar.classList.remove('scrolled');
-    });
-
-    async function confirmLogout(event) {
-        event.preventDefault();
-        if (typeof Modal !== 'undefined') {
-            const confirmed = await Modal.confirm(
-                "Выход из аккаунта", 
-                "Вы уверены, что хотите выйти?", 
-                "warning"
-            );
-            if (confirmed) window.location.href = '/auth/logout';
-        } else {
-            if (confirm("Выйти?")) window.location.href = '/auth/logout';
-        }
-    }
 </script>
