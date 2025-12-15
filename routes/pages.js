@@ -19,6 +19,32 @@ import cache from '../src/utils/cache.js';
 const router = express.Router();
 
 router.get('/', async (req, res) => {
+    // 1. Объявляем JSON-LD в самом начале (гарантируем, что он есть всегда)
+    const jsonLD = {
+        "@context": "https://schema.org",
+        "@graph": [
+            {
+                "@type": "Organization",
+                "name": "Дача Зейна",
+                "url": "https://dachazeyna.com", // Google любит слеш в конце, но так тоже ок
+                "logo": "https://dachazeyna.com/assets/img/logo.png",
+                "sameAs": [
+                    "https://discord.gg/bandazeyna",
+                    "https://www.youtube.com/@ZeynBss"
+                ]
+            },
+            {
+                "@type": "WebSite",
+                "url": "https://dachazeyna.com/", // Тут лучше добавить слеш /
+                "potentialAction": {
+                    "@type": "SearchAction",
+                    "target": "https://dachazeyna.com/leaderboard?q={search_term_string}",
+                    "query-input": "required name=search_term_string"
+                }
+            }
+        ]
+    };
+
     try {
         const statsCacheKey = 'home_stats';
         let stats = cache.get(statsCacheKey);
@@ -34,40 +60,38 @@ router.get('/', async (req, res) => {
         }
 
         const topStock = await Stock.findOne({}).sort({ lastChange: -1 }).lean();
+        
         let myProfile = null;
         if (req.user) {
             myProfile = await UserProfile.findOne({ userId: req.user.id, guildId: process.env.GUILD_ID }).lean();
         }
 
-        const jsonLD = {
-            "@context": "https://schema.org",
-            "@graph": [
-                {
-                    "@type": "Organization",
-                    "name": "Дача Зейна",
-                    "url": "https://dachazeyna.com",
-                    "logo": "https://dachazeyna.com/assets/img/logo.png",
-                    "sameAs": ["https://discord.gg/bandazeyna", "https://www.youtube.com/@ZeynBss"]
-                },
-                {
-                    "@type": "WebSite",
-                    "url": "https://dachazeyna.com",
-                    "potentialAction": {
-                        "@type": "SearchAction",
-                        "target": "https://dachazeyna.com/leaderboard?q={search_term_string}",
-                        "query-input": "required name=search_term_string"
-                    }
-                }
-            ]
-        };
-
+        // Рендер при УСПЕХЕ
         res.render('index', { 
-            user: req.user, stats, title: 'Главная | Дача Зейна', 
+            user: req.user, 
+            stats, 
+            title: 'Главная | Дача Зейна', 
             description: 'Добро пожаловать на Дачу Зейна! Крупнейшее сообщество по Bee Swarm Simulator с уникальной экономикой, биржей, ивентами и гайдами.',
             heroStock: topStock || { ticker: 'INDEX', lastChange: 0, currentPrice: 100 },
-            myProfile, currentPath: '/', jsonLD 
+            myProfile, 
+            currentPath: '/', 
+            jsonLD // <--- Передаем
         });
-    } catch (e) { res.render('index', { user: req.user, stats: { users: 0, stars: 0 }, heroStock: {}, myProfile: null }); }
+
+    } catch (e) { 
+        console.error('Ошибка главной страницы:', e); // Логируем ошибку, чтобы знать о проблемах
+        
+        // Рендер при ОШИБКЕ (fallback)
+        res.render('index', { 
+            user: req.user, 
+            stats: { users: 0, stars: 0 }, 
+            heroStock: {}, 
+            myProfile: null,
+            currentPath: '/', // Не забудь path для каноникал
+            title: 'Главная | Дача Зейна',
+            jsonLD // <--- ТЕПЕРЬ ОНО ЕСТЬ И ТУТ!
+        }); 
+    }
 });
 
 router.get('/wrapped', async (req, res) => {
