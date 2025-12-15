@@ -49,10 +49,15 @@ app.use(helmet({
         directives: {
             defaultSrc: ["'self'"],
             scriptSrc: [
-                "'self'", "'unsafe-inline'", 
-                "https://cdn.jsdelivr.net", "https://unpkg.com", "https://cdnjs.cloudflare.com",
-                "https://dachazeyna.com",
-                "https://www.googletagmanager.com" // <--- ДОБАВЛЕНО (для загрузки скрипта)
+                "'self'",
+                "'unsafe-inline'", 
+                "https://cdn.jsdelivr.net",
+                "https://unpkg.com",
+                "https://cdnjs.cloudflare.com",
+                "https://www.googletagmanager.com",
+                "https://www.clarity.ms",
+                "https://c.bing.com",
+                "https://*.clarity.ms" // <--- ДОБАВИЛ ЭТО (решает проблему с scripts.clarity.ms)
             ],
             scriptSrcAttr: ["'unsafe-inline'"], 
             styleSrc: [
@@ -68,15 +73,20 @@ app.use(helmet({
                 "https://dachazeyna.com", 
                 "https://i.ibb.co",
                 "https://ik.imagekit.io",
-                "https://www.google-analytics.com", // <--- ДОБАВЛЕНО (для пикселей отслеживания)
-                "https://www.googletagmanager.com"  // <--- ДОБАВЛЕНО
+                "https://www.google-analytics.com",
+                "https://www.googletagmanager.com",
+                "https://*.clarity.ms",
+                "https://c.bing.com"
             ],
             fontSrc: ["'self'", "https://fonts.gstatic.com"],
             connectSrc: [
                 "'self'", "https://dachazeyna.com", "https://cdn.jsdelivr.net",
                 "ws:", "wss:", "https://discord.com",
-                "https://www.google-analytics.com", // <--- ДОБАВЛЕНО (куда отправлять данные)
-                "https://region1.google-analytics.com" // <--- ДОБАВЛЕНО (иногда нужно для регионов)
+                "https://www.google-analytics.com",
+                "https://region1.google-analytics.com",
+                "https://www.clarity.ms",
+                "https://c.bing.com",
+                "https://*.clarity.ms"
             ],
             objectSrc: ["'none'"],
             upgradeInsecureRequests: [],

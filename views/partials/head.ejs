@@ -74,17 +74,44 @@
 <% } %>
 
 <% if (typeof gaId !== 'undefined' && gaId) { %>
-    <script async src="https://www.googletagmanager.com/gtag/js?id=<%= gaId %>" nonce="<%= nonce %>"></script>
     <script nonce="<%= nonce %>">
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
+        // Оптимизация: Грузим аналитику только после активности пользователя
+        // или через 4 секунды (чтобы не портить Lighthouse score)
+        let analyticsLoaded = false;
+        const gaId = '<%= gaId %>';
 
-        gtag('config', '<%= gaId %>', {
-            'page_path': window.location.pathname
-        });
+        function loadAnalytics() {
+            if (analyticsLoaded) return;
+            analyticsLoaded = true;
+
+            const script = document.createElement('script');
+            script.async = true;
+            script.src = `https://www.googletagmanager.com/gtag/js?id=${gaId}`;
+            document.head.appendChild(script);
+
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', gaId, { 'page_path': window.location.pathname });
+        }
+
+        // Грузим при первом движении мыши, скролле или таче
+        ['click', 'scroll', 'mousemove', 'touchstart'].forEach(evt => 
+            window.addEventListener(evt, loadAnalytics, { once: true, passive: true })
+        );
+
+        // Или принудительно через 4 секунды (если юзер просто смотрит)
+        setTimeout(loadAnalytics, 4000);
     </script>
 <% } %>
+
+<script type="text/javascript" nonce="<%= typeof nonce !== 'undefined' ? nonce : '' %>">
+    (function(c,l,a,r,i,t,y){
+        c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+        t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+        y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+    })(window, document, "clarity", "script", "um1b962jsc");
+</script>
 
 <script src="/libs/aos.js" defer></script> 
 <script src="/js/modals.js" defer></script>
