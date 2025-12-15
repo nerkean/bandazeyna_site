@@ -371,37 +371,45 @@
     </div>
 
     <script nonce="<%= nonce %>">
-        document.getElementById('ideaForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const btn = e.target.querySelector('button');
-            const originalText = btn.innerHTML;
-            
-            btn.disabled = true; 
-            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Отправка...';
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.Modal) window.Modal.init();
 
-            try {
-                const res = await fetch('/api/ideas', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        title: e.target.title.value,
-                        descriptiКn: e.target.description.value
-                    })
-                });
-                const data = await res.json();
+            document.getElementById('ideaForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const btn = e.target.querySelector('button');
+                const originalText = btn.innerHTML;
                 
-                if (data.success) {
-                    location.reload();
-                } else {
-                    alert(data.error);
+                btn.disabled = true; 
+                btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Отправка...';
+
+                try {
+                    const res = await fetch('/api/ideas', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            title: e.target.title.value,
+                            description: e.target.description.value // Исправлена опечатка (было descriptiКn)
+                        })
+                    });
+                    const data = await res.json();
+                    
+                    if (data.success) {
+                        // Используем Modal вместо alert
+                        await Modal.alert("Спасибо!", "Ваша идея успешно отправлена.", "success");
+                        location.reload();
+                    } else {
+                        // Используем Modal для ошибок
+                        Modal.alert("Ошибка", data.error, "error");
+                        btn.disabled = false; 
+                        btn.innerHTML = originalText;
+                    }
+                } catch (err) { 
+                    Modal.alert("Ошибка", "Проблема с сетью. Попробуйте позже.", "error");
+                    console.error(err);
                     btn.disabled = false; 
                     btn.innerHTML = originalText;
                 }
-            } catch (err) { 
-                alert('Ошибка сети'); 
-                btn.disabled = false; 
-                btn.innerHTML = originalText;
-            }
+            });
         });
     </script>
 </body>
