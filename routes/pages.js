@@ -524,11 +524,13 @@ router.get('/bot', async (req, res) => {
 
 router.get('/terms', (req, res) => res.render('terms', { 
     user: req.user, title: 'Условия использования',
-    description: 'Правила использования сервисов проекта Дача Зейна.' 
+    description: 'Правила использования сервисов проекта Дача Зейна.',
+    currentPath: '/terms'
 }));
 router.get('/privacy', (req, res) => res.render('privacy', { 
     user: req.user, title: 'Политика конфиденциальности',
-    description: 'Информация о том, какие данные мы собираем и как их используем.' 
+    description: 'Информация о том, какие данные мы собираем и как их используем.',
+    currentPath: '/privacy'
 }));
 
 router.get('/admin/wiki', checkAuth, async (req, res) => {
@@ -705,14 +707,6 @@ router.get('/admin/ideas', checkAuth, async (req, res) => {
         user: req.user,
         title: 'Управление идеями',
         ideas
-    });
-});
-
-router.get('/pixelwar', checkAuth, async (req, res) => {
-    res.render('pixelwar', {
-        user: req.user,
-        title: 'Pixel War',
-        profile: await UserProfile.findOne({ userId: req.user.id }) // Нужно для проверки кулдауна на клиенте
     });
 });
 
