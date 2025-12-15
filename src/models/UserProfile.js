@@ -29,7 +29,6 @@ import {
 
 
 // === ОСТАВШИЕСЯ МЕЛКИЕ СХЕМЫ (Квесты) ===
-// Квесты пока оставим тут, так как они тесно связаны с ядром
 const activeQuestSchema = new mongoose.Schema({
   questId: { type: String, required: true },
   progress: { type: Number, default: 0 },
@@ -98,7 +97,7 @@ const userProfileSchema = new mongoose.Schema({
 
   marriedTo: { type: String, default: null },
   marriageDate: { type: Date, default: null },
-   marriageProposals: { 
+  marriageProposals: { 
         type: [{
             userId: String, 
             expiresAt: Date 
@@ -154,18 +153,20 @@ const userProfileSchema = new mongoose.Schema({
   event_candiesFromMessagesToday: { type: Number, default: 0 }, 
   event_ghostsCaught: { type: Number, default: 0 },
   
+  // === PIXEL WAR (Новое поле) ===
+  lastPixelTime: { type: Date, default: 0 }, 
+
   totalStarsPaidInTax: { type: Number, default: 0 },
   taxDue: { type: Number, default: 0, min: 0 },
   taxPaymentDeadline: { type: Date, default: null },
   isTaxDelinquent: { type: Boolean, default: false, index: true },
   
-  // ... и другие системные поля (maxReactionsOnMessage и т.д.)
+  // Системные
   maxReactionsOnMessage: { type: Number, default: 0 },
 
 }, { timestamps: true });
 
 // === ИНДЕКСЫ ===
-// Индексы оставляем в главном файле, чтобы видеть "карту" поиска
 userProfileSchema.index({ userId: 1, guildId: 1 }, { unique: true });
 userProfileSchema.index({ guildId: 1, stars: -1 });
 userProfileSchema.index({ guildId: 1, totalMessages: -1 });

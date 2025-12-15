@@ -7,6 +7,7 @@ import Deposit from '../src/models/Deposit.js';
 import Article from '../src/models/Article.js';
 import UserDailyStreak from '../src/models/UserDailyStreak.js';
 import BanAppeal from '../src/models/BanAppeal.js';
+import Idea from '../src/models/Idea.js';
 import { checkAuth } from '../middleware/checkAuth.js';
 import { getShopItems, getItemDefinition } from '../src/utils/definitions/itemDefinitions.js';
 import { getQuestDefinition } from '../src/utils/definitions/questDefinitions.js';
@@ -679,6 +680,39 @@ router.get('/admin/appeals', checkAuth, async (req, res) => {
         appeals, 
         title: 'Апелляции (Admin)',
         noIndex: true
+    });
+});
+
+router.get('/ideas', checkAuth, async (req, res) => {
+    // Показываем пользователю его собственные идеи
+    const myIdeas = await Idea.find({ userId: req.user.id }).sort({ createdAt: -1 });
+    
+    res.render('ideas', {
+        user: req.user,
+        title: 'Предложить идею',
+        myIdeas
+    });
+});
+
+// Админка идей
+router.get('/admin/ideas', checkAuth, async (req, res) => {
+    const ADMIN_IDS = ['438744415734071297'];
+    if (!ADMIN_IDS.includes(req.user.id)) return res.redirect('/');
+
+    const ideas = await Idea.find({ status: 'PENDING' }).sort({ createdAt: 1 });
+
+    res.render('admin-ideas', {
+        user: req.user,
+        title: 'Управление идеями',
+        ideas
+    });
+});
+
+router.get('/pixelwar', checkAuth, async (req, res) => {
+    res.render('pixelwar', {
+        user: req.user,
+        title: 'Pixel War',
+        profile: await UserProfile.findOne({ userId: req.user.id }) // Нужно для проверки кулдауна на клиенте
     });
 });
 

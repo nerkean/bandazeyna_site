@@ -8,6 +8,7 @@ import passport from 'passport';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import UserProfile from './src/models/UserProfile.js';
+import PixelBoard from './src/models/PixelBoard.js';
 import MongoStore from 'connect-mongo';
 import { Strategy as DiscordStrategy } from 'passport-discord';
 import compression from 'compression';
@@ -158,6 +159,31 @@ io.use(wrap(passport.session()));
 
 const onlineUsers = new Set();
 
+let boardCache = new Array(10000).fill('#222222');
+
+// Загружаем доску из БД при старте сервера
+async function initBoard() {
+    let board = await PixelBoard.findOne();
+    if (!board) {
+        board = await PixelBoard.create({ pixels: boardCache });
+    } else {
+        // Если размер массива в БД меньше (например, расширили поле), добиваем пустотой
+        if (board.pixels.length < 10000) {
+            board.pixels = board.pixels.concat(new Array(10000 - board.pixels.length).fill('#222222'));
+        }
+        boardCache = board.pixels;
+    }
+    console.log('🎨 Pixel War доска загружена!');
+}
+initBoard();
+
+// Функция сохранения доски (чтобы не дёргать БД на каждый пиксель)
+async function saveBoard() {
+    await PixelBoard.findOneAndUpdate({}, { pixels: boardCache, lastUpdated: new Date() }, { upsert: true });
+}
+// Сохраняем каждые 30 секунд (если сервер упадет, потеряется максимум 30 сек рисунков)
+setInterval(saveBoard, 30000);
+
 io.on('connection', (socket) => {
     const user = socket.request.user;
     if (user && user.id) {
@@ -174,6 +200,63 @@ io.on('connection', (socket) => {
             }
         });
     }
+socket.on('get_board', () => {
+        socket.emit('board_data', boardCache);
+    });
+
+    // 2. Юзер ставит пиксель
+    socket.on('place_pixel', async ({ index, color, userId }) => {
+        try {
+            if (index < 0 || index >= 10000) return;
+            
+            // Находим юзера в БД (чтобы проверить кулдаун и баланс)
+            const user = await UserProfile.findOne({ userId });
+            if (!user) return;
+
+            const now = new Date();
+            const cooldownTime = 5 * 60 * 1000; // 5 минут
+            const lastPlace = user.lastPixelTime || 0;
+            const diff = now - lastPlace;
+
+            let cost = 0;
+
+            // Если кулдаун не прошел
+            if (diff < cooldownTime) {
+                // Платная установка без очереди
+                cost = 10; 
+                if (user.stars < cost) {
+                    socket.emit('pixel_error', 'Кулдаун! Либо жди, либо плати 10 звезд (не хватает).');
+                    return;
+                }
+            }
+
+            // Списываем деньги и обновляем время
+            if (cost > 0) {
+                user.stars -= cost;
+                // Не обновляем lastPixelTime, если заплатил? 
+                // Или обновляем? Давай обновлять, чтобы снова включился таймер.
+                user.lastPixelTime = now; 
+                await user.save();
+                
+                // Отправляем обновление баланса лично юзеру
+                socket.emit('user_update', { stars: user.stars });
+            } else {
+                // Бесплатная установка
+                user.lastPixelTime = now;
+                await user.save();
+            }
+
+            // ОБНОВЛЯЕМ ДОСКУ
+            boardCache[index] = color;
+
+            // Отправляем всем этот пиксель
+            io.emit('pixel_update', { index, color, userId: user.userId, username: user.username });
+
+        } catch (e) {
+            console.error(e);
+        }
+    });
+
 });
 
 app.get('/api/users/status/:userId', (req, res) => {

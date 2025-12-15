@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <%- include('partials/head', { title: 'Идеи и Предложения' }) %>
+    <style>
+        :root {
+            --accent-green: #2ecc71;
+            --accent-gold: #f1c40f;
+            --accent-blue: #3498db;
+            --accent-red: #e74c3c;
+            --bg-dark: #050505;
+            --glass: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --input-bg: rgba(0, 0, 0, 0.4);
+        }
+
+        body { 
+            background-color: var(--bg-dark); 
+            color: #fff; 
+            font-family: 'Montserrat', sans-serif;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(46, 204, 113, 0.05) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(52, 152, 219, 0.05) 0%, transparent 40%);
+            min-height: 100vh;
+        }
+
+        .page-wrapper {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 120px 20px 80px;
+        }
+
+        .header-section {
+            text-align: center;
+            margin-bottom: 50px;
+            animation: fadeInDown 0.8s ease;
+        }
+
+        .header-section h1 {
+            font-size: 3rem;
+            font-weight: 900;
+            margin: 0 0 15px;
+            background: linear-gradient(135deg, #fff 0%, #aaa 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .header-section p {
+            color: #888;
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        /* СЕТКА: ФОРМА + СПИСОК */
+        .content-grid {
+            display: grid;
+            grid-template-columns: 400px 1fr;
+            gap: 40px;
+            align-items: start;
+        }
+
+        /* ЛЕВАЯ КОЛОНКА: ФОРМА */
+        .form-card {
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 30px;
+            position: sticky;
+            top: 100px;
+            animation: fadeInLeft 0.8s ease;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+        }
+
+        .form-card h3 {
+            margin-top: 0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.4rem;
+            margin-bottom: 25px;
+            color: var(--accent-green);
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-label {
+            display: block;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #666;
+            margin-bottom: 8px;
+            font-weight: 700;
+        }
+
+        .custom-input {
+            width: 100%;
+            background: var(--input-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 15px;
+            color: #fff;
+            font-family: inherit;
+            font-size: 0.95rem;
+            transition: 0.3s;
+            box-sizing: border-box;
+        }
+
+        .custom-input:focus {
+            outline: none;
+            border-color: var(--accent-green);
+            background: rgba(46, 204, 113, 0.05);
+            box-shadow: 0 0 20px rgba(46, 204, 113, 0.1);
+        }
+
+        textarea.custom-input {
+            height: 140px;
+            resize: vertical;
+            line-height: 1.5;
+        }
+
+        .btn-submit {
+            width: 100%;
+            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+            color: #fff;
+            border: none;
+            padding: 16px;
+            border-radius: 12px;
+            font-weight: 800;
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: 0.3s;
+            margin-top: 10px;
+            box-shadow: 0 10px 30px rgba(46, 204, 113, 0.2);
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(46, 204, 113, 0.4);
+        }
+
+        .btn-submit:disabled {
+            background: #444;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .list-section {
+            animation: fadeInRight 0.8s ease;
+        }
+
+        .section-title {
+            font-size: 1.2rem;
+            color: #888;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px;
+            background: var(--glass);
+            border-radius: 20px;
+            border: 2px dashed var(--glass-border);
+            color: #666;
+        }
+        .empty-state i { font-size: 3rem; margin-bottom: 15px; opacity: 0.3; }
+
+        .idea-card {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 20px;
+            transition: 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .idea-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .idea-card::before {
+            content: '';
+            position: absolute;
+            left: 0; top: 0; bottom: 0;
+            width: 4px;
+        }
+        .idea-card.status-PENDING::before { background: var(--accent-gold); }
+        .idea-card.status-APPROVED::before { background: var(--accent-green); }
+        .idea-card.status-IMPLEMENTED::before { background: var(--accent-blue); }
+        .idea-card.status-REJECTED::before { background: var(--accent-red); }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+
+        .card-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #fff;
+            margin: 0;
+        }
+
+        .status-badge {
+            font-size: 0.75rem;
+            padding: 5px 12px;
+            border-radius: 50px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .sb-PENDING { background: rgba(241, 196, 15, 0.15); color: var(--accent-gold); }
+        .sb-APPROVED { background: rgba(46, 204, 113, 0.15); color: var(--accent-green); }
+        .sb-IMPLEMENTED { background: rgba(52, 152, 219, 0.15); color: var(--accent-blue); }
+        .sb-REJECTED { background: rgba(231, 76, 60, 0.15); color: var(--accent-red); }
+
+        .card-desc {
+            font-size: 0.95rem;
+            color: #ccc;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            margin: 0;
+        }
+
+        .admin-reply {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid var(--glass-border);
+            display: flex;
+            gap: 15px;
+        }
+
+        .reply-icon {
+            color: var(--accent-blue);
+            font-size: 1.2rem;
+        }
+
+        .reply-content {
+            font-size: 0.9rem;
+            color: #aaa;
+        }
+        .reply-content b { color: #fff; display: block; margin-bottom: 5px; }
+
+        .card-footer {
+            margin-top: 15px;
+            font-size: 0.8rem;
+            color: #555;
+            text-align: right;
+        }
+
+        @keyframes fadeInDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeInLeft { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
+        @keyframes fadeInRight { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+
+        @media (max-width: 900px) {
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+            .form-card {
+                position: relative;
+                top: 0;
+                margin-bottom: 40px;
+            }
+            .header-section h1 { font-size: 2rem; }
+        }
+    </style>
+</head>
+<body>
+    <%- include('partials/navbar') %>
+
+    <div class="page-wrapper">
+        
+        <div class="header-section">
+            <h1>Центр Идей</h1>
+            <p>
+                Сервер строится на ваших предложениях. У вас есть мысли, как улучшить Дачу Зейна? 
+                Биржа, ивенты, роли или бот — мы читаем всё.
+            </p>
+        </div>
+
+        <div class="content-grid">
+            
+            <div class="form-card">
+                <h3><i class="fas fa-lightbulb"></i> Новая идея</h3>
+                
+                <form id="ideaForm">
+                    <div class="input-group">
+                        <label class="input-label">Заголовок</label>
+                        <input type="text" name="title" class="custom-input" placeholder="Коротко о главном..." required maxlength="100">
+                    </div>
+
+                    <div class="input-group">
+                        <label class="input-label">Описание</label>
+                        <textarea name="description" class="custom-input" placeholder="Расскажите подробнее, как это должно работать и почему это круто..." required></textarea>
+                    </div>
+
+                    <button type="submit" class="btn-submit">
+                        Отправить <i class="fas fa-paper-plane"></i>
+                    </button>
+                    
+                    <div style="margin-top: 15px; font-size: 0.75rem; color: #666; text-align: center;">
+                        Пожалуйста, предлагайте только реальные вещи<br>
+                    </div>
+                </form>
+            </div>
+
+            <div class="list-section">
+                <div class="section-title">
+                    <span>Мои предложения</span>
+                    <span style="background: var(--glass-border); padding: 2px 10px; border-radius: 10px; font-size: 0.8rem;"><%= myIdeas.length %></span>
+                </div>
+
+                <% if (myIdeas.length === 0) { %>
+                    <div class="empty-state">
+                        <i class="far fa-clipboard"></i>
+                        <h3>Пока пусто</h3>
+                        <p>Вы еще ничего не предложили. Самое время начать!</p>
+                    </div>
+                <% } %>
+
+                <% myIdeas.forEach(idea => { %>
+                    <div class="idea-card status-<%= idea.status %>">
+                        <div class="card-header">
+                            <h4 class="card-title"><%= idea.title %></h4>
+                            <span class="status-badge sb-<%= idea.status %>">
+                                <%= idea.status === 'PENDING' ? 'На проверке' : 
+                                    idea.status === 'APPROVED' ? 'Одобрено' : 
+                                    idea.status === 'IMPLEMENTED' ? 'Реализовано' : 'Отклонено' %>
+                            </span>
+                        </div>
+                        
+                        <p class="card-desc"><%= idea.description %></p>
+
+                        <% if (idea.adminComment) { %>
+                            <div class="admin-reply">
+                                <i class="fas fa-reply reply-icon"></i>
+                                <div class="reply-content">
+                                    <b>Ответ Администрации:</b>
+                                    <%= idea.adminComment %>
+                                </div>
+                            </div>
+                        <% } %>
+                        
+                        <div class="card-footer">
+                            <%= new Date(idea.createdAt).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }) %>
+                        </div>
+                    </div>
+                <% }) %>
+            </div>
+
+        </div>
+    </div>
+
+    <script nonce="<%= nonce %>">
+        document.getElementById('ideaForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = e.target.querySelector('button');
+            const originalText = btn.innerHTML;
+            
+            btn.disabled = true; 
+            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Отправка...';
+
+            try {
+                const res = await fetch('/api/ideas', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        title: e.target.title.value,
+                        descriptiКn: e.target.description.value
+                    })
+                });
+                const data = await res.json();
+                
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert(data.error);
+                    btn.disabled = false; 
+                    btn.innerHTML = originalText;
+                }
+            } catch (err) { 
+                alert('Ошибка сети'); 
+                btn.disabled = false; 
+                btn.innerHTML = originalText;
+            }
+        });
+    </script>
+</body>
+</html>

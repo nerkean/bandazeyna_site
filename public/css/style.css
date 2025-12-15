@@ -946,6 +946,27 @@
     width: 1px; height: 20px; background: rgba(255,255,255,0.1);
 }
 
+/* Кнопка Идей */
+.nav-ideas {
+    background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+    color: #fff !important;
+    border-radius: 8px;
+    padding: 0 15px !important;
+    margin-right: 5px;
+    box-shadow: 0 0 15px rgba(46, 204, 113, 0.4);
+    animation: glowGreen 3s infinite alternate;
+}
+
+.nav-ideas:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 20px rgba(46, 204, 113, 0.6);
+}
+
+@keyframes glowGreen {
+    0% { box-shadow: 0 0 10px rgba(46, 204, 113, 0.3); }
+    100% { box-shadow: 0 0 20px rgba(46, 204, 113, 0.6); }
+}
+
 @keyframes gridMove {
     from { background-position: 0 0; }
     to { background-position: 0 60px; }

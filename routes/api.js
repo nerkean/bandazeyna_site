@@ -4,6 +4,7 @@ import { checkAuth } from '../middleware/checkAuth.js';
 import Message from '../src/models/Message.js';
 import Article from '../src/models/Article.js'
 import BanAppeal from '../src/models/BanAppeal.js';
+import Idea from '../src/models/Idea.js';
 import multer from 'multer';
 import fs from 'fs';
 import path from 'path';
@@ -605,6 +606,44 @@ router.post('/admin/appeal/decide', checkAuth, async (req, res) => {
     } catch (e) {
         console.error(e);
         res.status(500).json({ error: 'Ошибка обработки' });
+    }
+});
+
+router.post('/ideas', checkAuth, async (req, res) => {
+    try {
+        const { title, description } = req.body;
+        if (!title || !description) return res.status(400).json({ error: 'Заполните все поля' });
+
+        // Лимит: не больше 3 идей в статусе PENDING от одного юзера (защита от спама)
+        const pendingCount = await Idea.countDocuments({ userId: req.user.id, status: 'PENDING' });
+        if (pendingCount >= 3) return res.status(400).json({ error: 'Подождите проверки ваших прошлых идей.' });
+
+        await Idea.create({
+            userId: req.user.id,
+            username: req.user.username,
+            avatar: req.user.avatar,
+            title: title.trim(),
+            description: description.trim()
+        });
+
+        res.json({ success: true });
+    } catch (e) {
+        console.error(e);
+        res.status(500).json({ error: 'Ошибка сервера' });
+    }
+});
+
+// Админка: Решение по идее
+router.post('/admin/ideas/decide', checkAuth, async (req, res) => {
+    const ADMIN_IDS = ['438744415734071297']; // Твой ID
+    if (!ADMIN_IDS.includes(req.user.id)) return res.status(403).json({ error: 'Нет доступа' });
+
+    try {
+        const { ideaId, status, comment } = req.body;
+        await Idea.findByIdAndUpdate(ideaId, { status, adminComment: comment });
+        res.json({ success: true });
+    } catch (e) {
+        res.status(500).json({ error: 'Ошибка' });
     }
 });
 
