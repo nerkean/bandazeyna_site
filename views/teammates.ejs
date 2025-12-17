@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <link rel="stylesheet" href="/css/teammates.css">
+    <%- include('partials/head', { title: 'Поиск Тиммейтов' }) %>
+</head>
+<body>
+    <%- include('partials/navbar') %>
+
+    <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 120px 20px 80px;">
+        
+        <div class="page-header">
+            <div class="header-text">
+                <h1>LFG <span style="color: #2ecc71;">Board</span></h1>
+                <p style="color: #888; margin-top: 5px;">
+                    Заявки удаляются автоматически через 30 минут
+                </p>
+            </div>
+
+            <% if (user) { %>
+                <button class="create-btn-floating" onclick="openLfgModal()">
+                    <i class="fas fa-plus-circle"></i> 
+                    <%= myRequest ? 'Моя заявка' : 'Создать объявление' %>
+                </button>
+            <% } else { %>
+                <a href="/auth/discord" class="create-btn-floating" style="background: #5865F2; text-decoration: none;">
+                    <i class="fab fa-discord"></i> Войти
+                </a>
+            <% } %>
+        </div>
+
+        <div class="filter-container">
+            <button class="filter-btn active" onclick="setFilter('ALL', this)">Все</button>
+            <button class="filter-btn" onclick="setFilter('MACRO', this)">🤖 Макро</button>
+            <button class="filter-btn" onclick="setFilter('FARM', this)">🐝 Фарм</button>
+            <button class="filter-btn" onclick="setFilter('PUFFSHROOMS', this)">🍄 Puffs</button>
+            <button class="filter-btn" onclick="setFilter('ROBO', this)">🤖 Robo</button>
+            <button class="filter-btn" onclick="setFilter('OTHER', this)">❓ Другое</button>
+        </div>
+
+        <div class="grid-container" id="cardsContainer">
+            <% requests.forEach((req) => { %>
+                <div class="tm-card hive-<%= req.hiveColor %>" data-type="<%= req.activityType %>">
+                    
+                    <div class="card-top">
+                        <div class="user-wrap">
+                            <img src="<%= req.avatar %>" class="tm-avatar" alt="Ava" onerror="this.src='/assets/img/avatars/default_avatar.png'">
+                            <div class="user-details">
+                                <h4><%= req.username %></h4>
+                                <span class="hive-tag" style="color: <%= req.hiveColor === 'BLUE' ? '#3498db' : req.hiveColor === 'RED' ? '#e74c3c' : req.hiveColor === 'WHITE' ? '#ecf0f1' : '#9b59b6' %>">
+                                    <%= req.hiveColor %> Hive
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="activity-badge act-<%= req.activityType %>">
+                            <% if(req.activityType === 'MACRO') { %> <i class="fas fa-robot"></i> <span>Macro</span> <% } %>
+                            <% if(req.activityType === 'FARM') { %> <i class="fas fa-leaf"></i> <span>Farm</span> <% } %>
+                            <% if(req.activityType === 'STICKERS') { %> <i class="fas fa-sticky-note"></i> <span>Trade</span> <% } %>
+                            <% if(req.activityType === 'PUFFSHROOMS') { %> <i class="fas fa-cloud"></i> <span>Puffs</span> <% } %>
+                            <% if(req.activityType === 'ROBO') { %> <i class="fas fa-gamepad"></i> <span>Robo</span> <% } %>
+                            <% if(req.activityType === 'OTHER') { %> <i class="fas fa-question-circle"></i> <span>Другое</span> <% } %>
+                        </div>
+                    </div>
+
+                    <div class="tm-desc">
+                        <%= req.description %>
+                    </div>
+
+                    <div class="card-footer">
+                        <button class="discord-btn" onclick="copyDiscord('<%= req.username %>')">
+                            <i class="fab fa-discord"></i> Copy Nick
+                        </button>
+                        
+                        <span class="time-ago">
+                            <% 
+                                const diff = Math.floor((Date.now() - new Date(req.createdAt)) / 60000);
+                            %>
+                            <%= diff < 1 ? 'Только что' : diff + ' мин. назад' %>
+                        </span>
+                    </div>
+                </div>
+            <% }) %>
+        </div>
+
+        <div id="emptyState" style="text-align: center; color: #555; margin-top: 50px; display: none;">
+            <i class="far fa-clock" style="font-size: 3rem; margin-bottom: 10px; opacity: 0.5;"></i>
+            <p>Активных заявок в этой категории нет.<br>Создай свою!</p>
+        </div>
+
+        <div class="pagination-wrapper" id="paginationControls">
+            </div>
+    </div>
+
+    <% if (user) { %>
+    <div class="modal-overlay" id="lfgModalOverlay">
+        <div class="modal-window">
+            <div class="modal-header">
+                <h2><%= myRequest ? '✏️ Изменить заявку' : '✨ Новая заявка' %></h2>
+                <button class="modal-close" onclick="closeLfgModal()">&times;</button>
+            </div>
+            
+            <form id="lfgForm">
+                <div class="form-group">
+                    <label class="form-label">Цель поиска</label>
+                    <select name="activityType" class="custom-input" required>
+                        <option value="MACRO" <%= myRequest?.activityType === 'MACRO' ? 'selected' : '' %>>🤖 Макро (Macro)</option>
+                        <option value="FARM" <%= myRequest?.activityType === 'FARM' ? 'selected' : '' %>>🐝 Фарм Мёда</option>
+                        <option value="PUFFSHROOMS" <%= myRequest?.activityType === 'PUFFSHROOMS' ? 'selected' : '' %>>🍄 Puffshrooms</option>
+                        <option value="ROBO" <%= myRequest?.activityType === 'ROBO' ? 'selected' : '' %>>🤖 Robo Challenge</option>
+                        <option value="OTHER" <%= myRequest?.activityType === 'OTHER' ? 'selected' : '' %>>❓ Другое</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Твой Улей</label>
+                    <select name="hiveColor" class="custom-input" required>
+                        <option value="BLUE" <%= myRequest?.hiveColor === 'BLUE' ? 'selected' : '' %>>🔵 Синий (Blue)</option>
+                        <option value="RED" <%= myRequest?.hiveColor === 'RED' ? 'selected' : '' %>>🔴 Красный (Red)</option>
+                        <option value="WHITE" <%= myRequest?.hiveColor === 'WHITE' ? 'selected' : '' %>>⚪ Белый (White)</option>
+                        <option value="MIXED" <%= myRequest?.hiveColor === 'MIXED' ? 'selected' : '' %>>🟣 Смешанный (Mixed)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Описание (до 80 симв.)</label>
+                    <input type="text" name="description" 
+                           class="custom-input" 
+                           placeholder="Например: Ищу +1 на макро на поле Pine Tree" 
+                           maxlength="80" 
+                           value="<%= myRequest?.description || '' %>"
+                           required>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="submit" class="btn-submit">
+                        <%= myRequest ? 'Сохранить изменения' : 'Опубликовать заявку' %>
+                    </button>
+                    
+                    <% if (myRequest) { %>
+                        <button type="button" class="btn-delete" onclick="deleteRequest()" title="Удалить заявку">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    <% } %>
+                </div>
+            </form>
+        </div>
+    </div>
+    <% } %>
+
+    <script nonce="<%= nonce %>">
+        // === ЛОГИКА ПАГИНАЦИИ И ФИЛЬТРОВ ===
+        document.addEventListener('DOMContentLoaded', () => {
+            const ITEMS_PER_PAGE = 12; // Сколько карточек на странице
+            let currentPage = 1;
+            let currentFilter = 'ALL';
+            
+            // Собираем все карточки при загрузке
+            const allCards = Array.from(document.querySelectorAll('.tm-card'));
+            const paginationContainer = document.getElementById('paginationControls');
+            const emptyState = document.getElementById('emptyState');
+
+            function render() {
+                // 1. Фильтруем
+                const filtered = allCards.filter(card => {
+                    return currentFilter === 'ALL' || card.dataset.type === currentFilter;
+                });
+
+                // 2. Считаем страницы
+                const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
+                
+                // Если текущая страница больше, чем всего страниц -> сбрасываем
+                if (currentPage > totalPages) currentPage = 1;
+                if (totalPages === 0) currentPage = 1;
+
+                // 3. Вычисляем индексы для показа
+                const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+                const endIndex = startIndex + ITEMS_PER_PAGE;
+
+                // 4. Скрываем все, показываем нужные
+                allCards.forEach(card => card.style.display = 'none'); // Сначала всё прячем
+                
+                if (filtered.length === 0) {
+                    emptyState.style.display = 'block';
+                } else {
+                    emptyState.style.display = 'none';
+                    filtered.slice(startIndex, endIndex).forEach(card => {
+                        card.style.display = 'flex'; // Показываем только текущую страницу
+                        // Небольшая анимация появления (чистый CSS fade-in)
+                        card.style.opacity = '0';
+                        card.style.animation = 'fadeIn 0.3s forwards';
+                    });
+                }
+
+                // 5. Рисуем кнопки пагинации
+                renderPagination(totalPages);
+            }
+
+            function renderPagination(totalPages) {
+                paginationContainer.innerHTML = '';
+                if (totalPages <= 1) return; // Не нужна пагинация, если 1 страница
+
+                // Кнопка Назад
+                const prevBtn = document.createElement('button');
+                prevBtn.className = 'page-btn';
+                prevBtn.innerHTML = '<i class="fas fa-chevron-left"></i>';
+                prevBtn.disabled = currentPage === 1;
+                prevBtn.onclick = () => { currentPage--; render(); window.scrollTo({top: 0, behavior: 'smooth'}); };
+                paginationContainer.appendChild(prevBtn);
+
+                // Цифры (упрощенная версия)
+                for (let i = 1; i <= totalPages; i++) {
+                    // Показываем первую, последнюю, текущую и соседей
+                    if (i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1)) {
+                        const btn = document.createElement('button');
+                        btn.className = `page-btn ${i === currentPage ? 'active' : ''}`;
+                        btn.innerText = i;
+                        btn.onclick = () => { currentPage = i; render(); window.scrollTo({top: 0, behavior: 'smooth'}); };
+                        paginationContainer.appendChild(btn);
+                    } else if (
+                        (i === currentPage - 2 && currentPage > 3) || 
+                        (i === currentPage + 2 && currentPage < totalPages - 2)
+                    ) {
+                        // Многоточие
+                        const span = document.createElement('span');
+                        span.innerText = '...';
+                        span.style.color = '#666';
+                        span.style.paddingTop = '10px';
+                        paginationContainer.appendChild(span);
+                    }
+                }
+
+                // Кнопка Вперед
+                const nextBtn = document.createElement('button');
+                nextBtn.className = 'page-btn';
+                nextBtn.innerHTML = '<i class="fas fa-chevron-right"></i>';
+                nextBtn.disabled = currentPage === totalPages;
+                nextBtn.onclick = () => { currentPage++; render(); window.scrollTo({top: 0, behavior: 'smooth'}); };
+                paginationContainer.appendChild(nextBtn);
+            }
+
+            // Глобальная функция для кнопок фильтров
+            window.setFilter = (type, btn) => {
+                // Переключаем класс active
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                currentFilter = type;
+                currentPage = 1; // Сбрасываем на 1 страницу при смене фильтра
+                render();
+            };
+
+            // Первый запуск
+            render();
+        });
+
+        // --- ДОП. ФУНКЦИИ (МОДАЛКА И КОПИРОВАНИЕ) ---
+        function openLfgModal() { document.getElementById('lfgModalOverlay')?.classList.add('active'); }
+        function closeLfgModal() { document.getElementById('lfgModalOverlay')?.classList.remove('active'); }
+        
+        document.getElementById('lfgModalOverlay')?.addEventListener('click', (e) => {
+            if(e.target.id === 'lfgModalOverlay') closeLfgModal();
+        });
+
+        function copyDiscord(username) {
+            navigator.clipboard.writeText(username).then(() => {
+                // Простое уведомление, если нет системы тостов
+                const btn = event.currentTarget; // Получаем нажатую кнопку
+                const originalHtml = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-check"></i> Скопировано';
+                btn.style.background = '#2ecc71';
+                setTimeout(() => {
+                    btn.innerHTML = originalHtml;
+                    btn.style.background = '';
+                }, 2000);
+            });
+        }
+
+        // --- ОТПРАВКА ФОРМЫ ---
+        const form = document.getElementById('lfgForm');
+        if (form) {
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const btn = form.querySelector('button[type="submit"]');
+                const originalText = btn.innerText;
+                btn.innerText = 'Загрузка...'; btn.disabled = true;
+
+                const data = Object.fromEntries(new FormData(e.target));
+                
+                try {
+                    const res = await fetch('/teammates/create', { 
+                        method: 'POST', 
+                        headers: {'Content-Type': 'application/json'}, 
+                        body: JSON.stringify(data) 
+                    });
+                    const result = await res.json();
+                    
+                    if (result.success) {
+                        location.reload(); 
+                    } else {
+                        alert(result.error || 'Ошибка');
+                        btn.innerText = originalText; btn.disabled = false;
+                    }
+                } catch (err) {
+                    alert('Ошибка сети');
+                    btn.innerText = originalText; btn.disabled = false;
+                }
+            });
+        }
+
+        async function deleteRequest() {
+            if(!confirm('Удалить заявку?')) return;
+            await fetch('/teammates/delete', { method: 'POST' });
+            location.reload();
+        }
+    </script>
+
+    <style>
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</body>
+</html>

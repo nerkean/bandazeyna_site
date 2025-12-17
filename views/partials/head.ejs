@@ -2,8 +2,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
 
 <title><%= typeof title !== 'undefined' ? title : 'Дача Зейна | BSS Community' %></title>
-<meta name="description" content="<%= typeof description !== 'undefined' ? description : 'Крупнейшее сообщество по Bee Swarm Simulator. Экономика, биржа акций, ивенты и уникальный бот.' %>">
-<meta name="keywords" content="roblox, bee swarm simulator, bss, discord, community, банда зейна, экономика, бот, трейдинг, рпг">
+<meta name="description" content="<%= typeof description !== 'undefined' ? description : 'Крупнейшее сообщество по Bee Swarm Simulator. Экономика, биржа акций, ивенты и уникальный бот' %>">
 <meta name="theme-color" content="#5865F2">
 <meta name="author" content="Dachazeyna Team">
 
@@ -75,8 +74,7 @@
 
 <% if (typeof gaId !== 'undefined' && gaId) { %>
     <script nonce="<%= nonce %>">
-        // Оптимизация: Грузим аналитику только после активности пользователя
-        // или через 4 секунды (чтобы не портить Lighthouse score)
+
         let analyticsLoaded = false;
         const gaId = '<%= gaId %>';
 
@@ -95,12 +93,10 @@
             gtag('config', gaId, { 'page_path': window.location.pathname });
         }
 
-        // Грузим при первом движении мыши, скролле или таче
         ['click', 'scroll', 'mousemove', 'touchstart'].forEach(evt => 
             window.addEventListener(evt, loadAnalytics, { once: true, passive: true })
         );
 
-        // Или принудительно через 4 секунды (если юзер просто смотрит)
         setTimeout(loadAnalytics, 4000);
     </script>
 <% } %>

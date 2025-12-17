@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <%- include('partials/head', { title: 'Audit Logs' }) %>
+    <style>
+        .admin-wrap { max-width: 1000px; margin: 120px auto; padding: 0 20px; }
+        .log-table { 
+            width: 100%; border-collapse: collapse; 
+            background: #16181e; border-radius: 12px; overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        .log-table th { background: rgba(255,255,255,0.05); padding: 15px; text-align: left; color: #aaa; font-weight: 700; font-size: 0.8rem; text-transform: uppercase; }
+        .log-table td { padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); color: #ddd; font-size: 0.9rem; }
+        .log-table tr:last-child td { border-bottom: none; }
+        .log-table tr:hover { background: rgba(255,255,255,0.02); }
+
+        /* Цвета действий */
+        .tag { padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; }
+        .tag-create { background: rgba(46, 204, 113, 0.2); color: #2ecc71; }
+        .tag-update { background: rgba(52, 152, 219, 0.2); color: #3498db; }
+        .tag-delete { background: rgba(231, 76, 60, 0.2); color: #e74c3c; }
+
+        .user-cell { display: flex; align-items: center; gap: 10px; }
+        .user-avatar { width: 24px; height: 24px; border-radius: 50%; background: #333; }
+    </style>
+</head>
+<body>
+    <%- include('partials/navbar') %>
+
+    <div class="admin-wrap">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+            <h1>Журнал действий</h1>
+            <a href="/admin/wiki" class="btn-secondary"><i class="fas fa-arrow-left"></i> Назад к Wiki</a>
+        </div>
+
+        <table class="log-table">
+            <thead>
+                <tr>
+                    <th>Время</th>
+                    <th>Админ</th>
+                    <th>Действие</th>
+                    <th>Объект</th>
+                    <th>Детали</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% if (logs.length === 0) { %>
+                    <tr><td colspan="5" style="text-align: center; color: #666; padding: 30px;">История чиста</td></tr>
+                <% } %>
+
+                <% logs.forEach(log => { %>
+                    <tr>
+                        <td style="color: #666; white-space: nowrap;">
+                            <%= new Date(log.timestamp).toLocaleString('ru-RU') %>
+                        </td>
+                        <td>
+                            <div class="user-cell">
+                                <span style="font-weight: 600;"><%= log.adminName %></span>
+                            </div>
+                        </td>
+                        <td>
+                            <% if (log.action === 'CREATE') { %>
+                                <span class="tag tag-create">Создание</span>
+                            <% } else if (log.action === 'UPDATE') { %>
+                                <span class="tag tag-update">Изменение</span>
+                            <% } else if (log.action === 'DELETE') { %>
+                                <span class="tag tag-delete">Удаление</span>
+                            <% } else { %>
+                                <span class="tag"><%= log.action %></span>
+                            <% } %>
+                        </td>
+                        <td style="font-weight: 600; color: #fff;">
+                            <%= log.targetTitle %>
+                        </td>
+                        <td style="color: #888;">
+                            <%= log.details %>
+                        </td>
+                    </tr>
+                <% }) %>
+            </tbody>
+        </table>
+    </div>
+
+    <%- include('partials/footer') %>
+</body>
+</html>

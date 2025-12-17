@@ -4,7 +4,10 @@ import { checkAuth } from '../middleware/checkAuth.js';
 import Message from '../src/models/Message.js';
 import Article from '../src/models/Article.js'
 import BanAppeal from '../src/models/BanAppeal.js';
-import Idea from '../src/models/Idea.js';
+import Notification from '../src/models/Notification.js';
+import { GoogleGenerativeAI } from "@google/generative-ai";
+import { checkWikiAccess } from '../middleware/checkWikiAccess.js';
+import AdminLog from '../src/models/AdminLog.js';
 import multer from 'multer';
 import fs from 'fs';
 import path from 'path';
@@ -17,6 +20,40 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const router = express.Router();
 
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+
+// ==========================================
+// 0. ВСПОМОГАТЕЛЬНАЯ ФУНКЦИЯ УВЕДОМЛЕНИЙ
+// ==========================================
+async function sendNotification(req, userId, type, message, link = null) {
+    try {
+        // 1. Сохраняем в базу (чтобы видно было после перезагрузки)
+        const newNotif = await Notification.create({
+            userId,
+            type, // 'SUCCESS', 'INFO', 'WARNING', 'ERROR'
+            message,
+            link
+        });
+
+        // 2. Отправляем в Socket.io (для мгновенного появления)
+        const io = req.app.get('io');
+        if (io) {
+            // Принудительно приводим ID к строке
+            io.to(String(userId)).emit('new_notification', {
+                _id: newNotif._id,
+                type: newNotif.type,
+                message: newNotif.message,
+                link: newNotif.link,
+                createdAt: newNotif.createdAt,
+                read: false
+            });
+        }
+    } catch (e) {
+        console.error('Ошибка отправки уведомления:', e);
+    }
+}
+
 // ==========================================
 // 1. НАСТРОЙКА IMAGEKIT (ОБЛАКО)
 // ==========================================
@@ -26,14 +63,12 @@ const imagekit = new ImageKit({
     urlEndpoint: process.env.IMAGEKIT_URL_ENDPOINT
 });
 
-// Настройка Multer для ОБЛАКА (храним в памяти, чтобы отправить в ImageKit)
 const memoryStorage = multer.memoryStorage();
 const uploadCloud = multer({ 
     storage: memoryStorage,
-    limits: { fileSize: 50 * 1024 * 1024 } // 50MB
+    limits: { fileSize: 50 * 1024 * 1024 }
 });
 
-// Вспомогательная функция загрузки
 async function uploadToCloud(fileBuffer, fileName, folder = '/wiki') {
     return new Promise((resolve, reject) => {
         imagekit.upload({
@@ -49,10 +84,8 @@ async function uploadToCloud(fileBuffer, fileName, folder = '/wiki') {
 }
 
 // ==========================================
-// 2. НАСТРОЙКА ЛОКАЛЬНОЙ ЗАГРУЗКИ (ДЛЯ ЧАТА)
+// 2. НАСТРОЙКА ЛОКАЛЬНОЙ ЗАГРУЗКИ (ЧАТ)
 // ==========================================
-// Внимание: На Render файлы чата будут пропадать при перезагрузке.
-// Если нужно хранить вечно — переведи чат тоже на uploadToCloud.
 const chatUploadDir = path.join(__dirname, '../public/uploads/chat');
 if (!fs.existsSync(chatUploadDir)) {
     fs.mkdirSync(chatUploadDir, { recursive: true });
@@ -90,7 +123,7 @@ async function proxyToBot(endpoint, method, body, userId) {
     const token = jwt.sign({ userId }, JWT_SECRET, { expiresIn: '1m' });
     const url = `${BOT_API_URL}${endpoint}`;
 
-    console.log(`[Proxy] Sending ${method} to ${url}`);
+    // console.log(`[Proxy] Sending ${method} to ${url}`);
 
     try {
         const response = await fetch(url, {
@@ -112,8 +145,7 @@ async function proxyToBot(endpoint, method, body, userId) {
             return data;
         } catch (e) {
             console.error(`[Proxy Error] Ответ не JSON! URL: ${url}`);
-            console.error(`[Proxy Response]:`, text);
-            return { success: false, error: `Ошибка сервера (Invalid JSON). Проверь консоль.` };
+            return { success: false, error: `Ошибка сервера бота.` };
         }
 
     } catch (err) {
@@ -126,49 +158,94 @@ async function proxyToBot(endpoint, method, body, userId) {
 // РОУТЫ (ТОРГОВЛЯ, МАГАЗИН И Т.Д.)
 // ==========================================
 
+// 1. ТОРГОВЛЯ (Акции)
 router.post('/trade', checkAuth, [
     body('ticker').isString().isLength({ min: 2, max: 5 }).trim().escape(),
-    body('amount').isInt({ min: 1 }).withMessage('Количество должно быть числом > 0'),
+    body('amount').isInt({ min: 1 }).withMessage('Количество > 0'),
     body('action').isIn(['BUY', 'SELL']),
 ], async (req, res) => {
     const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-        return res.status(400).json({ success: false, error: errors.array()[0].msg });
-    }
+    if (!errors.isEmpty()) return res.status(400).json({ success: false, error: errors.array()[0].msg });
+    
     const { ticker, amount, action } = req.body;
     
     const payload = { ticker, quantity: parseInt(amount) };
     const endpoint = action === 'BUY' ? '/stocks/buy' : '/stocks/sell';
     const result = await proxyToBot(endpoint, 'POST', payload, req.user.id);
+
     res.json(result);
 });
 
+// 2. МАГАЗИН
 router.post('/shop/buy', checkAuth, async (req, res) => {
     const { itemId, quantity } = req.body;
     const result = await proxyToBot('/shop/buy', 'POST', { itemId, quantity }, req.user.id);
+
     res.json(result);
 });
 
+// 3. ИСПОЛЬЗОВАНИЕ ПРЕДМЕТА
 router.post('/inventory/use', checkAuth, async (req, res) => {
     const { itemId, quantity } = req.body;
     const result = await proxyToBot('/items/use', 'POST', { itemId, quantity }, req.user.id);
+
     res.json(result);
 });
 
 router.post('/daily/claim', checkAuth, async (req, res) => {
     const result = await proxyToBot('/rewards/daily', 'POST', {}, req.user.id);
+    
+    if (result.success) {
+        // ✅ ВАЖНО: Записываем в базу сайта, что игрок забрал награду сегодня.
+        // Это нужно, чтобы Cron НЕ присылал ему напоминание вечером.
+        await UserProfile.findOneAndUpdate(
+            { userId: req.user.id },
+            { lastDailyReward: new Date() }
+        );
+    }
     res.json(result);
 });
 
 router.post('/deposit/create', checkAuth, async (req, res) => {
     const { planId, amount } = req.body;
     const result = await proxyToBot('/deposit/create', 'POST', { planId, amount }, req.user.id);
+    
+    if (result.success) {
+        sendNotification(req, req.user.id, 'SUCCESS', `Открыт вклад на ${amount} ⭐`, '/deposit');
+    }
     res.json(result);
 });
 
+// 6. БАНК (Действие)
 router.post('/deposit/action', checkAuth, async (req, res) => {
     const { depositId, action } = req.body;
     const result = await proxyToBot('/deposit/action', 'POST', { depositId, action }, req.user.id);
+
+    res.json(result);
+});
+
+router.post('/giveaways/join', checkAuth, async (req, res) => {
+    const { giveawayId } = req.body;
+    const result = await proxyToBot('/giveaways/join', 'POST', { giveawayId }, req.user.id);
+    
+    if (result.success) {
+        sendNotification(req, req.user.id, 'SUCCESS', `Вы участвуете в розыгрыше! 🍀`, '/giveaways');
+    }
+    res.json(result);
+});
+
+router.get('/giveaways/:id/participants', checkAuth, async (req, res) => {
+    const result = await proxyToBot(`/giveaways/${req.params.id}/participants`, 'GET', null, req.user.id);
+    if (!result.success && !result.participants) {
+        return res.status(500).json({ error: 'Ошибка связи с ботом' });
+    }
+    res.json(result);
+});
+
+// Смена титула
+router.post('/user/update', checkAuth, async (req, res) => {
+    const { activeTitle } = req.body;
+    const result = await proxyToBot('/user/update', 'POST', { activeTitle }, req.user.id);
     res.json(result);
 });
 
@@ -271,7 +348,6 @@ router.post('/messages/mark_read', checkAuth, async (req, res) => {
     } catch (e) { res.status(500).json({ error: 'Err' }); }
 });
 
-// ИСПОЛЬЗУЕМ uploadChat (локальная загрузка)
 router.post('/messages/send', checkAuth, (req, res) => {
     uploadChat.single('image')(req, res, async (err) => {
         if (err) return res.status(400).json({ error: err.message });
@@ -309,8 +385,19 @@ router.post('/messages/send', checkAuth, (req, res) => {
                 senderAvatar: req.user.avatar
             };
 
+            // 1. Отправляем в живой чат (Socket.io room)
             req.io.to(receiverId).emit('new_message', eventData);
             req.io.to(myId).emit('message_sent', eventData);
+            
+            // 2. 🔥 ОТПРАВЛЯЕМ УВЕДОМЛЕНИЕ В КОЛОКОЛЬЧИК 🔥
+            // Чтобы не спамить, можно проверять последнее уведомление, но пока сделаем для каждого сообщения
+            sendNotification(
+                req, 
+                receiverId, 
+                'INFO', // Синий цвет (информация)
+                `Новое сообщение от ${req.user.username} ✉️`, 
+                `/messages` // Ссылка на раздел сообщений
+            );
             
             res.json({ success: true, message: msg });
         } catch (e) {
@@ -359,6 +446,17 @@ router.post('/profile/comment', checkAuth, async (req, res) => {
         if (targetProfile.profileComments.length > 50) targetProfile.profileComments = targetProfile.profileComments.slice(-50);
         
         await targetProfile.save();
+
+        if (targetUserId !== req.user.id) {
+            // 🔥 УВЕДОМЛЕНИЕ О КОММЕНТАРИИ (через функцию)
+            sendNotification(
+                req, 
+                targetUserId, 
+                'INFO', 
+                `${req.user.username} оставил комментарий на вашей стене 💬`, 
+                `/profile/${targetUserId}`
+            );
+        }
         res.json({ success: true });
     } catch (e) { 
         console.error(e);
@@ -394,15 +492,75 @@ router.get('/profile/comments/:userId', async (req, res) => {
 });
 
 // ==========================================
-// WIKI РОУТЫ (ОБЛАЧНАЯ ЗАГРУЗКА)
+// WIKI РОУТЫ
 // ==========================================
 
-router.post('/admin/wiki/delete', checkAuth, async (req, res) => {
-    const ADMIN_IDS = ['438744415734071297']; 
-    if (!ADMIN_IDS.includes(req.user.id)) return res.status(403).json({ error: 'Нет доступа' });
-
+router.post('/admin/wiki/ai-polish', checkAuth, checkWikiAccess, async (req, res) => {
     try {
+        const { text, context } = req.body;
+        if (!text || text.length < 5) return res.status(400).json({ error: 'Текст слишком короткий' });
+
+        const prompt = `
+        Ты — профессиональный редактор игровой Вики по Bee Swarm Simulator (Roblox).
+        Твоя задача: взять сырой текст пользователя, исправить грамматику, улучшить стиль и оформить его в HTML.
+        Контекст статьи: "${context || 'Общее'}"
+        Правила оформления:
+        1. Испольуй HTML теги: <h2>, <h3> для заголовков.
+        2. Используй <ul> и <li> для списков.
+        3. Используй <b> для важных терминов.
+        4. Если есть советы или предупреждения, оборачивай их в <div class="note">Текст</div>.
+        5. Используй <code> для названий предметов или цифр, если это уместно.
+        6. НЕ оборачивай ответ в markdown ('''html ... '''). Верни ТОЛЬКО чистый HTML код тела статьи.
+        7. Сохраняй смысл, но делай текст читабельным и увлекательным для геймеров.
+        Сырой текст: ${text}`;
+
+        const result = await model.generateContent(prompt);
+        const response = await result.response;
+        let cleanHtml = response.text();
+        cleanHtml = cleanHtml.replace(/```html/g, '').replace(/```/g, '').trim();
+
+        res.json({ success: true, html: cleanHtml });
+    } catch (e) {
+        console.error('Gemini Error:', e);
+        res.status(500).json({ error: 'Ошибка генерации ИИ. Попробуйте позже.' });
+    }
+});
+
+router.post('/admin/wiki/delete-attachment', checkAuth, checkWikiAccess, async (req, res) => {
+    try {
+        const { articleId, filePath } = req.body;
+        await Article.findByIdAndUpdate(articleId, { $pull: { attachments: { path: filePath } } });
+        res.json({ success: true });
+    } catch (e) {
+        console.error(e);
+        res.status(500).json({ error: 'Ошибка удаления файла' });
+    }
+});
+
+router.post('/admin/set-editor', checkAuth, async (req, res) => {
+    if (req.user.id !== '438744415734071297') return res.status(403).json({ error: 'Ты не Владелец!' });
+    const { targetId, state } = req.body;
+    try {
+        await UserProfile.findOneAndUpdate({ userId: targetId }, { isWikiEditor: state });
+        res.json({ success: true, message: `Права для ${targetId} изменены на ${state}` });
+    } catch (e) { res.status(500).json({ error: 'Ошибка БД' }); }
+});
+
+router.post('/admin/wiki/delete', checkAuth, checkWikiAccess, async (req, res) => {
+    try {
+        const article = await Article.findById(req.body.id);
+        if (!article) return res.status(404).json({ error: 'Статья не найдена' });
+
         await Article.findByIdAndDelete(req.body.id);
+
+        await AdminLog.create({
+            adminId: req.user.id,
+            adminName: req.user.username,
+            action: 'DELETE',
+            entity: 'Wiki',
+            targetTitle: article.title,
+            details: `Удалил статью (slug: ${article.slug})`
+        });
         res.json({ success: true });
     } catch (e) {
         console.error(e);
@@ -410,7 +568,6 @@ router.post('/admin/wiki/delete', checkAuth, async (req, res) => {
     }
 });
 
-// ИСПОЛЬЗУЕМ uploadCloud (MemoryStorage для ImageKit)
 router.post('/admin/wiki', checkAuth, uploadCloud.fields([
     { name: 'mainImage', maxCount: 1 },
     { name: 'gallery', maxCount: 10 },
@@ -422,13 +579,9 @@ router.post('/admin/wiki', checkAuth, uploadCloud.fields([
     try {
         const { id, title, slug, description, content, category, icon, tags, isPublished, currentImage } = req.body;
 
-        const finalSlug = slug || title.toLowerCase()
-            .replace(/ /g, '-')
-            .replace(/[^\w-]+/g, '');
+        const finalSlug = slug || title.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, '');
 
-        // 1. ГЛАВНАЯ КАРТИНКА
         let mainImagePath = currentImage || null;
-
         if (req.files['mainImage'] && req.files['mainImage'][0]) {
             const file = req.files['mainImage'][0];
             const result = await uploadToCloud(file.buffer, file.originalname, '/wiki/covers');
@@ -448,7 +601,6 @@ router.post('/admin/wiki', checkAuth, uploadCloud.fields([
             author: req.user.username
         };
 
-        // 2. ГАЛЕРЕЯ
         const newGalleryUrls = [];
         if (req.files['gallery']) {
             for (const file of req.files['gallery']) {
@@ -457,11 +609,12 @@ router.post('/admin/wiki', checkAuth, uploadCloud.fields([
             }
         }
 
-        // 3. ФАЙЛЫ
         const newAttachments = [];
         if (req.files['files']) {
             for (const file of req.files['files']) {
-                const result = await uploadToCloud(file.buffer, file.originalname, '/wiki/files');
+                const fileExt = path.extname(file.originalname);
+                const safeFileName = `${Date.now()}-${Math.round(Math.random() * 1E9)}${fileExt}`;
+                const result = await uploadToCloud(file.buffer, safeFileName, '/wiki/files');
                 newAttachments.push({
                     name: Buffer.from(file.originalname, 'latin1').toString('utf8'),
                     path: result.url
@@ -470,7 +623,6 @@ router.post('/admin/wiki', checkAuth, uploadCloud.fields([
         }
 
         if (id) {
-            // ОБНОВЛЕНИЕ
             const updateQuery = { ...articleData };
             const mongoUpdate = { $set: updateQuery };
             
@@ -480,8 +632,15 @@ router.post('/admin/wiki', checkAuth, uploadCloud.fields([
                 if (newAttachments.length > 0) mongoUpdate.$push.attachments = { $each: newAttachments };
             }
             await Article.findByIdAndUpdate(id, mongoUpdate);
+            await AdminLog.create({
+                adminId: req.user.id,
+                adminName: req.user.username,
+                action: 'UPDATE',
+                entity: 'Wiki',
+                targetTitle: title,
+                details: isPublished === 'true' || isPublished === 'on' ? 'Опубликовано' : 'Черновик'
+            });
         } else {
-            // СОЗДАНИЕ
             if (newGalleryUrls.length > 0) articleData.gallery = newGalleryUrls;
             if (newAttachments.length > 0) articleData.attachments = newAttachments;
             
@@ -489,8 +648,15 @@ router.post('/admin/wiki', checkAuth, uploadCloud.fields([
             if (existing) return res.status(400).json({ error: 'Такая ссылка (slug) уже существует!' });
             
             await Article.create(articleData);
+            await AdminLog.create({
+                adminId: req.user.id,
+                adminName: req.user.username,
+                action: 'CREATE',
+                entity: 'Wiki',
+                targetTitle: title,
+                details: 'Новая статья'
+            });
         }
-
         res.json({ success: true });
     } catch (e) {
         console.error(e);
@@ -498,25 +664,20 @@ router.post('/admin/wiki', checkAuth, uploadCloud.fields([
     }
 });
 
-// Маршрут для Бота: Обновление биржи
+// ==========================================
+// WEBHOOKS (BOT -> SITE)
+// ==========================================
+
 router.post('/market/webhook', async (req, res) => {
     try {
-        // 1. Проверка безопасности
         const token = req.headers['x-internal-token'];
-        if (token !== process.env.INTERNAL_API_TOKEN) {
-            return res.status(403).json({ error: 'Доступ запрещен' });
-        }
+        if (token !== process.env.INTERNAL_API_TOKEN) return res.status(403).json({ error: 'Доступ запрещен' });
 
-        // 2. Получаем данные от бота
         const { updates, marketTrend } = req.body;
-
-        // 3. Отправляем всем игрокам через Socket.io
-        // req.io мы добавили в server.js, он тут доступен
         if (req.io) {
             req.io.emit('market_update', { updates, marketTrend });
             console.log(`📡 [Socket] Разослано обновление биржи (${updates.length} акций)`);
         }
-
         res.json({ success: true });
     } catch (error) {
         console.error('Ошибка вебхука биржи:', error);
@@ -524,24 +685,15 @@ router.post('/market/webhook', async (req, res) => {
     }
 });
 
-// Вебхук для обновления данных пользователя (Баланс, Инвентарь)
 router.post('/webhook/user', async (req, res) => {
     try {
-        // 1. Проверка пароля (тот же токен, что мы ставили ранее)
         const token = req.headers['x-internal-token'];
-        if (token !== process.env.INTERNAL_API_TOKEN) {
-            return res.status(403).json({ error: 'Access Denied' });
-        }
+        if (token !== process.env.INTERNAL_API_TOKEN) return res.status(403).json({ error: 'Access Denied' });
 
         const { userId, updates } = req.body;
-
-        // 2. Отправляем в сокет конкретному пользователю
-        // Пользователь подписан на комнату с именем своего userId (см. server.js)
         if (req.io) {
             req.io.to(userId).emit('user_update', updates);
-            // console.log(`📡 [Socket] Обновлен юзер ${userId}`);
         }
-
         res.json({ success: true });
     } catch (e) {
         console.error(e);
@@ -549,13 +701,16 @@ router.post('/webhook/user', async (req, res) => {
     }
 });
 
+// ==========================================
+// АПЕЛЛЯЦИИ
+// ==========================================
+
 router.post('/appeal', checkAuth, async (req, res) => {
     try {
         const { text } = req.body;
         if (!req.user.isBanned) return res.status(400).json({ error: 'Вы не забанены!' });
         if (!text || text.length < 10) return res.status(400).json({ error: 'Опишите ситуацию подробнее.' });
 
-        // Проверяем, нет ли уже активной заявки
         const existing = await BanAppeal.findOne({ userId: req.user.id, status: 'PENDING' });
         if (existing) return res.status(400).json({ error: 'Ваша заявка уже на рассмотрении.' });
 
@@ -575,11 +730,11 @@ router.post('/appeal', checkAuth, async (req, res) => {
 
 // 2. Решение по апелляции (Только Админ)
 router.post('/admin/appeal/decide', checkAuth, async (req, res) => {
-    const ADMIN_IDS = ['438744415734071297']; // Твой ID
+    const ADMIN_IDS = ['438744415734071297'];
     if (!ADMIN_IDS.includes(req.user.id)) return res.status(403).json({ error: 'Нет доступа' });
 
     try {
-        const { appealId, action } = req.body; // action: 'approve' | 'reject'
+        const { appealId, action } = req.body;
         
         const appeal = await BanAppeal.findById(appealId);
         if (!appeal) return res.status(404).json({ error: 'Заявка не найдена' });
@@ -590,14 +745,16 @@ router.post('/admin/appeal/decide', checkAuth, async (req, res) => {
 
         if (action === 'approve') {
             appeal.status = 'APPROVED';
-            // Снимаем бан с профиля
             await UserProfile.updateOne({ userId: appeal.userId }, { 
                 isBanned: false, 
                 banReason: null 
             });
-            // ! Тут можно добавить запрос к боту, чтобы снять роль бана в Discord, если нужно
+            // 🔥 УВЕДОМЛЕНИЕ О РАЗБАНЕ
+            sendNotification(req, appeal.userId, 'SUCCESS', 'Ваша апелляция одобрена! Вы разбанены 🎉', '/');
         } else {
             appeal.status = 'REJECTED';
+            // 🔥 УВЕДОМЛЕНИЕ ОБ ОТКАЗЕ
+            sendNotification(req, appeal.userId, 'ERROR', 'Ваша апелляция на разбан отклонена', '/banned');
         }
 
         await appeal.save();
@@ -609,62 +766,40 @@ router.post('/admin/appeal/decide', checkAuth, async (req, res) => {
     }
 });
 
-router.post('/ideas', checkAuth, async (req, res) => {
+// ==========================================
+// УВЕДОМЛЕНИЯ (GET/READ)
+// ==========================================
+
+router.get('/notifications', checkAuth, async (req, res) => {
     try {
-        const { title, description } = req.body;
-        if (!title || !description) return res.status(400).json({ error: 'Заполните все поля' });
-
-        // Лимит: не больше 3 идей в статусе PENDING от одного юзера (защита от спама)
-        const pendingCount = await Idea.countDocuments({ userId: req.user.id, status: 'PENDING' });
-        if (pendingCount >= 3) return res.status(400).json({ error: 'Подождите проверки ваших прошлых идей.' });
-
-        await Idea.create({
+        const timeLimit = new Date(Date.now() - 24 * 60 * 60 * 1000);
+        const query = {
             userId: req.user.id,
-            username: req.user.username,
-            avatar: req.user.avatar,
-            title: title.trim(),
-            description: description.trim()
-        });
-
-        res.json({ success: true });
+            read: false,
+            createdAt: { $gt: timeLimit } 
+        };
+        const list = await Notification.find(query).sort({ createdAt: -1 });
+        const unreadCount = list.length;
+        res.json({ success: true, notifications: list, unreadCount });
     } catch (e) {
         console.error(e);
-        res.status(500).json({ error: 'Ошибка сервера' });
+        res.status(500).json({ success: false });
     }
 });
 
-// Админка: Решение по идее
-router.post('/admin/ideas/decide', checkAuth, async (req, res) => {
-    const ADMIN_IDS = ['438744415734071297']; // Твой ID
-    if (!ADMIN_IDS.includes(req.user.id)) return res.status(403).json({ error: 'Нет доступа' });
-
+router.post('/notifications/read', checkAuth, async (req, res) => {
     try {
-        const { ideaId, status, comment } = req.body;
-        await Idea.findByIdAndUpdate(ideaId, { status, adminComment: comment });
+        const userId = req.user.id;
+        if (req.body.id) {
+            await Notification.findOneAndUpdate({ _id: req.body.id, userId: userId }, { read: true });
+        } else {
+            await Notification.updateMany({ userId: userId, read: false }, { read: true });
+        }
         res.json({ success: true });
     } catch (e) {
-        res.status(500).json({ error: 'Ошибка' });
+        console.error("Ошибка чтения уведомлений:", e);
+        res.status(500).json({ success: false, error: e.message });
     }
-});
-
-router.post('/giveaways/join', checkAuth, async (req, res) => {
-    const { giveawayId } = req.body;
-    const result = await proxyToBot('/giveaways/join', 'POST', { giveawayId }, req.user.id);
-    res.json(result);
-});
-
-router.get('/giveaways/:id/participants', checkAuth, async (req, res) => {
-    const result = await proxyToBot(`/giveaways/${req.params.id}/participants`, 'GET', null, req.user.id);
-    if (!result.success && !result.participants) {
-        return res.status(500).json({ error: 'Ошибка связи с ботом' });
-    }
-    res.json(result);
-});
-
-router.post('/user/update', checkAuth, async (req, res) => {
-    const { activeTitle } = req.body;
-    const result = await proxyToBot('/user/update', 'POST', { activeTitle }, req.user.id);
-    res.json(result);
 });
 
 export default router;

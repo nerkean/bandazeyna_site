@@ -9,6 +9,9 @@ import { createServer } from 'http';
 import { Server } from 'socket.io';
 import UserProfile from './src/models/UserProfile.js';
 import PixelBoard from './src/models/PixelBoard.js';
+import teammatesRoutes from './routes/teammates.js';
+import Notification from './src/models/Notification.js';
+import cron from 'node-cron';
 import MongoStore from 'connect-mongo';
 import { Strategy as DiscordStrategy } from 'passport-discord';
 import compression from 'compression';
@@ -31,6 +34,8 @@ const io = new Server(httpServer, {
         methods: ["GET", "POST"]
     }
 });
+
+app.set('io', io)
 
 // app.set('trust proxy', 1); 
 app.use(compression());
@@ -195,14 +200,34 @@ async function saveBoard() {
 setInterval(saveBoard, 30000);
 
 io.on('connection', (socket) => {
+    console.log(`🔌 [SOCKET] Новое соединение: ${socket.id}`);
+
+    // Проверяем, нашла ли сессия пользователя
     const user = socket.request.user;
-    if (user && user.id) {
-        const userId = user.id;
+
+   if (user) {
+        // ВАЖНО: Приводим ID к строке
+        const userId = String(user.id); 
+        
+        console.log(`✅ [SOCKET] Пользователь опознан: ${user.username} (ID: ${userId})`);
+        
+        // 1. АВТОМАТИЧЕСКИЙ ВХОД (если сессия есть)
         socket.join(userId);
+
+        // 2. РУЧНОЙ ВХОД (для надежности, если клиент пришлет join_room)
+        socket.on('join_room', (id) => {
+            if (id === userId) {
+                socket.join(id);
+                console.log(`📡 [SOCKET] Ручная подписка на комнату: ${id}`);
+            }
+        });
+        
         onlineUsers.add(userId);
         socket.broadcast.emit('user_status', { userId, status: 'online' });
-        
+
         socket.on('disconnect', () => {
+            console.log(`❌ [SOCKET] Отключился: ${user.username}`);
+            // Проверяем, остались ли еще сокеты у этого юзера
             const socketsInRoom = io.sockets.adapter.rooms.get(userId);
             if (!socketsInRoom || socketsInRoom.size === 0) {
                 onlineUsers.delete(userId);
@@ -319,6 +344,31 @@ passport.deserializeUser(async (obj, done) => {
 });
 
 app.use(async (req, res, next) => {
+    // По умолчанию пустые значения
+    res.locals.notifications = [];
+    res.locals.unreadCount = 0;
+
+    if (req.user) {
+        try {
+            // Берем уведомления за последние 24 часа, которые НЕ прочитаны
+            const timeLimit = new Date(Date.now() - 24 * 60 * 60 * 1000);
+            
+            const notifs = await Notification.find({
+                userId: req.user.id,
+                read: false,
+                createdAt: { $gt: timeLimit }
+            }).sort({ createdAt: -1 }).lean(); // .lean() ускоряет запрос
+
+            res.locals.notifications = notifs;
+            res.locals.unreadCount = notifs.length;
+        } catch (e) {
+            console.error('Ошибка загрузки уведомлений:', e);
+        }
+    }
+    next();
+});
+
+app.use(async (req, res, next) => {
     const start = Date.now();
     try {
         if (mongoose.connection.readyState === 1) await mongoose.connection.db.admin().ping();
@@ -364,15 +414,63 @@ app.use((req, res, next) => {
     next();
 });
 
-// === ПОДКЛЮЧЕНИЕ МАРШРУТОВ ===
 app.use('/auth', authRouter); 
 app.use('/api', apiRouter);   
 app.use('/', pagesRouter);
+app.use('/teammates', teammatesRoutes);
 
 app.use((req, res) => { res.status(404).render('404', { user: req.user, profile: null }); });
 app.use((err, req, res, next) => {
     console.error(err);
     res.status(500).render('500', { user: req.user, error: err });
+});
+
+cron.schedule('0 20 * * *', async () => {
+    console.log('⏰ [CRON] Проверка ежедневных наград (Timezone: MSK)...');
+    
+    try {
+        // 1. Определяем начало сегодняшнего дня (чтобы понять, брал ли сегодня)
+        const startOfToday = new Date();
+        startOfToday.setHours(0, 0, 0, 0);
+
+        // 2. Ищем "забывчивых" (кто не брал награду после 00:00)
+        const usersToRemind = await UserProfile.find({
+            $or: [
+                { lastDailyReward: { $exists: false } },
+                { lastDailyReward: null },
+                { lastDailyReward: { $lt: startOfToday } }
+            ]
+        }).select('userId username');
+
+        console.log(`🔍 Найдено ${usersToRemind.length} игроков, не забравших награду.`);
+
+        // 3. Рассылаем
+        for (const user of usersToRemind) {
+            // Создаем в БД
+            const newNotif = await Notification.create({
+                userId: user.userId,
+                type: 'WARNING',
+                message: '🌙 День заканчивается! Не забудьте забрать ежедневную награду 🎁',
+                link: '/daily'
+            });
+
+            // Шлем в сокет (если онлайн)
+            io.to(user.userId).emit('new_notification', {
+                _id: newNotif._id,
+                type: newNotif.type,
+                message: newNotif.message,
+                link: newNotif.link,
+                createdAt: newNotif.createdAt,
+                read: false
+            });
+        }
+        
+    } catch (e) {
+        console.error('❌ [CRON ERROR]', e);
+    }
+}, {
+    scheduled: true,
+    timezone: "Europe/Moscow" // 👈 САМОЕ ВАЖНОЕ: Жесткая привязка к МСК
 });
 
 const PORT = process.env.PORT || 3000;

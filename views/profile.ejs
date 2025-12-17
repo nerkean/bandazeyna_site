@@ -1,31 +1,28 @@
 <% 
     // --- ЛОГИКА ОПРЕДЕЛЕНИЯ ФОНА И РАМОК ---
-    // ВАЖНО: Значения здесь должны точь-в-точь совпадать с именами файлов в папках public/assets/frames и public/assets/backgrounds
     const assetMap = {
         // Рамки
         'profile_frame_veteran': 'veteran',
         'profile_frame_laurel_blue': 'laurel_blue',
         'profile_frame_patterned_bronze': 'patterned_bronze',
-        'premium_avatar_frame_gold_plated': 'premium_avatar_frame_gold_plated', // Исправлено имя файла
-        'avatar_frame_azure_spark': 'avatar_frame_azure_spark', // Исправлено имя файла
+        'premium_avatar_frame_gold_plated': 'premium_avatar_frame_gold_plated',
+        'avatar_frame_azure_spark': 'avatar_frame_azure_spark',
         'hween_frame_web': 'halloween_web',
         
         // Фоны
         'profile_bg_legend': 'legend',
         'profile_bg_stars_dark': 'stars_dark',
-        'premium_card_bg_galaxy': 'premium_card_bg_galaxy', // Исправлено имя файла
+        'premium_card_bg_galaxy': 'premium_card_bg_galaxy',
         'hween_bg_pumpkins': 'halloween_pumpkins'
     };
 
     function getFrameUrl(id) {
         if (!id) return null;
         let filename = assetMap[id];
-        // Фолбэк: если в мапе нет, пробуем убрать префикс (для старых предметов)
         if (!filename) filename = id.replace('profile_frame_', '');
         return `/assets/frames/${filename}.webp`; 
     }
 
-    // Определяем URL фона для предзагрузки
     let headerBgUrl = '/assets/backgrounds/profile_template.png'; 
     let bannerStyle = ''; 
     let headerClass = 'profile-header';
@@ -33,7 +30,6 @@
     if (profile.activeCardBgId) {
         let bgName = assetMap[profile.activeCardBgId];
         if (!bgName) bgName = profile.activeCardBgId.replace('profile_bg_', '');
-        
         headerBgUrl = `/assets/backgrounds/${bgName}.webp`; 
         bannerStyle = `background-image: url('${headerBgUrl}');`;
     } else if (profile.profileBannerURL) {
@@ -49,7 +45,6 @@
     <%- include('partials/head', { title: 'Профиль | ' + targetUser.username }) %>
     <link rel="stylesheet" href="/css/profile.css">
     <link rel="stylesheet" href="/css/modals.css">
-    
     <link rel="preload" as="image" href="<%= headerBgUrl %>" fetchpriority="high">
     
     <style>
@@ -65,7 +60,7 @@
         }
 
         .banned-container {
-            grid-column: 1 / -1; /* Растянуть на всю ширину сетки */
+            grid-column: 1 / -1;
             background: linear-gradient(135deg, #180a0a 0%, #0a0202 100%);
             border: 1px solid rgba(231, 76, 60, 0.3);
             border-radius: 20px;
@@ -77,7 +72,6 @@
             position: relative; overflow: hidden;
         }
 
-        /* Фоновый узор */
         .banned-container::before {
             content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: repeating-linear-gradient(
@@ -301,13 +295,9 @@
                                  let imgUrl = null;
                                  let showEmoji = true;
                                  if (cat === 'Украшение профиля' || cat === 'Косметика') {
-                                     // Для инвентаря берем из thumbnails для скорости
                                      let fname = assetMap[item.itemId];
                                      if (!fname) fname = item.itemId.replace('profile_frame_', '').replace('profile_bg_', '');
                                      
-                                     // Но нужно убедиться, что имена в thumbnails совпадают с assetMap...
-                                     // Учитывая твою структуру, в thumbnails имена могут быть сокращенными (без avatar_frame_)
-                                     // Давай попробуем хак: если в assetMap есть 'avatar_frame_', уберем его для thumbnails
                                      if(fname.startsWith('avatar_frame_')) fname = fname.replace('avatar_frame_', '');
                                      if(fname.startsWith('premium_avatar_frame_')) fname = fname.replace('premium_avatar_frame_', 'premium_');
                                      if(fname.startsWith('premium_card_bg_')) fname = fname.replace('premium_card_bg_', 'premium_');
@@ -320,7 +310,17 @@
                                      showEmoji = false;
                                  }
                             %>
-                                <div class="inv-item <%= rarity %>" title="<%= item.details ? item.details.name : item.itemId %>">
+                                <div class="inv-item <%= rarity %>" 
+                                     style="cursor: pointer;"
+                                     onclick="showItemDetails(
+                                        '<%= item.details ? item.details.name : item.itemId %>',
+                                        '<%= item.details && item.details.description ? item.details.description.replace(/'/g, '\\\'').replace(/\n/g, ' ') : '' %>',
+                                        '<%= !showEmoji && imgUrl ? imgUrl : '' %>',
+                                        '<%= rarity.toUpperCase() %>',
+                                        '<%= item.details ? item.details.emoji : '📦' %>' /* <-- Эмодзи теперь передается */
+                                     )"
+                                     title="<%= item.details ? item.details.name : item.itemId %>">
+                                    
                                     <div class="inv-icon">
                                         <% if (!showEmoji && imgUrl) { %>
                                             <img src="<%= imgUrl %>" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
@@ -375,7 +375,10 @@
                     <% if (user) { %>
                         <div class="wall-input-box">
                             <% if (user.avatar) { %>
-                                <img src="https://cdn.discordapp.com/avatars/<%= user.id %>/<%= user.avatar %>.png" class="wall-input-ava" alt="Ваш аватар">
+                                <img src="<%= user.avatar ? `/img/proxy/avatar/${user.id}/${user.avatar}` : '/assets/img/avatars/default_avatar.png' %>" 
+     class="wall-input-ava" 
+     alt="Ваш аватар" 
+     onerror="this.src='/assets/img/avatars/default_avatar.png'">
                             <% } else { %>
                                 <img src="https://cdn.discordapp.com/embed/avatars/0.png" class="wall-input-ava" alt="Ваш аватар">
                             <% } %>
@@ -447,6 +450,76 @@
                     });
                 }
             });
+
+            // Функция для показа деталей предмета (ОБНОВЛЕННЫЙ ДИЗАЙН)
+            function showItemDetails(name, description, image, rarity, emoji) {
+                // Определяем цвет редкости
+                const rarityColors = {
+                    'COMMON': '#bdc3c7',
+                    'RARE': '#3498db',
+                    'EPIC': '#9b59b6',
+                    'LEGENDARY': '#f1c40f',
+                    'MYTHIC': '#e74c3c'
+                };
+                const color = rarityColors[rarity] || '#fff';
+
+                // Изображение или Эмодзи
+                let visualContent;
+                if (image) {
+                    visualContent = `<img src="${image}" style="width: 80%; height: 80%; object-fit: contain;">`;
+                } else {
+                    visualContent = `<div style="font-size: 3.5rem;">${emoji}</div>`;
+                }
+
+                // Верстка внутри модалки
+                const content = `
+                    <div style="text-align: center; display: flex; flex-direction: column; align-items: center; gap: 20px; padding: 10px 0;">
+                        
+                        <div style="
+                            width: 100px; height: 100px; 
+                            background: rgba(255,255,255,0.05); 
+                            border-radius: 20px; 
+                            display: flex; align-items: center; justify-content: center;
+                            border: 2px solid ${color}; 
+                            box-shadow: 0 0 25px ${color}30;
+                        ">
+                            ${visualContent}
+                        </div>
+
+                        <div style="
+                            font-size: 0.8rem; font-weight: 800; 
+                            text-transform: uppercase; letter-spacing: 2px;
+                            color: ${color}; 
+                            background: ${color}15;
+                            padding: 6px 16px; border-radius: 50px;
+                            border: 1px solid ${color}30;
+                        ">
+                            ${rarity || 'ITEM'}
+                        </div>
+                        
+                        <div style="
+                            background: rgba(0,0,0,0.3); 
+                            padding: 15px; border-radius: 12px; width: 100%;
+                            border: 1px solid rgba(255,255,255,0.05);
+                        ">
+                            <p style="color: #ccc; margin: 0; font-size: 0.95rem; line-height: 1.6;">
+                                ${description || 'Описание отсутствует.'}
+                            </p>
+                        </div>
+                    </div>
+                `;
+
+                if (window.Modal) {
+                    Modal.show(
+                        name,      
+                        content,   
+                        'info',    
+                        [{ text: 'Закрыть', handler: 'close' }] 
+                    );
+                } else {
+                    alert(`${name}\n\n${description}`);
+                }
+            }
 
             // --- MODALS ---
             function openEditModal() { 
@@ -536,7 +609,6 @@
                 chart.render();
             }
 
-            // --- COMMENTS ---
             async function loadComments(page) {
                 const container = document.getElementById('commentsList');
                 try {
@@ -547,11 +619,18 @@
                         currentWallPage = data.pagination.current;
                         if (data.comments.length > 0) {
                             container.innerHTML = data.comments.map(c => {
-                                const avaUrl = c.authorAvatar ? `https://cdn.discordapp.com/avatars/${c.authorId}/${c.authorAvatar}.png` : '/assets/img/avatars/default_avatar.png';
+                                // 👇 ИСПРАВЛЕНИЕ ЗДЕСЬ: Используем прокси вместо прямого CDN
+                                const avaUrl = c.authorAvatar 
+                                    ? `/img/proxy/avatar/${c.authorId}/${c.authorAvatar}` 
+                                    : '/assets/img/avatars/default_avatar.png';
+
                                 const safeText = c.comment.replace(/&/g, "&amp;").replace(/</g, "&lt;");
+                                
                                 return `
                                     <div class="wall-item">
-                                        <a href="/profile/${c.authorId}"><img src="${avaUrl}" class="wall-ava" onerror="this.src='/assets/img/avatars/default_avatar.png'"></a>
+                                        <a href="/profile/${c.authorId}">
+                                            <img src="${avaUrl}" class="wall-ava" alt="${c.authorUsername}" onerror="this.src='/assets/img/avatars/default_avatar.png'">
+                                        </a>
                                         <div class="wall-bubble">
                                             <div class="wall-meta">
                                                 <a href="/profile/${c.authorId}" class="wall-author">${c.authorUsername}</a>

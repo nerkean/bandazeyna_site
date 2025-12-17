@@ -5,6 +5,11 @@ const articleSchema = new mongoose.Schema({
     title: { type: String, required: true },
     description: { type: String, required: true }, 
     content: { type: String, required: true }, 
+
+    attachments: [{
+        name: String, // Имя файла (config.json)
+        path: String  // Ссылка на ImageKit
+    }],
     
     category: { 
         type: String, 

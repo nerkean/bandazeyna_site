@@ -163,6 +163,7 @@ const userProfileSchema = new mongoose.Schema({
   
   // Системные
   maxReactionsOnMessage: { type: Number, default: 0 },
+  isWikiEditor: { type: Boolean, default: false },
 
 }, { timestamps: true });
 

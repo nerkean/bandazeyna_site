@@ -224,6 +224,36 @@
         .rel-card i { font-size: 1.5rem; color: var(--primary); }
         .rel-card span { font-weight: 700; color: #fff; font-size: 1rem; }
 
+        /* Table of Contents */
+.toc-box {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 30px;
+    display: inline-block;
+    min-width: 250px;
+}
+.toc-title { font-weight: 700; margin-bottom: 10px; color: #fff; }
+.toc-list { list-style: none; padding: 0; margin: 0; }
+.toc-list li { margin-bottom: 5px; }
+.toc-list a { 
+    color: #aaa; text-decoration: none; transition: 0.2s; font-size: 0.95rem; 
+    display: block;
+}
+.toc-list a:hover { color: var(--primary); transform: translateX(5px); }
+.toc-sub { margin-left: 20px; font-size: 0.9rem; }
+
+/* Кнопка копирования кода */
+.code-wrapper { position: relative; margin: 20px 0; }
+.copy-btn {
+    position: absolute; top: 5px; right: 5px;
+    background: rgba(255,255,255,0.1); border: none; color: #fff;
+    padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.8rem;
+    opacity: 0.5; transition: 0.2s;
+}
+.copy-btn:hover { opacity: 1; background: var(--primary); }
+
         @media (max-width: 1000px) {
             .art-h1 { font-size: 2rem; }
             .art-slider-wrap { float: none; width: 100%; margin: 0 0 25px 0; }
@@ -263,6 +293,13 @@
         </header>
 
         <div class="content">
+            <div id="toc-container" style="display: none;">
+        <div class="toc-box">
+            <div class="toc-title">Содержание</div>
+            <ul class="toc-list" id="toc-list"></ul>
+        </div>
+    </div>
+
             <% 
                 let allImages = [];
                 if (article.image) allImages.push(article.image);
@@ -385,6 +422,73 @@
                 });
             });
         });
+
+        document.addEventListener('DOMContentLoaded', () => {
+    // === 1. Генерация Оглавления ===
+    const content = document.querySelector('.content');
+    const headings = content.querySelectorAll('h2, h3');
+    const tocList = document.getElementById('toc-list');
+    const tocContainer = document.getElementById('toc-container');
+
+    if (headings.length > 2) { // Показываем только если заголовков больше 2
+        tocContainer.style.display = 'block';
+        // Если есть слайдер, оглавление может "уехать". 
+        // Можно добавить float: left или просто оставить в потоке.
+        
+        headings.forEach((header, index) => {
+            // Создаем ID для заголовка, если нет
+            if (!header.id) header.id = 'section-' + index;
+
+            const li = document.createElement('li');
+            const a = document.createElement('a');
+            a.href = '#' + header.id;
+            a.textContent = header.textContent;
+            
+            // Если H3, делаем отступ
+            if (header.tagName === 'H3') li.classList.add('toc-sub');
+            
+            li.appendChild(a);
+            tocList.appendChild(li);
+
+            // Плавный скролл
+            a.addEventListener('click', (e) => {
+                e.preventDefault();
+                header.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                // Меняем URL без прыжка
+                history.pushState(null, null, '#' + header.id);
+            });
+        });
+    }
+
+    // === 2. Кнопки копирования для <code> ===
+    // Находим все блоки code, которые выглядят как блоки (длинные)
+    const codeBlocks = document.querySelectorAll('pre code, div.code-block'); 
+    // Если ты используешь просто <code> внутри текста, это не нужно. 
+    // Но если ты делаешь гайды по макросам, лучше оборачивать их.
+    
+    // Давай сделаем проще: найдем все <p><code>...</code></p> или просто длинные коды
+    document.querySelectorAll('code').forEach(code => {
+        if (code.innerText.length > 20) { // Только для длинного кода
+            const wrapper = document.createElement('div');
+            wrapper.className = 'code-wrapper';
+            
+            // Оборачиваем code
+            code.parentNode.insertBefore(wrapper, code);
+            wrapper.appendChild(code);
+            
+            const btn = document.createElement('button');
+            btn.className = 'copy-btn';
+            btn.innerHTML = '<i class="fas fa-copy"></i>';
+            btn.onclick = () => {
+                navigator.clipboard.writeText(code.innerText);
+                btn.innerHTML = '<i class="fas fa-check"></i>';
+                setTimeout(() => btn.innerHTML = '<i class="fas fa-copy"></i>', 2000);
+            };
+            
+            wrapper.appendChild(btn);
+        }
+    });
+});
     </script>
 </body>
 </html>

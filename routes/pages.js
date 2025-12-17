@@ -7,12 +7,14 @@ import Deposit from '../src/models/Deposit.js';
 import Article from '../src/models/Article.js';
 import UserDailyStreak from '../src/models/UserDailyStreak.js';
 import BanAppeal from '../src/models/BanAppeal.js';
-import Idea from '../src/models/Idea.js';
 import { checkAuth } from '../middleware/checkAuth.js';
 import { getShopItems, getItemDefinition } from '../src/utils/definitions/itemDefinitions.js';
 import { getQuestDefinition } from '../src/utils/definitions/questDefinitions.js';
 import { getAchievementDefinition } from '../src/utils/definitions/achievementDefinitions.js';
 import { dailyRewards } from '../src/utils/definitions/dailyRewardDefinitions.js';
+import Notification from '../src/models/Notification.js';
+import AdminLog from '../src/models/AdminLog.js';
+import { checkWikiAccess } from '../middleware/checkWikiAccess.js';
 import Giveaway from '../src/models/Giveaway.js'
 import cache from '../src/utils/cache.js';
 
@@ -557,25 +559,72 @@ router.get('/privacy', (req, res) => res.render('privacy', {
     currentPath: '/privacy'
 }));
 
-router.get('/admin/wiki', checkAuth, async (req, res) => {
-    const ADMIN_IDS = ['438744415734071297'];
-    if (!ADMIN_IDS.includes(req.user.id)) return res.redirect('/');
+router.get('/admin/wiki', checkAuth, checkWikiAccess, async (req, res) => {
     const articles = await Article.find().sort({ createdAt: -1 }).lean();
     res.render('admin-wiki-list', { user: req.user, articles, noIndex: true });
 });
-router.get('/admin/wiki/new', checkAuth, async (req, res) => {
-    const ADMIN_IDS = ['438744415734071297'];
-    if (!ADMIN_IDS.includes(req.user.id)) return res.redirect('/');
+
+router.get('/admin/wiki/new', checkAuth, checkWikiAccess, async (req, res) => {
     res.render('admin-wiki-edit', { user: req.user, article: null, noIndex: true });
 });
-router.get('/admin/wiki/edit/:id', checkAuth, async (req, res) => {
-    const ADMIN_IDS = ['438744415734071297'];
-    if (!ADMIN_IDS.includes(req.user.id)) return res.redirect('/');
+
+router.get('/admin/wiki/edit/:id', checkAuth, checkWikiAccess, async (req, res) => {
     const article = await Article.findById(req.params.id).lean();
     if (!article) return res.redirect('/admin/wiki');
     res.render('admin-wiki-edit', { user: req.user, article, noIndex: true });
 });
 
+router.get('/test-notification', checkAuth, async (req, res) => {
+    try {
+        
+        const newNotif = await Notification.create({
+            userId: req.user.id,
+            type: 'SUCCESS',
+            message: `Проверка связи! ${new Date().toLocaleTimeString()}`,
+            link: '/inventory'
+        });
+
+        // --- ОТЛАДКА ---
+        const io = req.app.get('io');
+        
+        console.log('--- TEST NOTIFICATION DEBUG ---');
+        console.log('1. User ID:', req.user.id, '(Tip: ' + typeof req.user.id + ')');
+        
+        if (!io) {
+            console.log('❌ ОШИБКА: req.app.get("io") вернул undefined! Проверь server.js');
+        } else {
+            console.log('2. IO найден. Попытка отправки в комнату:', String(req.user.id));
+            
+            // Принудительно приводим к строке
+            const roomName = String(req.user.id);
+            
+            // Проверяем, есть ли кто-то в этой комнате
+            const sockets = await io.in(roomName).fetchSockets();
+            console.log('3. Сокетов в этой комнате:', sockets.length);
+
+            if (sockets.length > 0) {
+                io.to(roomName).emit('new_notification', {
+                    _id: newNotif._id,
+                    type: newNotif.type,
+                    message: newNotif.message,
+                    link: newNotif.link,
+                    createdAt: newNotif.createdAt,
+                    read: false
+                });
+                console.log('✅ Отправлено (emit выполнен)');
+            } else {
+                console.log('⚠️ В комнате никого нет! Клиент не подписался или отключился.');
+            }
+        }
+        console.log('-----------------------------');
+        // --- КОНЕЦ ОТЛАДКИ ---
+
+        res.send('<h1>Отправлено</h1><p>Смотри консоль сервера</p>');
+    } catch (e) {
+        console.error(e);
+        res.send('Ошибка: ' + e.message);
+    }
+});
 
 router.get('/img/proxy/avatar/:userId/:hash', async (req, res) => {
     try {
@@ -709,28 +758,15 @@ router.get('/admin/appeals', checkAuth, async (req, res) => {
     });
 });
 
-router.get('/ideas', checkAuth, async (req, res) => {
-    // Показываем пользователю его собственные идеи
-    const myIdeas = await Idea.find({ userId: req.user.id }).sort({ createdAt: -1 });
+router.get('/admin/logs', checkAuth, checkWikiAccess, async (req, res) => {
+    // Берем последние 100 действий, новые сверху
+    const logs = await AdminLog.find().sort({ timestamp: -1 }).limit(100).lean();
     
-    res.render('ideas', {
-        user: req.user,
-        title: 'Предложить идею',
-        myIdeas
-    });
-});
-
-// Админка идей
-router.get('/admin/ideas', checkAuth, async (req, res) => {
-    const ADMIN_IDS = ['438744415734071297'];
-    if (!ADMIN_IDS.includes(req.user.id)) return res.redirect('/');
-
-    const ideas = await Idea.find({ status: 'PENDING' }).sort({ createdAt: 1 });
-
-    res.render('admin-ideas', {
-        user: req.user,
-        title: 'Управление идеями',
-        ideas
+    res.render('admin-logs', { 
+        user: req.user, 
+        logs, 
+        title: 'Журнал действий',
+        noIndex: true 
     });
 });
 

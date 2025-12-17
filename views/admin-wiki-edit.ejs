@@ -3,189 +3,378 @@
 <head>
     <%- include('partials/head', { title: 'Редактор Wiki' }) %>
     <style>
-        .editor-wrap { max-width: 800px; margin: 120px auto; padding: 0 20px 100px; }
-        .editor-card { background: #16181e; padding: 40px; border-radius: 24px; border: 1px solid rgba(255,255,255,0.05); }
-        
-        .form-group { margin-bottom: 20px; }
-        label { display: block; color: #aaa; margin-bottom: 8px; font-weight: 700; font-size: 0.9rem; }
-        input, select, textarea {
-            width: 100%; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1);
-            padding: 15px; border-radius: 12px; color: #fff; font-family: inherit; font-size: 1rem;
-            transition: 0.3s;
+        :root { --panel-bg: #16181e; --border: rgba(255,255,255,0.08); }
+
+        .editor-container {
+            max-width: 1400px; margin: 100px auto 50px; padding: 0 20px;
+            display: grid; grid-template-columns: 1fr 350px; gap: 30px;
+            align-items: start;
         }
-        input:focus, select:focus, textarea:focus { border-color: #5865F2; outline: none; }
-        
-        .row { display: flex; gap: 20px; }
-        .col { flex: 1; }
 
-        .help-text { font-size: 0.8rem; color: #666; margin-top: 5px; }
+        /* --- ЛЕВАЯ КОЛОНКА (КОНТЕНТ) --- */
+        .main-col { display: flex; flex-direction: column; gap: 20px; }
 
-        /* Переключатель (Toggle) */
-        .switch { position: relative; display: inline-block; width: 50px; height: 24px; }
-        .switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #333; border-radius: 24px; transition: .4s; }
-        .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 4px; bottom: 4px; background-color: white; border-radius: 50%; transition: .4s; }
-        input:checked + .slider { background-color: #5865F2; }
-        input:checked + .slider:before { transform: translateX(26px); }
+        .card {
+            background: var(--panel-bg); border: 1px solid var(--border);
+            border-radius: 16px; padding: 25px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        }
 
+        .title-input {
+            background: transparent; border: none; color: #fff;
+            font-size: 2rem; font-weight: 800; width: 100%; outline: none;
+            font-family: 'Montserrat', sans-serif;
+        }
+        .title-input::placeholder { color: #444; }
+
+        /* Toolbar */
         .toolbar {
-            display: flex; gap: 10px; margin-bottom: 10px; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px;
+            display: flex; gap: 8px; flex-wrap: wrap; padding-bottom: 15px;
+            border-bottom: 1px solid var(--border); margin-bottom: 15px;
+            position: sticky; top: 0; background: var(--panel-bg); z-index: 10;
         }
         .tool-btn {
-            background: none; border: 1px solid rgba(255,255,255,0.1); color: #ccc; padding: 5px 10px; border-radius: 4px; cursor: pointer;
+            background: rgba(255,255,255,0.05); border: none; color: #aaa;
+            width: 36px; height: 36px; border-radius: 8px; cursor: pointer;
+            transition: 0.2s; display: flex; align-items: center; justify-content: center;
         }
         .tool-btn:hover { background: #fff; color: #000; }
+        .tool-btn.ai-btn { width: auto; padding: 0 15px; color: #a020f0; background: rgba(160, 32, 240, 0.1); }
+        .tool-btn.ai-btn:hover { background: #a020f0; color: #fff; }
+        .ai-btn.loading { animation: pulse 1.5s infinite; opacity: 0.7; pointer-events: none; }
+
+        textarea {
+            width: 100%; min-height: 600px; background: transparent; border: none;
+            color: #ddd; font-family: 'JetBrains Mono', monospace; font-size: 1rem;
+            line-height: 1.6; resize: vertical; outline: none;
+        }
+
+        /* --- ПРАВАЯ КОЛОНКА (НАСТРОЙКИ) --- */
+        .sidebar-col { display: flex; flex-direction: column; gap: 20px; }
+
+        .form-group { margin-bottom: 15px; }
+        label { display: block; color: #888; font-size: 0.8rem; font-weight: 700; margin-bottom: 8px; text-transform: uppercase; }
+        
+        input[type="text"], select {
+            width: 100%; background: rgba(0,0,0,0.3); border: 1px solid var(--border);
+            padding: 12px; border-radius: 8px; color: #fff; transition: 0.3s;
+        }
+        input:focus, select:focus { border-color: #5865F2; outline: none; }
+
+        /* File Upload Styles */
+        .file-upload-box {
+            border: 2px dashed var(--border); border-radius: 12px;
+            padding: 20px; text-align: center; cursor: pointer;
+            transition: 0.3s; position: relative;
+        }
+        .file-upload-box:hover { border-color: #5865F2; background: rgba(88, 101, 242, 0.05); }
+        .upload-icon { font-size: 2rem; color: #555; margin-bottom: 10px; }
+        .upload-text { font-size: 0.9rem; color: #888; }
+        
+        /* Список выбранных файлов */
+        .file-list { margin-top: 15px; display: flex; flex-direction: column; gap: 8px; }
+        .file-item {
+            background: rgba(255,255,255,0.05); padding: 10px; border-radius: 6px;
+            display: flex; align-items: center; justify-content: space-between; font-size: 0.85rem;
+        }
+        .file-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 180px; }
+        .file-remove { color: #e74c3c; cursor: pointer; }
+
+        /* Список УЖЕ загруженных файлов */
+        .existing-file {
+            border-left: 3px solid #2ecc71; background: rgba(46, 204, 113, 0.1);
+        }
+
+        /* Картинка превью */
+        .img-preview {
+            width: 100%; height: 150px; object-fit: cover; border-radius: 8px;
+            margin-top: 10px; display: none; border: 1px solid var(--border);
+        }
+        .img-preview.active { display: block; }
+
+        /* Кнопки действий */
+        .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+        .btn-submit { 
+            background: #5865F2; color: #fff; border: none; padding: 15px; 
+            border-radius: 12px; font-weight: 700; cursor: pointer; width: 100%;
+            font-size: 1rem; margin-top: 10px;
+        }
+        .btn-submit:hover { background: #4752c4; }
+
+        .toggle-row { display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; }
+        .switch { position: relative; display: inline-block; width: 40px; height: 20px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #444; border-radius: 20px; transition: .4s; }
+        .slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background-color: white; border-radius: 50%; transition: .4s; }
+        input:checked + .slider { background-color: #2ecc71; }
+        input:checked + .slider:before { transform: translateX(20px); }
+
+        @media (max-width: 1000px) {
+            .editor-container { grid-template-columns: 1fr; }
+            .sidebar-col { order: -1; } /* На мобилках настройки сверху */
+        }
+        
+        @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
     </style>
 </head>
 <body>
     <%- include('partials/navbar') %>
 
-    <div class="editor-wrap">
-        <div class="editor-card">
-            <h1 style="margin-bottom: 30px;"><%= article ? 'Редактирование' : 'Новая статья' %></h1>
+    <form id="wikiForm" class="editor-container" enctype="multipart/form-data">
+        <% if (article) { %>
+            <input type="hidden" name="id" value="<%= article._id %>">
+        <% } %>
+
+        <div class="main-col">
+            <div class="card">
+                <input type="text" name="title" class="title-input" placeholder="Заголовок статьи..." value="<%= article ? article.title : '' %>" required>
+                <input type="text" name="slug" style="background: transparent; border: none; color: #666; font-size: 0.9rem; margin-top: 5px;" placeholder="url-stati (оставь пустым для автогенерации)" value="<%= article ? article.slug : '' %>">
+            </div>
+
+            <div class="card" style="padding: 0;">
+                <div class="toolbar" style="padding: 15px; border-bottom: 1px solid var(--border); margin: 0;">
+                    <button type="button" class="tool-btn" onclick="insertTag('<h2>', '</h2>')" title="Заголовок H2">H2</button>
+                    <button type="button" class="tool-btn" onclick="insertTag('<h3>', '</h3>')" title="Заголовок H3">H3</button>
+                    <button type="button" class="tool-btn" onclick="insertTag('<b>', '</b>')" title="Жирный"><i class="fas fa-bold"></i></button>
+                    <button type="button" class="tool-btn" onclick="insertTag('<i>', '</i>')" title="Курсив"><i class="fas fa-italic"></i></button>
+                    <button type="button" class="tool-btn" onclick="insertTag('<code>', '</code>')" title="Код"><i class="fas fa-code"></i></button>
+                    <button type="button" class="tool-btn" onclick="insertTag('<ul>\n<li>', '</li>\n</ul>')" title="Список"><i class="fas fa-list-ul"></i></button>
+                    <button type="button" class="tool-btn" onclick="insertTag('<div class=\'note\'>', '</div>')" title="Заметка"><i class="fas fa-sticky-note"></i></button>
+                    
+                    <div style="width: 1px; background: var(--border); margin: 0 10px;"></div>
+                    
+                    <button type="button" class="tool-btn ai-btn" onclick="polishWithAI()">
+                        <i class="fas fa-magic" style="margin-right: 8px;"></i> AI Polish
+                    </button>
+                </div>
+                <textarea name="content" id="contentArea" placeholder="Пиши свой гайд здесь... Поддерживается HTML." style="padding: 20px;"><%= article ? article.content : '' %></textarea>
+            </div>
+        </div>
+
+        <div class="sidebar-col">
             
-            <form id="wikiForm">
-                <% if (article) { %>
-                    <input type="hidden" name="id" value="<%= article._id %>">
-                <% } %>
-
-                <div class="row">
-                    <div class="col form-group">
-                        <label>Заголовок</label>
-                        <input type="text" name="title" value="<%= article ? article.title : '' %>" required placeholder="Например: Diamond Mask">
-                    </div>
-                    <div class="col form-group">
-                        <label>Slug (Ссылка)</label>
-                        <input type="text" name="slug" value="<%= article ? article.slug : '' %>" placeholder="diamond-mask (оставь пустым для авто)">
-                    </div>
-                </div>
-
-                <div class="row">
-                    <div class="col form-group">
-                        <label>Категория</label>
-                        <select name="category">
-                            <option value="guides" <%= article && article.category=='guides'?'selected':'' %>>Гайды</option>
-                            <option value="items" <%= article && article.category=='items'?'selected':'' %>>Предметы</option>
-                            <option value="bees" <%= article && article.category=='bees'?'selected':'' %>>Пчелы</option>
-                            <option value="mechanics" <%= article && article.category=='mechanics'?'selected':'' %>>Механики</option>
-                            <option value="server" <%= article && article.category=='server'?'selected':'' %>>О Сервере</option>
-                        </select>
-                    </div>
-                    <div class="col form-group">
-                        <label>Иконка (FontAwesome)</label>
-                        <input type="text" name="icon" value="<%= article ? article.icon : 'fas fa-book' %>">
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label>Краткое описание (для превью)</label>
-                    <input type="text" name="description" value="<%= article ? article.description : '' %>" required>
-                </div>
-
-                <div class="form-group">
-                    <label>Контент (HTML)</label>
-                    <div class="toolbar">
-                        <button type="button" class="tool-btn" onclick="insertTag('<h2>', '</h2>')">H2</button>
-                        <button type="button" class="tool-btn" onclick="insertTag('<h3>', '</h3>')">H3</button>
-                        <button type="button" class="tool-btn" onclick="insertTag('<b>', '</b>')">B</button>
-                        <button type="button" class="tool-btn" onclick="insertTag('<i>', '</i>')">I</button>
-                        <button type="button" class="tool-btn" onclick="insertTag('<ul>\n<li>', '</li>\n</ul>')">List</button>
-                        <button type="button" class="tool-btn" onclick="insertTag('<code>', '</code>')">Code</button>
-                        <button type="button" class="tool-btn" onclick="insertTag('<div class=\'note\'>', '</div>')">Note</button>
-                    </div>
-                    <textarea name="content" id="contentArea" rows="15" required><%= article ? article.content : '' %></textarea>
-                    <div class="help-text">Поддерживается HTML. Используйте классы для стилизации.</div>
-                </div>
-
-                <div class="row">
-                    <div class="col form-group">
-                        <label>Теги (через запятую)</label>
-                        <input type="text" name="tags" value="<%= article ? article.tags.join(', ') : '' %>" placeholder="blue, mythic, endgame">
-                    </div>
-                                        <div class="col form-group">
-                        <label>Главная картинка (Превью)</label>
-                        <input type="file" name="mainImage" accept="image/*">
-                        
-                        <input type="hidden" name="currentImage" value="<%= article ? article.image : '' %>">
-
-                        <% if (article && article.image) { %>
-                            <div style="margin-top: 10px; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 8px; display: inline-block;">
-                                <div style="font-size: 0.8rem; color: #888; margin-bottom: 5px;">Текущая:</div>
-                                <img src="<%= article.image %>" style="height: 80px; border-radius: 6px; display: block;">
-                            </div>
-                        <% } %>
-                    </div>
-                    <div class="col form-group">
-                        <label>Галерея (Картинки)</label>
-                        <input type="file" name="gallery" multiple accept="image/*">
-                        <div class="help-text">Можно выбрать несколько. Они добавятся к существующим.</div>
-                    </div>
-                    <div class="col form-group">
-                        <label>Вложения (Файлы)</label>
-                        <input type="file" name="files" multiple>
-                        <div class="help-text">Файлы для скачивания (PDF, Configs, ZIP).</div>
-                    </div>
-                </div>
-
-                <div class="form-group" style="display: flex; align-items: center; gap: 15px;">
+            <div class="card">
+                <div class="toggle-row">
+                    <span style="font-weight: 700; color: #fff;">Опубликовать</span>
                     <label class="switch">
                         <input type="checkbox" name="isPublished" <%= (article && article.isPublished) || !article ? 'checked' : '' %>>
                         <span class="slider"></span>
                     </label>
-                    <span style="color: #fff; font-weight: 700;">Опубликовать сразу</span>
+                </div>
+                <button type="submit" class="btn-submit">Сохранить</button>
+                <div style="text-align: center; margin-top: 10px;">
+                    <a href="/admin/wiki" style="color: #666; font-size: 0.9rem; text-decoration: none;">Отмена</a>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="form-group">
+                    <label>Категория</label>
+                    <select name="category">
+                        <option value="guides" <%= article && article.category=='guides'?'selected':'' %>>Гайды</option>
+                        <option value="items" <%= article && article.category=='items'?'selected':'' %>>Предметы</option>
+                        <option value="bees" <%= article && article.category=='bees'?'selected':'' %>>Пчелы</option>
+                        <option value="mechanics" <%= article && article.category=='mechanics'?'selected':'' %>>Механики</option>
+                        <option value="server" <%= article && article.category=='server'?'selected':'' %>>О Сервере</option>
+                    </select>
                 </div>
 
-                <div style="margin-top: 30px; display: flex; gap: 20px;">
-                    <button type="submit" class="btn-primary" style="flex: 1;">Сохранить Статью</button>
-                    <a href="/admin/wiki" class="btn-secondary" style="width: auto;">Отмена</a>
+                <div class="form-group">
+                    <label>Краткое описание</label>
+                    <textarea name="description" style="min-height: 80px; font-size: 0.9rem;" required><%= article ? article.description : '' %></textarea>
                 </div>
-            </form>
+
+                <div class="form-group">
+                    <label>Теги (через запятую)</label>
+                    <input type="text" name="tags" value="<%= article ? article.tags.join(', ') : '' %>" placeholder="pvp, blue hive, macro">
+                </div>
+
+                <div class="form-group">
+                    <label>Иконка (FontAwesome)</label>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="text" name="icon" id="iconInput" value="<%= article ? article.icon : 'fas fa-book' %>" oninput="updateIconPreview()">
+                        <div id="iconPreview" style="width: 42px; height: 42px; background: #333; display: flex; align-items: center; justify-content: center; border-radius: 8px; color: #fff;">
+                            <i class="<%= article ? article.icon : 'fas fa-book' %>"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <label>Обложка статьи</label>
+                <div class="file-upload-box" onclick="document.getElementById('mainImageInput').click()">
+                    <i class="fas fa-image upload-icon"></i>
+                    <div class="upload-text">Нажми, чтобы загрузить обложку</div>
+                    <input type="file" name="mainImage" id="mainImageInput" accept="image/*" hidden onchange="previewImage(this)">
+                </div>
+                <input type="hidden" name="currentImage" value="<%= article ? article.image : '' %>">
+                <img id="mainPreview" src="<%= article ? article.image : '' %>" class="img-preview <%= article && article.image ? 'active' : '' %>">
+            </div>
+
+            <div class="card">
+                <label>Файлы (Макросы, Конфиги)</label>
+                
+                <% if (article && article.attachments && article.attachments.length > 0) { %>
+                    <div class="file-list" id="existingFiles">
+                        <% article.attachments.forEach(file => { %>
+                            <div class="file-item existing-file" id="file-<%= file._id %>">
+                                <div class="file-name"><i class="fas fa-check-circle"></i> <%= file.name %></div>
+                                <div class="file-remove" onclick="deleteAttachment('<%= article._id %>', '<%= file.path %>', 'file-<%= file._id %>')">
+                                    <i class="fas fa-trash"></i>
+                                </div>
+                            </div>
+                        <% }) %>
+                    </div>
+                <% } %>
+
+                <div class="file-upload-box" style="margin-top: 15px;" onclick="document.getElementById('filesInput').click()">
+                    <i class="fas fa-file-archive upload-icon"></i>
+                    <div class="upload-text">Добавить файлы</div>
+                    <input type="file" name="files" id="filesInput" multiple hidden onchange="updateFileList(this)">
+                </div>
+                
+                <div class="file-list" id="newFileList"></div>
+            </div>
         </div>
-    </div>
+    </form>
 
     <%- include('partials/footer') %>
 
     <script nonce="<%= nonce %>">
+        // 1. Вставка тегов
         function insertTag(open, close) {
             const textarea = document.getElementById('contentArea');
             const start = textarea.selectionStart;
             const end = textarea.selectionEnd;
             const text = textarea.value;
-            const selected = text.substring(start, end);
-            const replacement = open + selected + close;
-            textarea.value = text.substring(0, start) + replacement + text.substring(end);
+            textarea.value = text.substring(0, start) + open + text.substring(start, end) + close + text.substring(end);
             textarea.focus();
-            textarea.selectionEnd = start + open.length + selected.length; 
+            textarea.selectionEnd = start + open.length + (end - start);
         }
 
+        // 2. Превью обложки
+        function previewImage(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = document.getElementById('mainPreview');
+                    img.src = e.target.result;
+                    img.classList.add('active');
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        // 3. Превью иконки
+        function updateIconPreview() {
+            const val = document.getElementById('iconInput').value;
+            document.getElementById('iconPreview').innerHTML = `<i class="${val}"></i>`;
+        }
+
+        // 4. Отображение имен выбранных файлов
+        function updateFileList(input) {
+            const list = document.getElementById('newFileList');
+            list.innerHTML = ''; // Очищаем старые
+            
+            if (input.files) {
+                Array.from(input.files).forEach(file => {
+                    const div = document.createElement('div');
+                    div.className = 'file-item';
+                    div.innerHTML = `
+                        <div class="file-name"><i class="fas fa-plus" style="color: #aaa"></i> ${file.name}</div>
+                        <div style="font-size: 0.7rem; color: #666;">${(file.size / 1024).toFixed(1)} KB</div>
+                    `;
+                    list.appendChild(div);
+                });
+            }
+        }
+
+        // 5. AI Polish (из прошлого ответа)
+        async function polishWithAI() {
+            const textarea = document.getElementById('contentArea');
+            const titleInput = document.querySelector('input[name="title"]');
+            const rawText = textarea.value;
+
+            if (!rawText.trim()) { alert('Сначала напишите текст!'); return; }
+            if (!confirm('Gemini отформатирует текст. Продолжить?')) return;
+
+            const btn = document.querySelector('.ai-btn');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Думаю...';
+            btn.classList.add('loading');
+
+            try {
+                const res = await fetch('/api/admin/wiki/ai-polish', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text: rawText, context: titleInput.value })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    textarea.value = data.html;
+                } else {
+                    alert('Ошибка: ' + data.error);
+                }
+            } catch (e) { alert('Ошибка сети'); } 
+            finally {
+                btn.innerHTML = originalText;
+                btn.classList.remove('loading');
+            }
+        }
+
+        // 6. Удаление СУЩЕСТВУЮЩИХ файлов
+        async function deleteAttachment(articleId, filePath, elementId) {
+            if (!confirm('Удалить этот файл навсегда?')) return;
+
+            try {
+                const res = await fetch('/api/admin/wiki/delete-attachment', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ articleId, filePath })
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    document.getElementById(elementId).remove();
+                } else {
+                    alert('Ошибка: ' + data.error);
+                }
+            } catch (e) {
+                alert('Ошибка сети');
+            }
+        }
+
+        // 7. Отправка формы (AJAX для файлов)
         document.getElementById('wikiForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
-            // Создаем FormData. Он автоматически соберет файлы из <input type="file">
             const formData = new FormData(e.target);
-            
-            // Чекбокс isPublished в FormData передается только если включен, 
-            // но нам нужно явное значение.
+            // Исправляем чекбокс
             formData.set('isPublished', e.target.isPublished.checked);
+
+            const btn = document.querySelector('.btn-submit');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Сохранение...';
+            btn.disabled = true;
 
             try {
                 const res = await fetch('/api/admin/wiki', {
                     method: 'POST',
-                    // ВАЖНО: Не указываем Content-Type header вручную! 
-                    // Браузер сам поставит multipart/form-data и boundary.
-                    body: formData 
+                    body: formData // Браузер сам выставит multipart headers
                 });
                 const result = await res.json();
                 
                 if (result.success) {
-                    alert('Статья сохранена!');
                     window.location.href = '/admin/wiki';
                 } else {
                     alert('Ошибка: ' + result.error);
+                    btn.innerHTML = 'Сохранить';
+                    btn.disabled = false;
                 }
             } catch (err) {
                 console.error(err);
                 alert('Ошибка сети');
+                btn.innerHTML = 'Сохранить';
+                btn.disabled = false;
             }
         });
     </script>

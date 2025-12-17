@@ -4,31 +4,42 @@
     </a>
 
     <div class="mobile-menu-btn" id="mobileMenuBtn">
-        <span></span>
-        <span></span>
-        <span></span>
+        <span></span><span></span><span></span>
     </div>
     
     <div class="nav-menu" id="navMenu">
         
-        <div class="nav-links">
-            <a href="/wrapped" class="nav-item nav-wrapped">
-                <i class="fas fa-star"></i> ИТОГИ 2025
+<div class="nav-links">
+    <a href="/wrapped" class="nav-item nav-wrapped"><i class="fas fa-star"></i> ИТОГИ 2025</a>
+    <a href="/market" class="nav-item"><i class="fas fa-chart-line"></i> Биржа</a>
+    <a href="/giveaways" class="nav-item highlight-gold"><i class="fas fa-gift"></i> Халява</a>
+    <a href="/messages" class="nav-item">
+            <i class="fas fa-comments"></i> Сообщения
+        </a>
+
+<div class="nav-item-dropdown">
+    <div class="nav-item dropdown-trigger">
+        <i class="fas fa-th-large"></i>
+        Меню
+        <i class="fas fa-chevron-down" style="font-size: 0.7em;"></i>
+    </div>
+        
+        <div class="nav-dropdown-menu">
+            <a href="/wiki" class="dd-link">
+                <i class="fas fa-book"></i> Вики
             </a>
-
-            <a href="/ideas" class="nav-item nav-ideas">
-        <i class="fas fa-lightbulb"></i> Идеи
-    </a>
-
-            <a href="/market" class="nav-item"><i class="fas fa-chart-line"></i> Биржа</a>
-            <a href="/shop" class="nav-item"><i class="fas fa-store"></i> Магазин</a>
-            
-            <a href="/giveaways" class="nav-item highlight-gold"><i class="fas fa-gift"></i> Халява</a>
-            
-            <a href="/wiki" class="nav-item"><i class="fas fa-book"></i> Вики</a>
-            
-            <a href="/leaderboard" class="nav-item desktop-hide-sm"><i class="fas fa-trophy"></i> Топ</a>
+            <a href="/teammates" class="dd-link">
+                <i class="fas fa-users"></i> Поиск Пати
+            </a>
+            <a href="/leaderboard" class="dd-link">
+                <i class="fas fa-trophy"></i> Топ Игроков
+            </a>
+            <a href="/shop" class="dd-link">
+                <i class="fas fa-store"></i> Магазин
+            </a>
         </div>
+    </div>
+</div>
 
         <div class="auth">
             <% if (typeof user !== 'undefined' && user) { %>
@@ -46,6 +57,54 @@
                     </div>
                 <% } %>
 
+                <div class="nav-item-wrap" style="position: relative;">
+                    <div class="nav-notif-btn" id="notifBtn">
+                        <i class="fas fa-bell"></i>
+                        <span class="notif-badge" id="notifBadge" style="display: <%= (locals.unreadCount > 0) ? 'flex' : 'none' %>">
+                            <%= (typeof unreadCount !== 'undefined' && unreadCount > 9) ? '9+' : (typeof unreadCount !== 'undefined' ? unreadCount : 0) %>
+                        </span>
+                    </div>
+
+                    <div class="notif-dropdown" id="notifDropdown">
+                        <div class="notif-header">
+                            <h4>Уведомления</h4>
+                            <button class="notif-read-all" id="markAllReadBtn">Прочитать все</button>
+                        </div>
+
+                        <ul class="notif-list" id="notifItems">
+                            <% if (locals.notifications && notifications.length > 0) { %>
+                                <% notifications.forEach(n => { %>
+                                    <div class="notif-item <%= n.read ? '' : 'unread' %>" 
+     onclick="readOne('<%= n._id %>', '<%= n.link %>', this)">
+                                        
+                                        <div class="notif-icon">
+                                            <% if (n.type === 'SUCCESS') { %> 
+                                                <i class="fas fa-check" style="color: #2ecc71"></i> 
+                                            <% } else if (n.type === 'INFO') { %> 
+                                                <i class="fas fa-info" style="color: #3498db"></i> 
+                                            <% } else if (n.type === 'WARNING') { %> 
+                                                <i class="fas fa-exclamation" style="color: #f1c40f"></i> 
+                                            <% } else { %> 
+                                                <i class="fas fa-bell" style="color: #aaa"></i> 
+                                            <% } %>
+                                        </div>
+                                        
+                                        <div class="notif-content">
+                                            <span class="notif-text"><%= n.message %></span>
+                                            <span class="notif-time"><%= new Date(n.createdAt).toLocaleDateString() %></span>
+                                        </div>
+                                    </div>
+                                <% }) %>
+                            <% } else { %>
+                                <div class="notif-empty" style="padding: 20px; text-align: center; color: #666;">
+                                    <i class="far fa-bell-slash" style="font-size: 1.5rem; margin-bottom: 10px;"></i>
+                                    <div>Пусто</div>
+                                </div>
+                            <% } %>
+                        </ul>
+                    </div>
+                </div>
+
                 <div class="profile-dropdown-wrapper">
                     <div class="profile-trigger" id="profileTrigger">
                         <% if (user.avatar) { %>
@@ -61,14 +120,12 @@
                         <div class="dropdown-header">
                             <span class="role-badge">Игрок</span>
                         </div>
-                        
                         <div class="dropdown-grid">
                             <a href="/profile/<%= user.id %>" class="dd-item"><i class="fas fa-user-circle"></i> Профиль</a>
                             <a href="/inventory" class="dd-item"><i class="fas fa-briefcase"></i> Инвентарь</a>
                             <a href="/deposit" class="dd-item"><i class="fas fa-university"></i> Банк</a>
                             <a href="/daily" class="dd-item"><i class="fas fa-calendar-check"></i> Дейли</a>
                         </div>
-
                         <div class="dropdown-footer">
                             <a href="/auth/logout" class="dd-logout" id="logoutBtn">
                                 <i class="fas fa-sign-out-alt"></i> Выйти
@@ -88,115 +145,266 @@
 
 <div id="navOverlay"></div>
 
+<audio id="audioNotification" src="/assets/sounds/notify.mp3" preload="auto"></audio>
+
+<div id="soundToast" class="sound-toast">
+    <i class="fas fa-volume-mute"></i>
+    <span>Нажми, чтобы включить звук уведомлений</span>
+</div>
+
+<script src="/socket.io/socket.io.js" nonce="<%= nonce %>"></script>
+
 <script nonce="<%= nonce %>">
     document.addEventListener('DOMContentLoaded', () => {
-        
-        // --- 1. ЛОГИКА ИНТЕРФЕЙСА (МЕНЮ, ПРОФИЛЬ, СКРОЛЛ) ---
-        
+        // === 1. ЭЛЕМЕНТЫ ===
         const mobileBtn = document.getElementById('mobileMenuBtn');
         const navMenu = document.getElementById('navMenu');
         const overlay = document.getElementById('navOverlay');
-        
+        const navbar = document.querySelector('.navbar');
+
         const profileTrigger = document.getElementById('profileTrigger');
         const profileDropdown = document.getElementById('profileDropdown');
         const triggerArrow = document.querySelector('.trigger-arrow');
-        
         const logoutBtn = document.getElementById('logoutBtn');
-        const navbar = document.querySelector('.navbar');
 
-        // Функция закрытия всего
-        const closeAll = () => {
-            if(navMenu) navMenu.classList.remove('active');
-            if(mobileBtn) mobileBtn.classList.remove('open');
-            if(profileDropdown) profileDropdown.classList.remove('active');
-            if(triggerArrow) triggerArrow.classList.remove('rotate');
-            if(overlay) {
-                overlay.classList.remove('active');
-                overlay.classList.remove('active-desktop');
-            }
+        const notifBtn = document.getElementById('notifBtn');
+        const notifDropdown = document.getElementById('notifDropdown');
+        const notifItems = document.getElementById('notifItems'); 
+        const notifBadge = document.getElementById('notifBadge');
+        const markAllReadBtn = document.getElementById('markAllReadBtn');
+        const bellIcon = notifBtn ? notifBtn.querySelector('i') : null;
+        
+        let notifOpen = false;
+
+        // === 2. ЗВУК ===
+        const audioElement = document.getElementById('audioNotification');
+        const soundToast = document.getElementById('soundToast');
+        let soundEnabled = false;
+
+        const showSoundPrompt = () => { if (soundToast && !soundEnabled) soundToast.classList.add('show'); };
+        const hideSoundPrompt = () => { if (soundToast) soundToast.classList.remove('show'); };
+
+        const unlockSound = () => {
+            if (soundEnabled || !audioElement) return;
+            audioElement.play().then(() => {
+                audioElement.pause();
+                audioElement.currentTime = 0;
+                soundEnabled = true;
+                hideSoundPrompt();
+                document.removeEventListener('click', unlockSound);
+            }).catch(() => {});
+        };
+        document.addEventListener('click', unlockSound);
+        if (soundToast) soundToast.addEventListener('click', (e) => { e.stopPropagation(); unlockSound(); });
+
+        const playNotificationSound = () => {
+            if (!audioElement) return;
+            audioElement.currentTime = 0;
+            audioElement.play().catch(() => showSoundPrompt());
         };
 
-        // Мобильное меню
-        if (mobileBtn && navMenu && overlay) {
-            mobileBtn.addEventListener('click', (e) => {
-                e.stopPropagation(); // Чтобы клик не ушел на body
-                navMenu.classList.toggle('active');
-                mobileBtn.classList.toggle('open');
-                overlay.classList.toggle('active');
-                // Если открываем мобильное меню, закрываем дропдаун профиля
-                if(profileDropdown) profileDropdown.classList.remove('active');
-            });
-        }
+        // === 3. UI (Меню) ===
+        const closeAllDropdowns = () => {
+            if (navMenu) navMenu.classList.remove('active');
+            if (mobileBtn) mobileBtn.classList.remove('open');
+            if (profileDropdown) profileDropdown.classList.remove('active');
+            if (triggerArrow) triggerArrow.classList.remove('rotate');
+            if (overlay) { overlay.classList.remove('active'); overlay.classList.remove('active-desktop'); }
+            if (notifDropdown) { notifDropdown.classList.remove('active'); notifOpen = false; }
+        };
 
-        // Дропдаун профиля
-        if (profileTrigger && profileDropdown) {
-            profileTrigger.addEventListener('click', (e) => {
-                e.stopPropagation();
-                profileDropdown.classList.toggle('active');
-                if(triggerArrow) triggerArrow.classList.toggle('rotate');
-                if(overlay) overlay.classList.toggle('active-desktop');
-            });
-        }
-
-        // Клик по оверлею (затемнению) закрывает всё
-        if (overlay) {
-            overlay.addEventListener('click', closeAll);
-        }
-
-        // Скролл навбара
+        if (overlay) overlay.addEventListener('click', closeAllDropdowns);
         window.addEventListener('scroll', () => {
             if (window.scrollY > 50) navbar.classList.add('scrolled');
             else navbar.classList.remove('scrolled');
         });
-
-        // Подтверждение выхода
+        if (mobileBtn) {
+            mobileBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                navMenu.classList.toggle('active');
+                mobileBtn.classList.toggle('open');
+                overlay.classList.toggle('active');
+                if (profileDropdown) profileDropdown.classList.remove('active');
+                if (notifDropdown) notifDropdown.classList.remove('active');
+            });
+        }
+        if (profileTrigger) {
+            profileTrigger.addEventListener('click', (e) => {
+                e.stopPropagation();
+                profileDropdown.classList.toggle('active');
+                if (triggerArrow) triggerArrow.classList.toggle('rotate');
+                if (overlay) overlay.classList.toggle('active-desktop');
+                if (notifDropdown) { notifDropdown.classList.remove('active'); notifOpen = false; }
+            });
+        }
         if (logoutBtn) {
             logoutBtn.addEventListener('click', async (e) => {
                 e.preventDefault();
-                let confirmed = false;
-                
-                if (typeof Modal !== 'undefined') {
-                    confirmed = await Modal.confirm("Выход", "Точно выйти?", "warning");
-                } else {
-                    confirmed = confirm("Выйти?");
-                }
-
-                if (confirmed) window.location.href = '/auth/logout';
+                if (confirm("Вы точно хотите выйти?")) window.location.href = '/auth/logout';
             });
         }
 
+        // === 4. ЛОГИКА УВЕДОМЛЕНИЙ ===
+        if (notifBtn && notifDropdown) {
+            notifBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                notifOpen = !notifOpen;
+                if (notifOpen) {
+                    notifDropdown.classList.add('active');
+                    if (profileDropdown) profileDropdown.classList.remove('active');
+                    if (overlay) overlay.classList.remove('active-desktop');
+                } else {
+                    notifDropdown.classList.remove('active');
+                }
+            });
 
-        // --- 2. SOCKET.IO (ЖИВОЙ БАЛАНС) ---
-        const script = document.createElement('script');
-        script.src = '/socket.io/socket.io.js';
-        script.nonce = '<%= nonce %>';
-        script.async = true;
+            document.addEventListener('click', (e) => {
+                if (!notifDropdown.contains(e.target) && !notifBtn.contains(e.target) && !e.target.closest('.sound-toast')) {
+                    notifDropdown.classList.remove('active');
+                    notifOpen = false;
+                }
+            });
 
-        script.onload = () => {
-            try {
-                const socket = io();
-                socket.on('user_update', (data) => {
-                    // Обновление Звезд
-                    if (typeof data.stars !== 'undefined') {
-                        const starsElements = document.querySelectorAll('.nav-balance.stars .nb-val, #userBalanceDisplay');
-                        starsElements.forEach(el => {
-                            const isNavbar = el.classList.contains('nb-val');
-                            el.innerText = Math.floor(data.stars).toLocaleString() + (isNavbar ? '' : ' ⭐');
-                            el.style.color = '#2ecc71';
-                            setTimeout(() => el.style.color = '', 500);
-                        });
+            // Кнопка "Прочитать все"
+            if (markAllReadBtn) {
+                markAllReadBtn.addEventListener('click', async (e) => {
+                    e.stopPropagation();
+                    updateBadge(0);
+                    // Очищаем список визуально
+                    if (notifItems) {
+                        notifItems.innerHTML = '<div class="notif-empty">Пусто</div>';
                     }
-                    // Обновление Осколков
-                    if (typeof data.shards !== 'undefined') {
-                        document.querySelectorAll('.nav-balance.shards .nb-val').forEach(el => {
-                            el.innerText = Math.floor(data.shards).toLocaleString();
-                            el.style.color = '#e67e22';
-                            setTimeout(() => el.style.color = '', 500);
+                    try {
+                        await fetch('/api/notifications/read', { 
+                            method: 'POST', 
+                            headers: { 'Content-Type': 'application/json' }, 
+                            body: JSON.stringify({}) 
                         });
-                    }
+                    } catch (e) { console.error(e); }
                 });
-            } catch (e) { console.warn('Socket init error:', e); }
+            }
+        }
+
+        // 🔥 КЛИК ПО УВЕДОМЛЕНИЮ (ИСЧЕЗНОВЕНИЕ) 🔥
+        window.readOne = async (id, link, element) => {
+            // 1. Переход по ссылке (если есть)
+            if (link && link !== '#' && link !== 'undefined') window.location.href = link;
+
+            // 2. Визуальное удаление элемента
+            if (element) {
+                element.style.transition = 'all 0.3s ease';
+                element.style.opacity = '0';
+                element.style.transform = 'translateX(20px)';
+                setTimeout(() => {
+                    element.remove();
+                    // Проверяем, пусто ли теперь
+                    if (notifItems && notifItems.children.length === 0) {
+                        notifItems.innerHTML = '<div class="notif-empty">Пусто</div>';
+                    }
+                }, 300);
+            }
+
+            // 3. Обновление бейджа (минус 1)
+            let currentCount = 0;
+            if (notifBadge && notifBadge.style.display !== 'none') {
+                currentCount = parseInt(notifBadge.innerText) || 0;
+            }
+            if (currentCount > 0) updateBadge(currentCount - 1);
+
+            // 4. Запрос на сервер (пометить прочитанным)
+            try {
+                await fetch('/api/notifications/read', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ id })
+                });
+            } catch (e) {}
         };
-        document.body.appendChild(script);
+
+        function updateBadge(count) {
+            if (!notifBadge) return;
+            if (count > 0) {
+                notifBadge.style.display = 'flex';
+                notifBadge.innerText = count > 9 ? '9+' : count;
+                notifBadge.style.transform = 'scale(1.2)';
+                setTimeout(() => notifBadge.style.transform = 'scale(1)', 200);
+            } else {
+                notifBadge.style.display = 'none';
+            }
+        }
+
+        function getNotifIcon(type) {
+            if (type === 'SUCCESS') return '<i class="fas fa-check-circle" style="color: #2ecc71"></i>';
+            if (type === 'WARNING') return '<i class="fas fa-exclamation-circle" style="color: #f1c40f"></i>';
+            if (type === 'ERROR') return '<i class="fas fa-times-circle" style="color: #e74c3c"></i>';
+            return '<i class="fas fa-info-circle" style="color: #3498db"></i>';
+        }
+
+        // === 5. SOCKET.IO ===
+        if (typeof io !== 'undefined') {
+            const socket = io();
+
+            <% if (typeof user !== 'undefined' && user) { %>
+                socket.on('connect', () => {
+                    socket.emit('join_room', '<%= user.id %>');
+                });
+            <% } %>
+
+            socket.on('user_update', (data) => {
+                if (typeof data.stars !== 'undefined') {
+                    document.querySelectorAll('.nav-balance.stars .nb-val').forEach(el => {
+                        el.innerText = Math.floor(data.stars).toLocaleString();
+                        el.style.color = '#2ecc71';
+                        setTimeout(() => el.style.color = '', 500);
+                    });
+                }
+                if (typeof data.shards !== 'undefined') {
+                    document.querySelectorAll('.nav-balance.shards .nb-val').forEach(el => {
+                        el.innerText = Math.floor(data.shards).toLocaleString();
+                        el.style.color = '#e67e22';
+                        setTimeout(() => el.style.color = '', 500);
+                    });
+                }
+            });
+
+            // Новое уведомление
+            socket.on('new_notification', (notif) => {
+                // Анимация и звук
+                if (bellIcon) {
+                    bellIcon.classList.remove('bell-shake');
+                    void bellIcon.offsetWidth; 
+                    bellIcon.classList.add('bell-shake');
+                    setTimeout(() => bellIcon.classList.remove('bell-shake'), 600);
+                }
+                playNotificationSound();
+
+                // Бейдж +1
+                let currentCount = 0;
+                if (notifBadge && notifBadge.style.display !== 'none') {
+                    currentCount = parseInt(notifBadge.innerText) || 0;
+                }
+                updateBadge(currentCount + 1);
+
+                // Добавление в список
+                if (notifItems) {
+                    const emptyMsg = notifItems.querySelector('.notif-empty');
+                    if (emptyMsg) emptyMsg.remove();
+
+                    // Обрати внимание: добавляем "this" в вызов функции
+                    const html = `
+                        <div class="notif-item unread" onclick="readOne('${notif._id}', '${notif.link || '#'}', this)">
+                            <div class="notif-icon">
+                                ${getNotifIcon(notif.type)}
+                            </div>
+                            <div class="notif-content">
+                                <span class="notif-text">${notif.message}</span>
+                                <span class="notif-time">только что</span>
+                            </div>
+                        </div>
+                    `;
+                    notifItems.insertAdjacentHTML('afterbegin', html);
+                }
+            });
+        }
     });
 </script>
