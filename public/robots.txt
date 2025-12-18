@@ -1,19 +1,32 @@
 User-agent: *
-Allow: /
 
+Disallow: /admin/
 Disallow: /api/
 Disallow: /auth/
-Disallow: /profile/
+Disallow: /libs/  
+Disallow: /css/
+Disallow: /js/
+
 Disallow: /inventory
 Disallow: /deposit
 Disallow: /messages
 Disallow: /daily
-Disallow: /admin
+Disallow: /settings
+Disallow: /shop/buy      
+
+Disallow: /profile/
+
+Disallow: /teammates/create
+Disallow: /teammates/delete
+
+Disallow: /img/proxy/
 
 Disallow: /*?sort=
 Disallow: /*?period=
-Disallow: /*?page=
-Disallow: /*?category=
+Disallow: /*?filter=
 Disallow: /*?q=
+Disallow: /*?category= 
+
+Allow: /
 
 Sitemap: https://dachazeyna.com/sitemap.xml

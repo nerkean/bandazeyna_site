@@ -341,11 +341,29 @@ router.get('/wiki/:slug', async (req, res) => {
             isPublished: true 
         }).limit(3);
 
-        res.render('wiki-article', { 
+        let ogImage = 'https://dachazeyna.com/assets/img/og-image.png'; // Дефолт
+        
+        if (article.image) {
+            if (article.image.startsWith('http')) {
+                // Если это ссылка на ImageKit/Cloudinary
+                ogImage = article.image;
+            } else {
+                // Если локальный файл, добавляем домен
+                ogImage = `https://dachazeyna.com${article.image.startsWith('/') ? '' : '/'}${article.image}`;
+            }
+        }
+
+res.render('wiki-article', { 
             user: req.user, 
             article, 
             related, 
-            title: article.title 
+            
+            // 👇 ДАННЫЕ ДЛЯ HEAD.EJS 👇
+            title: `${article.title} | Вики`, // Заголовок вкладки
+            description: article.description,   // Описание для Google/Discord
+            image: ogImage,                     // Картинка статьи
+            currentPath: `/wiki/${article.slug}`, // Для канонической ссылки
+            ogType: 'article'                   // Тип контента (важно для SEO)
         });
 
     } catch (e) {
