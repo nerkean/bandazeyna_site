@@ -10,12 +10,17 @@
     <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 120px 20px 80px;">
         
         <div class="page-header">
-            <div class="header-text">
-                <h1>LFG <span style="color: #2ecc71;">Board</span></h1>
-                <p style="color: #888; margin-top: 5px;">
-                    Заявки удаляются автоматически через 30 минут
-                </p>
-            </div>
+    <div class="header-text">
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <h1>LFG <span style="color: #2ecc71;">Board</span></h1>
+            <button class="help-btn" onclick="showLfgRules()" title="Правила LFG">
+                <i class="fas fa-question"></i>
+            </button>
+        </div>
+        <p style="color: #888; margin-top: 5px;">
+            Заявки удаляются автоматически через 30 минут
+        </p>
+    </div>
 
             <% if (user) { %>
                 <button class="create-btn-floating" onclick="openLfgModal()">
@@ -313,6 +318,35 @@
             await fetch('/teammates/delete', { method: 'POST' });
             location.reload();
         }
+
+const LFG_RULES = `
+    <ul style="text-align: left; list-style: none; padding: 0; font-size: 0.95rem; color: #ccc;">
+        <li style="margin-bottom: 10px;">🕒 <b>Срок жизни:</b> каждая заявка автоматически удаляется через <b>30 минут</b>. Если вы всё еще ищете — создайте новую</li>
+        <li style="margin-bottom: 10px;">⚖️ <b>Правила:</b> запрещено публиковать контент, нарушающий правила сервера или Политику Discord (ToS)</li>
+        <li style="margin-bottom: 10px;">🤝 <b>Уважение:</b> будьте вежливы с теми, кто откликнулся. Если нашли пати — удалите заявку вручную</li>
+        <li style="margin-bottom: 10px;">⚠️ <b>Безопасность:</b> не переходите по подозрительным ссылкам, которые вам могут прислать в ЛС</li>
+    </ul>
+`;
+
+function showLfgRules() {
+    if (window.Modal) {
+        Modal.alert('📋 Правила LFG Board', LFG_RULES, 'info');
+    } else {
+        alert('Правила:\n1. Заявки живут 30 мин.\n2. Без спама.\n3. Удаляйте неактуальные.');
+    }
+}
+
+// Показываем правила при первом заходе
+document.addEventListener('DOMContentLoaded', () => {
+    const hasSeenRules = localStorage.getItem('lfg_rules_seen');
+    if (!hasSeenRules) {
+        // Небольшая задержка, чтобы сайт успел прогрузиться
+        setTimeout(() => {
+            showLfgRules();
+            localStorage.setItem('lfg_rules_seen', 'true');
+        }, 1000);
+    }
+});
     </script>
 
     <style>
