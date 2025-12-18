@@ -495,34 +495,27 @@ router.get('/profile/comments/:userId', async (req, res) => {
 // WIKI РОУТЫ
 // ==========================================
 
-router.post('/admin/wiki/ai-polish', checkAuth, checkWikiAccess, async (req, res) => {
+router.post('/admin/wiki/ai-polish', checkAuth, async (req, res) => {
     try {
+        // --- ПРОВЕРКА ПРАВ ---
+        const userProfile = await UserProfile.findOne({ userId: req.user.id });
+        const ADMIN_IDS = ['438744415734071297'];
+        if (!ADMIN_IDS.includes(req.user.id) && (!userProfile || !userProfile.isWikiEditor)) {
+             return res.status(403).json({ error: 'Только редакторы могут использовать AI' });
+        }
+        // ---------------------
+
         const { text, context } = req.body;
+        // ... дальше твой старый код ...
         if (!text || text.length < 5) return res.status(400).json({ error: 'Текст слишком короткий' });
 
-        const prompt = `
-        Ты — профессиональный редактор игровой Вики по Bee Swarm Simulator (Roblox).
-        Твоя задача: взять сырой текст пользователя, исправить грамматику, улучшить стиль и оформить его в HTML.
-        Контекст статьи: "${context || 'Общее'}"
-        Правила оформления:
-        1. Испольуй HTML теги: <h2>, <h3> для заголовков.
-        2. Используй <ul> и <li> для списков.
-        3. Используй <b> для важных терминов.
-        4. Если есть советы или предупреждения, оборачивай их в <div class="note">Текст</div>.
-        5. Используй <code> для названий предметов или цифр, если это уместно.
-        6. НЕ оборачивай ответ в markdown ('''html ... '''). Верни ТОЛЬКО чистый HTML код тела статьи.
-        7. Сохраняй смысл, но делай текст читабельным и увлекательным для геймеров.
-        Сырой текст: ${text}`;
-
+        const prompt = `Поправь грамматику и оформи в HTML для игровой вики (без markdown): ${text}. Контекст: ${context}`;
         const result = await model.generateContent(prompt);
         const response = await result.response;
-        let cleanHtml = response.text();
-        cleanHtml = cleanHtml.replace(/```html/g, '').replace(/```/g, '').trim();
-
+        let cleanHtml = response.text().replace(/```html/g, '').replace(/```/g, '').trim();
         res.json({ success: true, html: cleanHtml });
-    } catch (e) {
-        console.error('Gemini Error:', e);
-        res.status(500).json({ error: 'Ошибка генерации ИИ. Попробуйте позже.' });
+    } catch (e) { 
+        res.status(500).json({ error: 'Ошибка ИИ' }); 
     }
 });
 
@@ -546,8 +539,18 @@ router.post('/admin/set-editor', checkAuth, async (req, res) => {
     } catch (e) { res.status(500).json({ error: 'Ошибка БД' }); }
 });
 
-router.post('/admin/wiki/delete', checkAuth, checkWikiAccess, async (req, res) => {
+router.post('/admin/wiki/delete', checkAuth, async (req, res) => {
     try {
+        // --- ПРОВЕРКА ПРАВ ---
+        const userProfile = await UserProfile.findOne({ userId: req.user.id });
+        const ADMIN_IDS = ['438744415734071297'];
+        const isEditor = userProfile && userProfile.isWikiEditor === true;
+        
+        if (!ADMIN_IDS.includes(req.user.id) && !isEditor) {
+             return res.status(403).json({ error: 'Нет прав на удаление' });
+        }
+        // ---------------------
+
         const article = await Article.findById(req.body.id);
         if (!article) return res.status(404).json({ error: 'Статья не найдена' });
 
@@ -561,6 +564,7 @@ router.post('/admin/wiki/delete', checkAuth, checkWikiAccess, async (req, res) =
             targetTitle: article.title,
             details: `Удалил статью (slug: ${article.slug})`
         });
+
         res.json({ success: true });
     } catch (e) {
         console.error(e);
@@ -573,10 +577,20 @@ router.post('/admin/wiki', checkAuth, uploadCloud.fields([
     { name: 'gallery', maxCount: 10 },
     { name: 'files', maxCount: 5 }
 ]), async (req, res) => {
-    const ADMIN_IDS = ['438744415734071297'];
-    if (!ADMIN_IDS.includes(req.user.id)) return res.status(403).json({ error: 'Нет доступа' });
-
     try {
+        const userProfile = await UserProfile.findOne({ userId: req.user.id });
+        
+        // 2. Список главных админов (Твой ID)
+        const ADMIN_IDS = ['438744415734071297'];
+
+        // 3. Проверяем: Или это Админ, ИЛИ у юзера стоит галочка isWikiEditor
+        const isEditor = userProfile && userProfile.isWikiEditor === true;
+        const isAdmin = ADMIN_IDS.includes(req.user.id);
+
+        if (!isAdmin && !isEditor) {
+            return res.status(403).json({ error: 'У вас нет прав редактора Вики!' });
+        }
+
         const { id, title, slug, description, content, category, icon, tags, isPublished, currentImage } = req.body;
 
         const finalSlug = slug || title.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, '');
