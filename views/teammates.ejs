@@ -73,7 +73,7 @@
                     </div>
 
                     <div class="card-footer">
-                        <button class="discord-btn" onclick="copyDiscord('<%= req.username %>')">
+                        <button class="discord-btn" onclick="copyDiscord('<%= req.username %>', this)">
                             <i class="fab fa-discord"></i> Copy Nick
                         </button>
                         
@@ -267,19 +267,25 @@
             if(e.target.id === 'lfgModalOverlay') closeLfgModal();
         });
 
-        function copyDiscord(username) {
-            navigator.clipboard.writeText(username).then(() => {
-                // Простое уведомление, если нет системы тостов
-                const btn = event.currentTarget; // Получаем нажатую кнопку
-                const originalHtml = btn.innerHTML;
-                btn.innerHTML = '<i class="fas fa-check"></i> Скопировано';
-                btn.style.background = '#2ecc71';
-                setTimeout(() => {
-                    btn.innerHTML = originalHtml;
-                    btn.style.background = '';
-                }, 2000);
-            });
-        }
+       function copyDiscord(username, btn) { // <--- Добавили аргумент btn
+    navigator.clipboard.writeText(username).then(() => {
+        // Теперь мы используем переданную кнопку напрямую
+        const originalHtml = btn.innerHTML;
+        
+        btn.innerHTML = '<i class="fas fa-check"></i> Скопировано';
+        btn.style.background = '#2ecc71';
+        btn.style.transition = '0.2s'; // На всякий случай для плавности
+
+        setTimeout(() => {
+            btn.innerHTML = originalHtml;
+            btn.style.background = '';
+        }, 2000);
+    }).catch(err => {
+        console.error('Ошибка копирования:', err);
+        // Опционально: можно показать ошибку юзеру
+        // alert('Не удалось скопировать'); 
+    });
+}
 
         // --- ОТПРАВКА ФОРМЫ ---
         const form = document.getElementById('lfgForm');
@@ -314,9 +320,42 @@
         }
 
         async function deleteRequest() {
-            if(!confirm('Удалить заявку?')) return;
-            await fetch('/teammates/delete', { method: 'POST' });
-            location.reload();
+            // Проверяем, доступна ли наша красивая модалка
+            if (typeof Modal !== 'undefined') {
+                const isConfirmed = await Modal.confirm(
+                    'Удаление заявки', 
+                    'Вы уверены, что хотите удалить своё объявление? <br>Оно пропадёт из общего списка.', 
+                    'warning' // Тип warning сделает иконку желтой/красной
+                );
+
+                if (!isConfirmed) return; // Если нажали "Отмена"
+            } else {
+                // Запасной вариант (стандартный алерт)
+                if (!confirm('Удалить заявку?')) return;
+            }
+
+            // Визуальная индикация на кнопке (чтобы не нажали дважды)
+            const btn = document.querySelector('.btn-delete');
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; // Крутилка
+            }
+
+            try {
+                await fetch('/teammates/delete', { method: 'POST' });
+                location.reload();
+            } catch (e) {
+                console.error(e);
+                if (typeof Modal !== 'undefined') {
+                    Modal.alert('Ошибка', 'Не удалось удалить заявку. Попробуйте обновить страницу', 'error');
+                } else {
+                    alert('Ошибка удаления');
+                }
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-trash-alt"></i>';
+                }
+            }
         }
 
 const LFG_RULES = `
