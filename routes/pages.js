@@ -788,4 +788,67 @@ router.get('/admin/logs', checkAuth, checkWikiAccess, async (req, res) => {
     });
 });
 
+router.get('/sitemap.xml', async (req, res) => {
+    try {
+        // 1. Получаем все опубликованные статьи из базы
+        // Нам нужны только slug и updatedAt (или createdAt)
+        const articles = await Article.find({ isPublished: true })
+                                      .select('slug updatedAt');
+
+        // 2. Базовый URL сайта
+        const baseUrl = 'https://dachazeyna.com';
+        
+        // 3. Статические страницы (которые есть всегда)
+        // lastmod для них ставим текущий или фиксированный, если они редко меняются
+        const staticPages = [
+            { url: '/', priority: 1.00 },
+            { url: '/wrapped', priority: 0.80 },
+            { url: '/wiki', priority: 0.80 },
+            { url: '/teammates', priority: 0.80 },
+            { url: '/leaderboard', priority: 0.80 },
+            { url: '/bot', priority: 0.80 },
+            // Служебные страницы можно понизить в приоритете
+            { url: '/terms', priority: 0.50 },
+            { url: '/privacy', priority: 0.50 }
+        ];
+
+        // 4. Генерируем XML
+        let xml = '<?xml version="1.0" encoding="UTF-8"?>';
+        xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
+
+        // Добавляем статику
+        const today = new Date().toISOString();
+        staticPages.forEach(page => {
+            xml += `
+            <url>
+                <loc>${baseUrl}${page.url}</loc>
+                <lastmod>${today}</lastmod>
+                <priority>${page.priority}</priority>
+                <changefreq>daily</changefreq>
+            </url>`;
+        });
+
+        // Добавляем динамические статьи из БД
+        articles.forEach(article => {
+            xml += `
+            <url>
+                <loc>${baseUrl}/wiki/${article.slug}</loc>
+                <lastmod>${new Date(article.updatedAt).toISOString()}</lastmod>
+                <priority>0.70</priority>
+                <changefreq>weekly</changefreq>
+            </url>`;
+        });
+
+        xml += '</urlset>';
+
+        // 5. Отправляем ответ с правильным заголовком
+        res.header('Content-Type', 'application/xml');
+        res.send(xml);
+
+    } catch (e) {
+        console.error(e);
+        res.status(500).end();
+    }
+});
+
 export default router;
