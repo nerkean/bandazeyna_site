@@ -8,7 +8,7 @@
 <body>
     <%- include('partials/navbar') %>
 
-    <div class="messenger-wrapper">
+    <main class="messenger-wrapper">
         
         <div class="chat-sidebar" id="sidebar">
             <div class="chat-header"><h2>Сообщения</h2></div>
@@ -19,30 +19,32 @@
 
         <div class="chat-main" id="chatMain">
             <div class="empty-chat" id="emptyState">
-                <i class="far fa-comments"></i>
+                <i class="far fa-comments" aria-hidden="true"></i>
                 <p>Выберите чат, чтобы начать общение</p>
             </div>
 
             <div id="activeChatContainer" style="display: none; flex: 1; flex-direction: column; height: 100%;">
                 
                 <div class="cm-header">
-                    <i class="fas fa-arrow-left back-btn" onclick="closeChat()"></i>
+                    <i class="fas fa-arrow-left back-btn" onclick="closeChat()" aria-label="Назад" role="button" tabindex="0"></i>
                     <a href="#" id="headerProfileLink" class="chat-header-link" style="flex:1">
-                        <img src="" class="ci-avatar" id="headerAvatar">
+                        <img src="" class="ci-avatar" id="headerAvatar" alt="Аватар собеседника">
                         <div class="ci-info">
                             <div class="ci-name" id="headerName">...</div>
                             <div class="ci-time" id="headerStatus">Нажмите, чтобы открыть профиль</div>
                         </div>
                     </a>
                     
-                    <i class="fas fa-ban chat-action-btn danger" onclick="toggleBlockUser()" title="Заблокировать / Разблокировать"></i>
+                    <button class="chat-action-btn danger" onclick="toggleBlockUser()" title="Заблокировать / Разблокировать" aria-label="Блокировка">
+                        <i class="fas fa-ban"></i>
+                    </button>
                 </div>
 
                 <div class="cm-messages" id="messagesContainer"></div>
 
                 <div class="preview-container" id="imagePreviewBox" style="display: none;">
                     <div class="preview-close" onclick="clearImage()"><i class="fas fa-times"></i></div>
-                    <img src="" class="preview-img" id="imagePreviewImg">
+                    <img src="" class="preview-img" id="imagePreviewImg" alt="Предпросмотр">
                 </div>
 
                 <div class="blocked-overlay" id="blockedPanel" style="display: none;">
@@ -52,20 +54,22 @@
 
                 <div class="cm-input-area" id="inputArea">
                     <input type="file" id="fileInput" accept="image/*" style="display: none;" onchange="handleFileSelect(this)">
-                    <button class="chat-attach-btn" onclick="document.getElementById('fileInput').click()" title="Прикрепить фото">
+                    <button class="chat-attach-btn" onclick="document.getElementById('fileInput').click()" title="Прикрепить фото" aria-label="Прикрепить файл">
                         <i class="fas fa-paperclip"></i>
                     </button>
 
-                    <input type="text" id="msgInput" class="chat-input" placeholder="Напишите сообщение..." autocomplete="off">
-                    <button class="chat-send-btn" onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
+                    <input type="text" id="msgInput" class="chat-input" placeholder="Напишите сообщение..." autocomplete="off" aria-label="Текст сообщения">
+                    <button class="chat-send-btn" onclick="sendMessage()" aria-label="Отправить">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
                 </div>
             </div>
         </div>
-    </div>
+    </main>
 
-    <div class="lightbox-overlay" id="lightbox" onclick="closeLightbox()">
+    <div class="lightbox-overlay" id="lightbox" onclick="closeLightbox()" aria-hidden="true">
         <div class="lightbox-close" onclick="closeLightbox()">×</div>
-        <img src="" class="lightbox-img" id="lightboxImg" onclick="event.stopPropagation()">
+        <img src="" class="lightbox-img" id="lightboxImg" onclick="event.stopPropagation()" alt="Просмотр изображения">
     </div>
 
     <%- include('partials/footer') %>
@@ -118,7 +122,7 @@
             if (isOnline) {
                 el.innerHTML = '<span style="color: #2ecc71; text-shadow: 0 0 10px rgba(46,204,113,0.4);">● В сети</span>';
             } else {
-                el.innerHTML = '<span style="color: #666;">Не в сети</span>';
+                el.innerHTML = '<span style="color: #999;">Не в сети</span>'; // Улучшен контраст
             }
         }
 
@@ -156,9 +160,10 @@
                         let previewText = c.lastMessage ? escapeHtml(c.lastMessage) : '<i class="fas fa-camera"></i> Фотография';
                         if (c.lastMessage && c.lastMessage.length > 30) previewText = previewText.substring(0, 30) + '...';
 
+                        // ИСПРАВЛЕНИЕ 3: Добавлен alt="${c.username}" в шаблон
                         return `
-                            <div class="chat-item ${activeClass} ${unreadClass}" onclick="openChat('${c.partnerId}')">
-                                <img src="${ava}" class="ci-avatar">
+                            <div class="chat-item ${activeClass} ${unreadClass}" onclick="openChat('${c.partnerId}')" role="button" tabindex="0">
+                                <img src="${ava}" class="ci-avatar" alt="${c.username}">
                                 <div class="ci-info">
                                     <div class="ci-top">
                                         <span class="ci-name">${c.username}</span>
@@ -260,8 +265,9 @@
                 statusIcon = `<span class="${iconClass}" title="${msg.isRead ? 'Прочитано' : 'Отправлено'}">${iconHtml}</span>`;
             }
 
+            // ИСПРАВЛЕНИЕ 4: Добавлен alt для изображений в чате
             let imageHtml = '';
-            if (msg.imageUrl) imageHtml = `<img src="${msg.imageUrl}" class="msg-image" onclick="openLightbox(this.src)">`;
+            if (msg.imageUrl) imageHtml = `<img src="${msg.imageUrl}" class="msg-image" onclick="openLightbox(this.src)" alt="Вложение">`;
             
             let textHtml = '';
             if (msg.content) textHtml = `<div class="msg-content">${escapeHtml(msg.content)}</div>`;
@@ -298,24 +304,25 @@
                 ? `Разблокировать пользователя <b>${document.getElementById('headerName').innerText}</b>?`
                 : `Заблокировать пользователя <b>${document.getElementById('headerName').innerText}</b>?<br><span style="font-size:0.8em; opacity:0.7">Он не сможет писать вам.</span>`;
 
-            const isConfirmed = await Modal.confirm(title, text, 'warning');
+            if (typeof Modal !== 'undefined') {
+                const isConfirmed = await Modal.confirm(title, text, 'warning');
+                if (!isConfirmed) return;
+            } else if (!confirm(text.replace(/<[^>]*>/g, ''))) return;
 
-            if (isConfirmed) {
-                try {
-                    const res = await fetch('/api/user/block', {
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({ targetId: currentPartnerId, action })
-                    });
-                    
-                    if (res.ok) {
-                        openChat(currentPartnerId); 
-                        if (!isBlockedByMe) Modal.alert('Готово', 'Пользователь заблокирован', 'success');
-                    } else {
-                        Modal.alert('Ошибка', 'Не удалось выполнить действие', 'error');
-                    }
-                } catch (e) { Modal.alert('Ошибка', 'Сбой сети', 'error'); }
-            }
+            try {
+                const res = await fetch('/api/user/block', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ targetId: currentPartnerId, action })
+                });
+                
+                if (res.ok) {
+                    openChat(currentPartnerId); 
+                    if (!isBlockedByMe && typeof Modal !== 'undefined') Modal.alert('Готово', 'Пользователь заблокирован', 'success');
+                } else {
+                    if (typeof Modal !== 'undefined') Modal.alert('Ошибка', 'Не удалось выполнить действие', 'error');
+                }
+            } catch (e) { if (typeof Modal !== 'undefined') Modal.alert('Ошибка', 'Сбой сети', 'error'); }
         }
 
         function updateBlockUI(status) {

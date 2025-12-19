@@ -1,15 +1,12 @@
 <% 
     // --- ЛОГИКА ОПРЕДЕЛЕНИЯ ФОНА И РАМОК ---
     const assetMap = {
-        // Рамки
         'profile_frame_veteran': 'veteran',
         'profile_frame_laurel_blue': 'laurel_blue',
         'profile_frame_patterned_bronze': 'patterned_bronze',
         'premium_avatar_frame_gold_plated': 'premium_avatar_frame_gold_plated',
         'avatar_frame_azure_spark': 'avatar_frame_azure_spark',
         'hween_frame_web': 'halloween_web',
-        
-        // Фоны
         'profile_bg_legend': 'legend',
         'profile_bg_stars_dark': 'stars_dark',
         'premium_card_bg_galaxy': 'premium_card_bg_galaxy',
@@ -21,6 +18,18 @@
         let filename = assetMap[id];
         if (!filename) filename = id.replace('profile_frame_', '');
         return `/assets/frames/${filename}.webp`; 
+    }
+
+    // --- SEO ЛОГИКА ---
+    let noIndex = false;
+
+    // 1. Бан
+    if (profile.isBanned) {
+        noIndex = true;
+    }
+
+    if (profile.totalMessages < 5000 && profile.stars < 1000) {
+        noIndex = true;
     }
 
     let headerBgUrl = '/assets/backgrounds/profile_template.png'; 
@@ -42,12 +51,25 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <%- include('partials/head', { title: 'Профиль | ' + targetUser.username }) %>
-    <link rel="stylesheet" href="/css/profile.css">
-    <link rel="stylesheet" href="/css/modals.css">
+    <%- include('partials/head', { 
+        title: 'Профиль | ' + targetUser.username,
+        description: `Профиль игрока ${targetUser.username} в Bee Swarm Simulator. Статистика, инвентарь и достижения на сервере Дача Зейна.`,
+        image: targetUser.avatar ? `https://dachazeyna.com/img/proxy/avatar/${targetUser.id}/${targetUser.avatar}` : 'https://dachazeyna.com/assets/img/og-image.png',
+        noIndex: noIndex 
+    }) %>
+    
+    <link rel="preload" href="/css/profile.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="/css/profile.css"></noscript>
+    
+    <link rel="stylesheet" href="/css/modals.css" media="print" onload="this.media='all'">
+    
     <link rel="preload" as="image" href="<%= headerBgUrl %>" fetchpriority="high">
     
     <style>
+        /* Критические стили, чтобы страница не "прыгала" пока грузится CSS */
+        .profile-wrapper { max-width: 1200px; margin: 0 auto; padding-top: 80px; min-height: 100vh; }
+        .dashboard-grid { display: grid; gap: 20px; }
+
         /* Стили для забаненного профиля */
         .banned-badge {
             display: inline-flex; align-items: center; gap: 8px;
@@ -119,7 +141,7 @@
 <body>
     <%- include('partials/navbar') %>
 
-    <div class="profile-wrapper">
+    <main class="profile-wrapper">
         
         <header class="<%= headerClass %>" style="<%= bannerStyle %>" role="banner">
             <div class="profile-header-overlay">
@@ -130,7 +152,7 @@
                     <% } %>
                     
                     <img src="<%= targetUser.avatar ? `/img/proxy/avatar/${targetUser.id}/${targetUser.avatar}` : '/assets/img/avatars/default_avatar.png' %>" 
-                         class="avatar-big" alt="Аватар">
+                         class="avatar-big" alt="Аватар <%= targetUser.username %>">
                 </div>
                 
                 <div class="profile-identity">
@@ -162,11 +184,11 @@
                 </div>
 
                 <% if (isOwner && !profile.isBanned) { %>
-                    <button class="btn-edit" onclick="openEditModal()">
+                    <button class="btn-edit" onclick="openEditModal()" aria-label="Настроить титул">
                         <i class="fas fa-pen"></i> Настроить титул
                     </button>
                 <% } else if (!isOwner && !profile.isBanned) { %>
-                    <a href="/messages/<%= targetUser.id %>" class="btn-edit" style="background: var(--primary); border-color: var(--primary);">
+                    <a href="/messages/<%= targetUser.id %>" class="btn-edit" style="background: var(--primary); border-color: var(--primary);" aria-label="Написать сообщение">
                         <i class="fas fa-envelope"></i> Написать
                     </a>
                 <% } %>
@@ -194,7 +216,7 @@
             
                 <div class="col-left">
                     <div class="card glow-card">
-                        <h2><i class="fas fa-coins"></i> Финансы <a href="/giveaways" title="Розыгрыши"><i class="fas fa-gift"></i></a></h2>
+                        <h2><i class="fas fa-coins"></i> Финансы <a href="/giveaways" title="Розыгрыши" aria-label="Розыгрыши"><i class="fas fa-gift"></i></a></h2>
                         <div class="stat-row"><span>Наличные:</span><span class="val gold"><%= Math.floor(profile.stars).toLocaleString() %> ⭐</span></div>
                         <div class="stat-row"><span>Осколки:</span><span class="val shard"><%= profile.shards %> ✨</span></div>
                         <div class="divider"></div>
@@ -250,7 +272,7 @@
                             </table>
                             <% if (portfolioDetails.length > 5) { %>
                                 <div style="text-align: center; margin-top: 10px;">
-                                    <a href="/market" style="color: var(--primary); font-weight: 700;">Показать все</a>
+                                    <a href="/market" style="color: var(--primary); font-weight: 700; text-decoration: underline;">Показать все</a>
                                 </div>
                             <% } %>
                         <% } else { %>
@@ -317,13 +339,13 @@
                                         '<%= item.details && item.details.description ? item.details.description.replace(/'/g, '\\\'').replace(/\n/g, ' ') : '' %>',
                                         '<%= !showEmoji && imgUrl ? imgUrl : '' %>',
                                         '<%= rarity.toUpperCase() %>',
-                                        '<%= item.details ? item.details.emoji : '📦' %>' /* <-- Эмодзи теперь передается */
+                                        '<%= item.details ? item.details.emoji : '📦' %>'
                                      )"
                                      title="<%= item.details ? item.details.name : item.itemId %>">
-                                    
+                                     
                                     <div class="inv-icon">
                                         <% if (!showEmoji && imgUrl) { %>
-                                            <img src="<%= imgUrl %>" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
+                                            <img src="<%= imgUrl %>" loading="lazy" width="48" height="48" alt="Предмет" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
                                             <div class="inv-emoji" style="display:none"><%= item.details ? item.details.emoji : '📦' %></div>
                                         <% } else { %>
                                             <div class="inv-emoji"><%= item.details ? item.details.emoji : '📦' %></div>
@@ -365,7 +387,8 @@
                     <% } %>
                 </div>
             
-            <% } %> </div> 
+            <% } %> 
+        </div> 
 
         <% if (!profile.isBanned) { %>
             <div class="profile-full-row">
@@ -376,14 +399,16 @@
                         <div class="wall-input-box">
                             <% if (user.avatar) { %>
                                 <img src="<%= user.avatar ? `/img/proxy/avatar/${user.id}/${user.avatar}` : '/assets/img/avatars/default_avatar.png' %>" 
-     class="wall-input-ava" 
-     alt="Ваш аватар" 
-     onerror="this.src='/assets/img/avatars/default_avatar.png'">
+                                     class="wall-input-ava" 
+                                     alt="Ваш аватар" 
+                                     loading="lazy"
+                                     onerror="this.src='/assets/img/avatars/default_avatar.png'">
                             <% } else { %>
-                                <img src="https://cdn.discordapp.com/embed/avatars/0.png" class="wall-input-ava" alt="Ваш аватар">
+                                <img src="https://cdn.discordapp.com/embed/avatars/0.png" class="wall-input-ava" alt="Ваш аватар" loading="lazy">
                             <% } %>
                             <input type="text" id="wallComment" class="wall-input" placeholder="Оставить комментарий..." maxlength="250" autocomplete="off">
-                            <button class="btn-send" onclick="postComment()"><i class="fas fa-paper-plane"></i></button>
+                            
+                            <button class="btn-send" onclick="postComment()" aria-label="Отправить комментарий"><i class="fas fa-paper-plane"></i></button>
                         </div>
                     <% } %>
 
@@ -395,13 +420,13 @@
             </div>
         <% } %>
 
-    </div>
+    </main>
 
     <% if (isOwner && !profile.isBanned) { %>
-    <div class="modal-overlay" id="editModal" role="dialog" aria-modal="true">
+    <div class="modal-overlay" id="editModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
         <div class="modal-box">
             <div class="modal-icon"><i class="fas fa-id-badge"></i></div>
-            <h2 class="modal-title">Настройка Титула</h2>
+            <h2 class="modal-title" id="modalTitle">Настройка Титула</h2>
             
             <div style="margin-bottom: 20px; text-align: center;">
                 <% if (profile.inventory.some(i => i.itemId === 'title_token')) { %>
@@ -433,7 +458,8 @@
     <%- include('partials/footer') %>
     
     <% if (!profile.isBanned) { %>
-        <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+        <script src="https://cdn.jsdelivr.net/npm/apexcharts" defer></script>
+        
         <script nonce="<%= nonce %>">
             const targetProfileId = "<%= targetUser.id %>"; 
             const historyData = <%- JSON.stringify(profile.dailyActivityHistory || []) %>;
@@ -441,7 +467,9 @@
 
             document.addEventListener('DOMContentLoaded', () => {
                 loadComments(1);
-                initChart();
+                
+                // ОТЛОЖЕННАЯ ЗАГРУЗКА ГРАФИКА (Снижает нагрузку на CPU при старте)
+                setTimeout(initChart, 500);
 
                 const wallInput = document.getElementById('wallComment');
                 if(wallInput) {
@@ -453,89 +481,44 @@
 
             // Функция для показа деталей предмета (ОБНОВЛЕННЫЙ ДИЗАЙН)
             function showItemDetails(name, description, image, rarity, emoji) {
-                // Определяем цвет редкости
                 const rarityColors = {
-                    'COMMON': '#bdc3c7',
-                    'RARE': '#3498db',
-                    'EPIC': '#9b59b6',
-                    'LEGENDARY': '#f1c40f',
-                    'MYTHIC': '#e74c3c'
+                    'COMMON': '#bdc3c7', 'RARE': '#3498db', 'EPIC': '#9b59b6',
+                    'LEGENDARY': '#f1c40f', 'MYTHIC': '#e74c3c'
                 };
                 const color = rarityColors[rarity] || '#fff';
 
-                // Изображение или Эмодзи
                 let visualContent;
                 if (image) {
-                    visualContent = `<img src="${image}" style="width: 80%; height: 80%; object-fit: contain;">`;
+                    visualContent = `<img src="${image}" style="width: 80%; height: 80%; object-fit: contain;" alt="Иконка предмета">`;
                 } else {
                     visualContent = `<div style="font-size: 3.5rem;">${emoji}</div>`;
                 }
 
-                // Верстка внутри модалки
                 const content = `
                     <div style="text-align: center; display: flex; flex-direction: column; align-items: center; gap: 20px; padding: 10px 0;">
-                        
-                        <div style="
-                            width: 100px; height: 100px; 
-                            background: rgba(255,255,255,0.05); 
-                            border-radius: 20px; 
-                            display: flex; align-items: center; justify-content: center;
-                            border: 2px solid ${color}; 
-                            box-shadow: 0 0 25px ${color}30;
-                        ">
-                            ${visualContent}
-                        </div>
-
-                        <div style="
-                            font-size: 0.8rem; font-weight: 800; 
-                            text-transform: uppercase; letter-spacing: 2px;
-                            color: ${color}; 
-                            background: ${color}15;
-                            padding: 6px 16px; border-radius: 50px;
-                            border: 1px solid ${color}30;
-                        ">
-                            ${rarity || 'ITEM'}
-                        </div>
-                        
-                        <div style="
-                            background: rgba(0,0,0,0.3); 
-                            padding: 15px; border-radius: 12px; width: 100%;
-                            border: 1px solid rgba(255,255,255,0.05);
-                        ">
-                            <p style="color: #ccc; margin: 0; font-size: 0.95rem; line-height: 1.6;">
-                                ${description || 'Описание отсутствует.'}
-                            </p>
+                        <div style="width: 100px; height: 100px; background: rgba(255,255,255,0.05); border-radius: 20px; display: flex; align-items: center; justify-content: center; border: 2px solid ${color}; box-shadow: 0 0 25px ${color}30;">${visualContent}</div>
+                        <div style="font-size: 0.8rem; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; color: ${color}; background: ${color}15; padding: 6px 16px; border-radius: 50px; border: 1px solid ${color}30;">${rarity || 'ITEM'}</div>
+                        <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 12px; width: 100%; border: 1px solid rgba(255,255,255,0.05);">
+                            <p style="color: #ccc; margin: 0; font-size: 0.95rem; line-height: 1.6;">${description || 'Описание отсутствует.'}</p>
                         </div>
                     </div>
                 `;
 
                 if (window.Modal) {
-                    Modal.show(
-                        name,      
-                        content,   
-                        'info',    
-                        [{ text: 'Закрыть', handler: 'close' }] 
-                    );
+                    Modal.show(name, content, 'info', [{ text: 'Закрыть', handler: 'close' }]);
                 } else {
                     alert(`${name}\n\n${description}`);
                 }
             }
 
             // --- MODALS ---
-            function openEditModal() { 
-                const modal = document.getElementById('editModal');
-                if (modal) modal.classList.add('active'); 
-            }
-            function closeEditModal() { 
-                const modal = document.getElementById('editModal');
-                if (modal) modal.classList.remove('active'); 
-            }
+            function openEditModal() { const modal = document.getElementById('editModal'); if (modal) modal.classList.add('active'); }
+            function closeEditModal() { const modal = document.getElementById('editModal'); if (modal) modal.classList.remove('active'); }
 
             // --- ACTIONS ---
             async function saveTitle() {
                 const title = document.getElementById('editTitle').value;
                 if(!title.trim()) return alert("Введите текст титула!");
-
                 if (typeof Modal !== 'undefined') {
                     const ok = await Modal.confirm("Подтверждение", "Сменить титул? Это стоит 1 Жетон.");
                     if(!ok) return;
@@ -559,7 +542,6 @@
                         body: JSON.stringify({ activeTitle: title })
                     });
                     const data = await res.json();
-
                     if (data.success) {
                         if (typeof Modal !== 'undefined') await Modal.alert("Успешно", "Титул обновлен", "success");
                         else alert("Успешно");
@@ -576,7 +558,6 @@
                 if (typeof ApexCharts === 'undefined') return;
                 
                 const days = [], msgData = [], voiceData = [];
-                
                 for (let i = 6; i >= 0; i--) {
                     const d = new Date();
                     d.setDate(d.getDate() - i);
@@ -619,17 +600,15 @@
                         currentWallPage = data.pagination.current;
                         if (data.comments.length > 0) {
                             container.innerHTML = data.comments.map(c => {
-                                // 👇 ИСПРАВЛЕНИЕ ЗДЕСЬ: Используем прокси вместо прямого CDN
                                 const avaUrl = c.authorAvatar 
                                     ? `/img/proxy/avatar/${c.authorId}/${c.authorAvatar}` 
                                     : '/assets/img/avatars/default_avatar.png';
-
                                 const safeText = c.comment.replace(/&/g, "&amp;").replace(/</g, "&lt;");
                                 
                                 return `
                                     <div class="wall-item">
                                         <a href="/profile/${c.authorId}">
-                                            <img src="${avaUrl}" class="wall-ava" alt="${c.authorUsername}" onerror="this.src='/assets/img/avatars/default_avatar.png'">
+                                            <img src="${avaUrl}" class="wall-ava" alt="Аватар ${c.authorUsername}" loading="lazy" onerror="this.src='/assets/img/avatars/default_avatar.png'">
                                         </a>
                                         <div class="wall-bubble">
                                             <div class="wall-meta">

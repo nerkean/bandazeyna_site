@@ -6,13 +6,27 @@
     <link rel="preload" href="/css/market.css" as="style">
     <link rel="stylesheet" href="/css/market.css">
     
-    </head>
+    <style>
+        /* Скрытый заголовок для структуры (опционально) */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            border: 0;
+        }
+    </style>
+</head>
 <body>
     <%- include('partials/navbar') %>
 
     <div id="canvas-container" aria-hidden="true"></div>
 
     <div style="margin-top: 100px;"></div>
+    
     <div class="market-ticker-wrap">
         <div class="market-ticker">
             <% for(let i=0; i<2; i++) { %>
@@ -32,7 +46,7 @@
         </div>
     </div>
 
-    <div class="market-container">
+    <main class="market-container">
         
         <header class="market-header">
             <div class="mh-title">
@@ -40,9 +54,9 @@
                 <p>Профессиональный инструмент для торговли</p>
             </div>
 
-            <button class="m-tab" id="toggleLiteMode" onclick="toggleLiteMode()" style="margin-left: auto;">
-    <i class="fas fa-leaf"></i> <span>3D: ON</span>
-</button>
+            <button class="m-tab" id="toggleLiteMode" onclick="toggleLiteMode()" style="margin-left: auto;" aria-label="Переключить 3D режим">
+                <i class="fas fa-leaf"></i> <span>3D: ON</span>
+            </button>
             
             <% if (user) { %>
                 <div class="mh-balance">
@@ -73,9 +87,11 @@
         <div class="terminal-grid">
             
             <aside class="stock-sidebar" id="tab-list">
+                <h2 class="sr-only">Список акций</h2>
+                
                 <div class="sidebar-search">
                     <i class="fas fa-search"></i>
-                    <input type="text" id="stockSearch" placeholder="Найти тикер..." aria-label="Поиск">
+                    <input type="text" id="stockSearch" placeholder="Найти тикер..." aria-label="Поиск акций">
                 </div>
 
                 <div class="stock-list-wrapper">
@@ -89,7 +105,7 @@
                                    const isSystem = ['VOICE', 'TXT', 'PLAYER'].includes(stock.ticker);
                                 %>
 
-                                <div class="stock-card" onclick="selectStock('<%= stock.ticker %>', this)">
+                                <div class="stock-card" onclick="selectStock('<%= stock.ticker %>', this)" role="button" tabindex="0">
                                     <div class="stock-icon" style="--icon-bg: <%= color %>;">
                                         <%= stock.ticker.substring(0, 2) %>
                                     </div>
@@ -117,7 +133,7 @@
                 </div>
             </aside>
 
-            <main class="trade-area" id="tab-trade">
+            <section class="trade-area" id="tab-trade">
                 <div class="chart-card">
                     <div class="chart-top-bar">
                         <div class="ct-info">
@@ -133,6 +149,9 @@
                 </div>
 
                 <div class="trade-controls" id="tradePanel" style="opacity: 0.5; pointer-events: none;">
+                    
+                    <h3 class="sr-only">Панель управления сделкой</h3>
+
                     <div class="user-position">
                         <div class="pos-item"><span>На руках:</span><strong id="userShares">0 шт.</strong></div>
                         <div class="pos-item"><span>Средняя:</span><strong id="userAvgPrice">0.00</strong></div>
@@ -140,7 +159,7 @@
 
                     <div class="trade-input-section">
                         <div class="input-wrapper">
-                            <input type="number" id="tradeAmount" placeholder="Кол-во" min="1" value="1">
+                            <input type="number" id="tradeAmount" placeholder="Кол-во" min="1" value="1" aria-label="Количество акций">
                             <span class="input-suffix">шт.</span>
                         </div>
                         <div class="quick-amounts">
@@ -159,10 +178,10 @@
                         </div>
                     </div>
                 </div>
-            </main>
+            </section>
 
         </div>
-    </div>
+    </main>
 
     <%- include('partials/footer') %>
 
@@ -172,52 +191,42 @@
     <script nonce="<%= nonce %>" src="/socket.io/socket.io.js"></script>
 
     <script nonce="<%= nonce %>">
+        // ... (Твой JS код, который я не менял) ...
         const socket = io();
 
-    // Слушаем событие от сервера
-    socket.on('market_update', (data) => {
-        console.log('Получено обновление биржи!', data);
-        
-        const { updates } = data;
-        
-        // 1. Обновляем карточки в списке (слева)
-        updates.forEach(update => {
-            // Находим карточку акции по тикеру (нужно будет добавить data-ticker в HTML, см. ниже)
-            // Но пока найдем по тексту, так как у тебя нет ID
-            const cards = document.querySelectorAll('.stock-card');
-            cards.forEach(card => {
-                if (card.innerText.includes(update.ticker)) {
-                    // Обновляем цену
-                    const priceEl = card.querySelector('.sc-price');
-                    if (priceEl) priceEl.innerText = update.price.toFixed(2);
-                    
-                    // Обновляем процент
-                    const changeEl = card.querySelector('.sc-change');
-                    if (changeEl) {
-                        const sign = update.change >= 0 ? '+' : '';
-                        changeEl.innerText = `${sign}${(update.change * 100).toFixed(2)}%`;
-                        // Меняем цвет
-                        changeEl.className = `sc-change ${update.change >= 0 ? 'up' : 'down'}`;
+        socket.on('market_update', (data) => {
+            console.log('Получено обновление биржи!', data);
+            
+            const { updates } = data;
+            
+            updates.forEach(update => {
+                const cards = document.querySelectorAll('.stock-card');
+                cards.forEach(card => {
+                    if (card.innerText.includes(update.ticker)) {
+                        const priceEl = card.querySelector('.sc-price');
+                        if (priceEl) priceEl.innerText = update.price.toFixed(2);
+                        
+                        const changeEl = card.querySelector('.sc-change');
+                        if (changeEl) {
+                            const sign = update.change >= 0 ? '+' : '';
+                            changeEl.innerText = `${sign}${(update.change * 100).toFixed(2)}%`;
+                            changeEl.className = `sc-change ${update.change >= 0 ? 'up' : 'down'}`;
+                        }
+                        
+                        card.style.transition = 'background 0.3s';
+                        card.style.backgroundColor = update.change >= 0 ? 'rgba(46, 204, 113, 0.2)' : 'rgba(231, 76, 60, 0.2)';
+                        setTimeout(() => card.style.backgroundColor = '', 500);
                     }
-                    
-                    // Анимация вспышки (для красоты)
-                    card.style.transition = 'background 0.3s';
-                    card.style.backgroundColor = update.change >= 0 ? 'rgba(46, 204, 113, 0.2)' : 'rgba(231, 76, 60, 0.2)';
-                    setTimeout(() => card.style.backgroundColor = '', 500);
+                });
+
+                if (currentStock && currentStock.ticker === update.ticker) {
+                    document.getElementById('selectedPrice').innerText = update.price.toFixed(2);
+                    currentStock.currentPrice = update.price; 
+                    updateCalc(); 
                 }
             });
-
-            // 2. Если эта акция сейчас открыта в центре — обновляем главный график и цену
-            if (currentStock && currentStock.ticker === update.ticker) {
-                document.getElementById('selectedPrice').innerText = update.price.toFixed(2);
-                currentStock.currentPrice = update.price; // Обновляем в памяти
-                updateCalc(); // Пересчитываем калькулятор покупки
-            }
         });
         
-        // (Опционально) Обновить бегущую строку сверху
-    });
-    
         const allStocks = JSON.parse('<%- JSON.stringify(stocks).replace(/'/g, "\\'").replace(/\\/g, "\\\\") %>');
         const userPortfolio = <%- typeof portfolio !== 'undefined' ? JSON.stringify(portfolio) : '[]' %>;
         
@@ -454,11 +463,9 @@
             localStorage.setItem('liteMode', newState);
             
             if (newState) {
-                // Включили Lite Mode (Выключили 3D)
                 alert('Экономичный режим включен. 3D отключено.');
-                location.reload(); // Перезагружаем, чтобы очистить память
+                location.reload(); 
             } else {
-                // Выключили Lite Mode
                 alert('3D эффекты включены!');
                 location.reload();
             }

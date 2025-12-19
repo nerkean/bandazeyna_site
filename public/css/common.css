@@ -654,3 +654,13 @@ ul { list-style: none; }
         transform: none;
     }
 }
+
+/* Стилизация заголовков футера, чтобы заменить h4 */
+.f-heading {
+    color: #fff;             /* Белый цвет */
+    font-size: 1.1rem;       /* Размер шрифта как у h4 */
+    font-weight: 700;        /* Жирность */
+    margin-bottom: 15px;     /* Отступ снизу */
+    text-transform: uppercase; /* Если нужно капсом */
+    letter-spacing: 0.5px;   /* Немного разрядки */
+}

@@ -55,49 +55,70 @@ app.use(helmet({
             defaultSrc: ["'self'"],
             scriptSrc: [
                 "'self'",
-                "'unsafe-inline'", 
+                "'unsafe-inline'",
                 "https://cdn.jsdelivr.net",
                 "https://unpkg.com",
                 "https://cdnjs.cloudflare.com",
                 "https://www.googletagmanager.com",
+                "https://www.google-analytics.com",
+                "https://www.googleadservices.com",
+                "https://googleads.g.doubleclick.net",
                 "https://www.clarity.ms",
                 "https://c.bing.com",
-                "https://*.clarity.ms" // <--- ДОБАВИЛ ЭТО (решает проблему с scripts.clarity.ms)
+                "https://*.clarity.ms"
             ],
-            scriptSrcAttr: ["'unsafe-inline'"], 
+            scriptSrcAttr: ["'unsafe-inline'"],
             styleSrc: [
-                "'self'", "'unsafe-inline'", 
+                "'self'", "'unsafe-inline'",
                 "https://fonts.googleapis.com", "https://unpkg.com", "https://cdnjs.cloudflare.com"
             ],
             imgSrc: [
-                "'self'", 
-                "data:", 
-                "blob:", 
-                "https://cdn.discordapp.com", 
-                "https://media.discordapp.net", 
-                "https://dachazeyna.com", 
+                "'self'",
+                "data:",
+                "blob:",
+                "https://cdn.discordapp.com",
+                "https://media.discordapp.net",
+                "https://dachazeyna.com",
                 "https://i.ibb.co",
                 "https://ik.imagekit.io",
                 "https://www.google-analytics.com",
                 "https://www.googletagmanager.com",
+                "https://www.google.com",
+                "https://googleads.g.doubleclick.net",
+                "https://www.google.ru",
+                "https://www.google.com.ua", // <--- ДОБАВИЛ ЭТО
                 "https://*.clarity.ms",
                 "https://c.bing.com"
             ],
             fontSrc: ["'self'", "https://fonts.gstatic.com"],
             connectSrc: [
-                "'self'", "https://dachazeyna.com", "https://cdn.jsdelivr.net",
-                "ws:", "wss:", "https://discord.com",
+                "'self'", 
+                "https://dachazeyna.com", 
+                "https://cdn.jsdelivr.net",
+                "ws:", "wss:", 
+                "https://discord.com",
                 "https://www.google-analytics.com",
                 "https://region1.google-analytics.com",
+                "https://www.googletagmanager.com",
+                "https://www.google.com",
+                "https://www.google.com.ua", // <--- И ЭТО (на всякий случай)
+                "https://www.googleadservices.com",
+                "https://googleads.g.doubleclick.net",
+                "https://stats.g.doubleclick.net",
                 "https://www.clarity.ms",
                 "https://c.bing.com",
                 "https://*.clarity.ms"
+            ],
+            frameSrc: [
+                "'self'",
+                "https://www.googletagmanager.com",
+                "https://td.doubleclick.net"
             ],
             objectSrc: ["'none'"],
             upgradeInsecureRequests: [],
         },
     },
-    crossOriginEmbedderPolicy: false, 
+    crossOriginEmbedderPolicy: false,
 }));
 
 app.set('view engine', 'ejs');
