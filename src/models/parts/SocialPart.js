@@ -8,6 +8,9 @@ const profileCommentSchema = new mongoose.Schema({
     timestamp: { type: Date, default: Date.now },
 }, { _id: false });
 
+export const attachSocialMethods = (userProfileSchema) => {
+};
+
 export {
     profileCommentSchema
 };

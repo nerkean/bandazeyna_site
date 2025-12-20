@@ -237,7 +237,16 @@
         if (logoutBtn) {
             logoutBtn.addEventListener('click', async (e) => {
                 e.preventDefault();
-                if (confirm("Вы точно хотите выйти?")) window.location.href = '/auth/logout';
+                
+                const isConfirmed = await window.Modal.confirm(
+                    'Выход',               
+                    'Вы точно хотите выйти из аккаунта?',
+                    'warning'           
+                );
+
+                if (isConfirmed) {
+                    window.location.href = '/auth/logout';
+                }
             });
         }
 
