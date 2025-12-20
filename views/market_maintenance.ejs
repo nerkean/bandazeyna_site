@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <%- include('partials/head', { title: 'Биржа | Тех. обслуживание' }) %>
+    <style>
+        body {
+            background-color: #0f1115;
+            background-image: 
+                radial-gradient(circle at 50% 40%, rgba(231, 76, 60, 0.05) 0%, transparent 50%);
+            color: #fff;
+            font-family: 'Montserrat', sans-serif;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .maintenance-wrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 20px;
+            
+            /* 👇 ГЛАВНОЕ ИСПРАВЛЕНИЕ 👇 */
+            /* Отступ сверху, чтобы контент не заезжал под шапку */
+            padding-top: 120px; 
+        }
+
+        .icon-box {
+            font-size: 6rem; /* Сделал иконку покрупнее, как на скрине */
+            color: #e74c3c;
+            margin-bottom: 20px;
+            filter: drop-shadow(0 0 20px rgba(231, 76, 60, 0.4));
+            animation: float 3s ease-in-out infinite;
+        }
+
+        /* Бейдж "Техническое обслуживание" */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 16px;
+            background: rgba(231, 76, 60, 0.1);
+            border: 1px solid rgba(231, 76, 60, 0.25);
+            border-radius: 50px;
+            color: #e74c3c;
+            font-weight: 700;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 25px;
+        }
+
+        .status-dot {
+            width: 8px; height: 8px;
+            background: #e74c3c;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #e74c3c;
+            animation: pulse 1.5s infinite;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 900;
+            margin: 0 0 20px 0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            line-height: 1.1;
+        }
+
+        p {
+            font-size: 1rem;
+            color: #aaa;
+            max-width: 550px;
+            line-height: 1.6;
+            margin: 0 0 40px 0;
+        }
+
+        .btn-home {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 12px 28px;
+            border-radius: 12px;
+            text-decoration: none;
+            color: #fff;
+            font-weight: 600;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-home:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(-5deg); }
+            50% { transform: translateY(-10px) rotate(5deg); }
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.4; }
+            100% { opacity: 1; }
+        }
+
+        /* Адаптив для телефонов */
+        @media (max-width: 768px) {
+            .maintenance-wrapper { padding-top: 100px; } /* Чуть меньше отступ на мобиле */
+            h1 { font-size: 1.8rem; }
+            .icon-box { font-size: 4rem; }
+        }
+    </style>
+</head>
+<body>
+    <%- include('partials/navbar') %>
+
+    <main class="maintenance-wrapper">
+        <div class="icon-box">
+            <i class="fas fa-tools"></i>
+        </div>
+        
+        <div class="status-badge">
+            <span class="status-dot"></span>
+            Техническое обслуживание
+        </div>
+
+        <h1>Биржа временно закрыта</h1>
+        <p>
+            Мы обновляем торговые алгоритмы и улучшаем стабильность терминала. 
+            Пожалуйста, загляните чуть позже. Ваши средства в безопасности
+        </p>
+
+        <a href="/" class="btn-home">
+            <i class="fas fa-arrow-left"></i> На главную
+        </a>
+    </main>
+
+    <%- include('partials/footer') %>
+</body>
+</html>

@@ -1,26 +1,72 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
+    <style>
+        /* Шрифты */
+        @font-face { font-family: 'Montserrat'; font-style: normal; font-weight: 400; font-display: swap; src: url('/assets/fonts/web/montserrat-v31-cyrillic_latin-regular.woff2') format('woff2'); }
+        @font-face { font-family: 'Montserrat'; font-style: normal; font-weight: 700; font-display: swap; src: url('/assets/fonts/web/montserrat-v31-cyrillic_latin-700.woff2') format('woff2'); }
+        
+        /* База и Фон */
+        body { 
+            font-family: 'Montserrat', sans-serif; 
+            margin: 0;
+            background-color: #0f1115; 
+            background-image: 
+                radial-gradient(circle at 15% 50%, rgba(46, 204, 113, 0.05) 0%, transparent 25%),
+                radial-gradient(circle at 85% 30%, rgba(52, 152, 219, 0.05) 0%, transparent 25%);
+            color: #fff;
+            overflow-y: scroll; 
+        }
+
+        /* Контейнер */
+        .container { max-width: 1200px; margin: 0 auto; padding: 120px 20px 80px; }
+
+        /* Шапка страницы (LCP элемент) */
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; flex-wrap: wrap; gap: 20px; }
+        .header-text h1 { font-size: 2.5rem; font-weight: 900; margin: 0; text-transform: uppercase; line-height: 1; }
+        .header-text p { margin: 5px 0 0; color: #888; font-size: 0.95rem; }
+        
+        /* Кнопка создания */
+        .create-btn-floating {
+            background: linear-gradient(135deg, #2ecc71, #27ae60); color: white;
+            border: none; padding: 12px 24px; border-radius: 50px;
+            font-weight: 700; font-size: 1rem; cursor: pointer;
+            box-shadow: 0 10px 20px rgba(46, 204, 113, 0.3);
+            text-decoration: none; display: inline-flex; align-items: center; gap: 10px;
+        }
+
+        /* Фильтры */
+        .filter-container { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 15px; margin-bottom: 30px; }
+        .filter-btn {
+            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+            color: #aaa; padding: 8px 20px; border-radius: 20px; cursor: pointer;
+            font-size: 0.9rem; font-family: 'Montserrat', sans-serif; font-weight: 600; white-space: nowrap;
+        }
+        .filter-btn.active { background: #fff; color: #000; transform: scale(1.05); }
+
+        /* Сетка (Каркас) */
+        .grid-container { 
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 25px;
+            /* content-visibility помогает браузеру не рендерить низ страницы сразу */
+            content-visibility: auto; contain-intrinsic-size: 1px 300px;
+        }
+
+        /* Доп. стили для ника (замена h4) */
+        .tm-username { font-size: 1.1rem; font-weight: 700; color: #fff; margin-bottom: 2px; }
+        
+        /* Кнопка помощи */
+        .help-btn { width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #aaa; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+    </style>
+
     <link rel="preload" href="/css/teammates.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link rel="stylesheet" href="/css/teammates.css"></noscript>
-
-    <style>
-        body { font-family: 'Montserrat', sans-serif; font-display: swap; }
-        /* Доп. стили для ника, так как мы убрали тег h4 */
-        .tm-username {
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: #fff;
-            margin-bottom: 2px;
-        }
-    </style>
 
     <%- include('partials/head', { title: 'Поиск Тиммейтов' }) %>
 </head>
 <body>
     <%- include('partials/navbar') %>
 
-    <main class="container" style="max-width: 1200px; margin: 0 auto; padding: 120px 20px 80px; content-visibility: auto;">
+    <main class="container">
         
         <div class="page-header">
             <div class="header-text">
@@ -30,9 +76,7 @@
                         <i class="fas fa-question"></i>
                     </button>
                 </div>
-                <p style="color: #888; margin-top: 5px;">
-                    Заявки удаляются автоматически через 30 минут
-                </p>
+                <p>Заявки удаляются автоматически через 30 минут</p>
             </div>
 
             <% if (user) { %>
@@ -66,13 +110,13 @@
                                  class="tm-avatar" 
                                  alt="<%= req.username %>" 
                                  width="45" height="45"
-                                 loading="<%= index < 4 ? 'eager' : 'lazy' %>"
+                                 loading="<%= index < 2 ? 'eager' : 'lazy' %>"
+                                 fetchpriority="<%= index < 2 ? 'high' : 'auto' %>"
                                  decoding="async"
                                  onerror="this.src='/assets/img/avatars/default_avatar.png'">
                             
                             <div class="user-details">
                                 <div class="tm-username"><%= req.username %></div>
-                                
                                 <span class="hive-tag" style="color: <%= req.hiveColor === 'BLUE' ? '#3498db' : req.hiveColor === 'RED' ? '#e74c3c' : req.hiveColor === 'WHITE' ? '#ecf0f1' : '#9b59b6' %>">
                                     <%= req.hiveColor %> Hive
                                 </span>
@@ -99,9 +143,7 @@
                         </button>
                         
                         <span class="time-ago">
-                            <% 
-                                const diff = Math.floor((Date.now() - new Date(req.createdAt)) / 60000);
-                            %>
+                            <% const diff = Math.floor((Date.now() - new Date(req.createdAt)) / 60000); %>
                             <%= diff < 1 ? 'Только что' : diff + ' мин. назад' %>
                         </span>
                     </div>
@@ -174,14 +216,11 @@
     <% } %>
 
     <script nonce="<%= nonce %>">
-        // Тот же самый JS код, что и был (пагинация, модалки, отправка формы)
-        // ... Оставь скрипт без изменений, он здесь не влияет на семантику ...
-        
+        // (Твой JS код оставляем без изменений - он в порядке)
         document.addEventListener('DOMContentLoaded', () => {
             const ITEMS_PER_PAGE = 12;
             let currentPage = 1;
             let currentFilter = 'ALL';
-            
             const allCards = Array.from(document.querySelectorAll('.tm-card'));
             const paginationContainer = document.getElementById('paginationControls');
             const emptyState = document.getElementById('emptyState');
@@ -190,11 +229,9 @@
                 const filtered = allCards.filter(card => {
                     return currentFilter === 'ALL' || card.dataset.type === currentFilter;
                 });
-
                 const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
                 if (currentPage > totalPages) currentPage = 1;
                 if (totalPages === 0) currentPage = 1;
-
                 const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
                 const endIndex = startIndex + ITEMS_PER_PAGE;
 
@@ -216,7 +253,6 @@
             function renderPagination(totalPages) {
                 paginationContainer.innerHTML = '';
                 if (totalPages <= 1) return;
-
                 const prevBtn = document.createElement('button');
                 prevBtn.className = 'page-btn';
                 prevBtn.innerHTML = '<i class="fas fa-chevron-left"></i>';
@@ -231,18 +267,11 @@
                         btn.innerText = i;
                         btn.onclick = () => { currentPage = i; render(); window.scrollTo({top: 0, behavior: 'smooth'}); };
                         paginationContainer.appendChild(btn);
-                    } else if (
-                        (i === currentPage - 2 && currentPage > 3) || 
-                        (i === currentPage + 2 && currentPage < totalPages - 2)
-                    ) {
-                        const span = document.createElement('span');
-                        span.innerText = '...';
-                        span.style.color = '#666';
-                        span.style.paddingTop = '10px';
+                    } else if ((i === currentPage - 2 && currentPage > 3) || (i === currentPage + 2 && currentPage < totalPages - 2)) {
+                        const span = document.createElement('span'); span.innerText = '...'; span.style.color = '#666'; span.style.paddingTop = '10px';
                         paginationContainer.appendChild(span);
                     }
                 }
-
                 const nextBtn = document.createElement('button');
                 nextBtn.className = 'page-btn';
                 nextBtn.innerHTML = '<i class="fas fa-chevron-right"></i>';
@@ -263,7 +292,6 @@
 
         function openLfgModal() { document.getElementById('lfgModalOverlay')?.classList.add('active'); }
         function closeLfgModal() { document.getElementById('lfgModalOverlay')?.classList.remove('active'); }
-        
         document.getElementById('lfgModalOverlay')?.addEventListener('click', (e) => {
             if(e.target.id === 'lfgModalOverlay') closeLfgModal();
         });
@@ -278,9 +306,7 @@
                     btn.innerHTML = originalHtml;
                     btn.style.background = '';
                 }, 2000);
-            }).catch(err => {
-                console.error('Ошибка копирования:', err);
-            });
+            }).catch(err => { console.error('Ошибка копирования:', err); });
         }
 
         const form = document.getElementById('lfgForm');
@@ -290,25 +316,13 @@
                 const btn = form.querySelector('button[type="submit"]');
                 const originalText = btn.innerText;
                 btn.innerText = 'Загрузка...'; btn.disabled = true;
-
                 const data = Object.fromEntries(new FormData(e.target));
                 try {
-                    const res = await fetch('/teammates/create', { 
-                        method: 'POST', 
-                        headers: {'Content-Type': 'application/json'}, 
-                        body: JSON.stringify(data) 
-                    });
+                    const res = await fetch('/teammates/create', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) });
                     const result = await res.json();
-                    if (result.success) {
-                        location.reload(); 
-                    } else {
-                        alert(result.error || 'Ошибка');
-                        btn.innerText = originalText; btn.disabled = false;
-                    }
-                } catch (err) {
-                    alert('Ошибка сети');
-                    btn.innerText = originalText; btn.disabled = false;
-                }
+                    if (result.success) { location.reload(); } 
+                    else { alert(result.error || 'Ошибка'); btn.innerText = originalText; btn.disabled = false; }
+                } catch (err) { alert('Ошибка сети'); btn.innerText = originalText; btn.disabled = false; }
             });
         }
 
@@ -316,21 +330,10 @@
             if (typeof Modal !== 'undefined') {
                 const isConfirmed = await Modal.confirm('Удаление заявки', 'Вы уверены?', 'warning');
                 if (!isConfirmed) return;
-            } else {
-                if (!confirm('Удалить заявку?')) return;
-            }
-
+            } else { if (!confirm('Удалить заявку?')) return; }
             const btn = document.querySelector('.btn-delete');
             if (btn) btn.disabled = true;
-
-            try {
-                await fetch('/teammates/delete', { method: 'POST' });
-                location.reload();
-            } catch (e) {
-                console.error(e);
-                alert('Ошибка удаления');
-                if (btn) btn.disabled = false;
-            }
+            try { await fetch('/teammates/delete', { method: 'POST' }); location.reload(); } catch (e) { console.error(e); alert('Ошибка удаления'); if (btn) btn.disabled = false; }
         }
 
         const LFG_RULES = `
@@ -342,24 +345,17 @@
         `;
 
         function showLfgRules() {
-            if (window.Modal) {
-                Modal.alert('📋 Правила LFG Board', LFG_RULES, 'info');
-            } else {
-                alert('Правила:\n1. Заявки живут 30 мин.');
-            }
+            if (window.Modal) Modal.alert('📋 Правила LFG Board', LFG_RULES, 'info');
+            else alert('Правила:\n1. Заявки живут 30 мин.');
         }
 
         document.addEventListener('DOMContentLoaded', () => {
             const hasSeenRules = localStorage.getItem('lfg_rules_seen');
             if (!hasSeenRules) {
-                setTimeout(() => {
-                    showLfgRules();
-                    localStorage.setItem('lfg_rules_seen', 'true');
-                }, 1000);
+                setTimeout(() => { showLfgRules(); localStorage.setItem('lfg_rules_seen', 'true'); }, 1000);
             }
         });
     </script>
-    
     <style>@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }</style>
 </body>
 </html>

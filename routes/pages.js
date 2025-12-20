@@ -443,22 +443,60 @@ router.get('/profile/:userId', async (req, res) => {
 
 router.get('/market', checkAuth, async (req, res) => {
     try {
-        let stocks = cache.get('stocks_data');
-        if (!stocks) {
-            stocks = await Stock.find({}).sort({ currentPrice: -1 }).lean();
-            await Promise.all(stocks.map(async (stock) => {
-                const fullHistory = await StockPriceHistory.find({ ticker: stock.ticker }).select('date price -_id').sort({ date: 1 }).lean();
-                if (fullHistory.length > 0) stock.priceHistory = fullHistory;
-            }));
-            cache.set('stocks_data', stocks, 60);
-        }
-        let userPortfolio = [], profile = null;
+        // 1. Сначала получаем профиль (он нужен и для обычной биржи, и для страницы обслуживания, чтобы работал Navbar)
+        let profile = null;
+        let userPortfolio = [];
+        
         if (req.user) {
             profile = await UserProfile.findOne({ userId: req.user.id, guildId: process.env.GUILD_ID }).lean();
             if (profile) userPortfolio = profile.portfolio || [];
         }
-        res.render('market', { user: req.user, stocks, portfolio: userPortfolio, profile, title: 'Биржа Акций', description: 'Торгуйте виртуальными акциями игроков и компаний. Анализируйте графики и зарабатывайте Звезды.', currentPath: '/market' });
-    } catch (e) { res.status(500).render('404', { user: req.user }); }
+
+        // 2. ПРОВЕРКА НА ТЕХНИЧЕСКОЕ ОБСЛУЖИВАНИЕ
+        // Если в .env стоит MARKET_MAINTENANCE=true, показываем заглушку
+        if (process.env.MARKET_MAINTENANCE === 'true') {
+            return res.render('market_maintenance', {
+                user: req.user,
+                profile: profile, // Передаем профиль для навбара
+                title: 'Биржа | Тех. обслуживание',
+                description: 'Биржа временно закрыта на обновление.',
+                currentPath: '/market',
+                // Если в футере используется systemStatus, добавь заглушку:
+                systemStatus: { online: true, ping: '---' } 
+            });
+        }
+
+        // 3. ОБЫЧНАЯ ЛОГИКА БИРЖИ (если не обслуживание)
+        let stocks = cache.get('stocks_data');
+        if (!stocks) {
+            stocks = await Stock.find({}).sort({ currentPrice: -1 }).lean();
+            
+            await Promise.all(stocks.map(async (stock) => {
+                const fullHistory = await StockPriceHistory.find({ ticker: stock.ticker })
+                    .select('date price -_id')
+                    .sort({ date: 1 })
+                    .lean();
+                if (fullHistory.length > 0) stock.priceHistory = fullHistory;
+            }));
+            
+            cache.set('stocks_data', stocks, 60);
+        }
+
+        // Рендерим обычную биржу
+        res.render('market', { 
+            user: req.user, 
+            stocks, 
+            portfolio: userPortfolio, 
+            profile, 
+            title: 'Биржа Акций', 
+            description: 'Торгуйте виртуальными акциями игроков и компаний. Анализируйте графики и зарабатывайте Звезды.', 
+            currentPath: '/market' 
+        });
+
+    } catch (e) { 
+        console.error('Market Route Error:', e);
+        res.status(500).render('404', { user: req.user }); 
+    }
 });
 
 router.get('/leaderboard', async (req, res) => {

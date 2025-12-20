@@ -49,6 +49,26 @@ app.use((req, res, next) => {
     next();
 });
 
+// Список основных доменов Google для рекламы и аналитики
+const googleDomains = [
+    "https://www.google.com",
+    "https://www.google.com.ua", // Украина
+    "https://www.google.pl",     // Польша
+    "https://www.google.ru",     // РФ
+    "https://www.google.de",     // Германия
+    "https://www.google.co.uk",  // Великобритания
+    "https://www.google.fr",     // Франция
+    "https://www.google.it",     // Италия
+    "https://www.google.es",     // Испания
+    "https://www.google.nl",     // Нидерланды
+    "https://www.google.be",     // Бельгия
+    "https://www.google.kz",     // Казахстан
+    "https://www.google.by",     // Беларусь
+    "https://googleads.g.doubleclick.net",
+    "https://www.googleadservices.com",
+    "https://stats.g.doubleclick.net"
+];
+
 app.use(helmet({
     contentSecurityPolicy: {
         directives: {
@@ -83,12 +103,9 @@ app.use(helmet({
                 "https://ik.imagekit.io",
                 "https://www.google-analytics.com",
                 "https://www.googletagmanager.com",
-                "https://www.google.com",
-                "https://googleads.g.doubleclick.net",
-                "https://www.google.ru",
-                "https://www.google.com.ua", // <--- ДОБАВИЛ ЭТО
                 "https://*.clarity.ms",
-                "https://c.bing.com"
+                "https://c.bing.com",
+                ...googleDomains // <--- Разворачиваем список здесь
             ],
             fontSrc: ["'self'", "https://fonts.gstatic.com"],
             connectSrc: [
@@ -100,14 +117,10 @@ app.use(helmet({
                 "https://www.google-analytics.com",
                 "https://region1.google-analytics.com",
                 "https://www.googletagmanager.com",
-                "https://www.google.com",
-                "https://www.google.com.ua", // <--- И ЭТО (на всякий случай)
-                "https://www.googleadservices.com",
-                "https://googleads.g.doubleclick.net",
-                "https://stats.g.doubleclick.net",
                 "https://www.clarity.ms",
                 "https://c.bing.com",
-                "https://*.clarity.ms"
+                "https://*.clarity.ms",
+                ...googleDomains
             ],
             frameSrc: [
                 "'self'",
