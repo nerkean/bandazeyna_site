@@ -241,7 +241,6 @@
     <%- include('partials/footer') %>
 
     <script nonce="<%= nonce %>">
-        // 1. Вставка тегов
         function insertTag(open, close) {
             const textarea = document.getElementById('contentArea');
             const start = textarea.selectionStart;
@@ -252,7 +251,6 @@
             textarea.selectionEnd = start + open.length + (end - start);
         }
 
-        // 2. Превью обложки
         function previewImage(input) {
             if (input.files && input.files[0]) {
                 const reader = new FileReader();
@@ -265,16 +263,14 @@
             }
         }
 
-        // 3. Превью иконки
         function updateIconPreview() {
             const val = document.getElementById('iconInput').value;
             document.getElementById('iconPreview').innerHTML = `<i class="${val}"></i>`;
         }
 
-        // 4. Отображение имен выбранных файлов
         function updateFileList(input) {
             const list = document.getElementById('newFileList');
-            list.innerHTML = ''; // Очищаем старые
+            list.innerHTML = '';
             
             if (input.files) {
                 Array.from(input.files).forEach(file => {
@@ -289,7 +285,6 @@
             }
         }
 
-        // 5. AI Polish (из прошлого ответа)
         async function polishWithAI() {
             const textarea = document.getElementById('contentArea');
             const titleInput = document.querySelector('input[name="title"]');
@@ -322,7 +317,6 @@
             }
         }
 
-        // 6. Удаление СУЩЕСТВУЮЩИХ файлов
         async function deleteAttachment(articleId, filePath, elementId) {
             if (!confirm('Удалить этот файл навсегда?')) return;
 
@@ -344,12 +338,10 @@
             }
         }
 
-        // 7. Отправка формы (AJAX для файлов)
         document.getElementById('wikiForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
             const formData = new FormData(e.target);
-            // Исправляем чекбокс
             formData.set('isPublished', e.target.isPublished.checked);
 
             const btn = document.querySelector('.btn-submit');
@@ -359,7 +351,7 @@
             try {
                 const res = await fetch('/api/admin/wiki', {
                     method: 'POST',
-                    body: formData // Браузер сам выставит multipart headers
+                    body: formData 
                 });
                 const result = await res.json();
                 

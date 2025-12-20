@@ -1,0 +1,280 @@
+
+        :root { --bg: #050505; --text: #ddd; --primary: #5865F2; }
+        body { background: var(--bg); color: var(--text); font-family: 'Montserrat', sans-serif; }
+
+        .article-wrapper { 
+            max-width: 1000px; 
+            margin: 0 auto; 
+            padding: 120px 20px 100px;
+            display: flow-root; 
+        }
+
+        .crumbs { margin-bottom: 20px; font-size: 0.9rem; color: #888; }
+        .crumbs a { color: var(--primary); text-decoration: none; }
+
+        .art-header {
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding-bottom: 25px; margin-bottom: 30px;
+        }
+
+        .art-h1 { 
+            font-size: 3rem; font-weight: 900; color: #fff; 
+            margin-bottom: 15px; line-height: 1.1; 
+        }
+
+        .art-meta { 
+            display: flex; flex-wrap: wrap; gap: 15px; 
+            font-size: 0.9rem; color: #888; align-items: center; 
+            margin-top: 15px;
+        }
+        
+        .art-tag { 
+            background: rgba(88, 101, 242, 0.15); 
+            color: #fff; border: 1px solid rgba(88, 101, 242, 0.3);
+            padding: 4px 12px; border-radius: 6px; 
+            font-size: 0.75rem; text-transform: uppercase; font-weight: 700; letter-spacing: 1px;
+            display: inline-block;
+            width: fit-content;
+        }
+
+        .meta-item { display: flex; align-items: center; gap: 6px; }
+
+        .content { 
+            font-size: 1.1rem; line-height: 1.7; color: #ccc; 
+            min-height: 300px;
+            width: 100%; 
+            position: relative;
+        }
+
+        .art-slider-wrap {
+            float: right;
+            width: 380px;
+            max-width: 100%;
+            height: 280px;
+            margin: 5px 0 20px 30px;
+            position: relative;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.1);
+            z-index: 10;
+            contain: layout paint; 
+    display: block;
+        }
+
+        .art-slider-track {
+            display: flex;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            scroll-behavior: smooth;
+            scrollbar-width: none;
+        }
+        .art-slider-track::-webkit-scrollbar { display: none; }
+
+        .art-slide {
+            flex: 0 0 100%;
+            scroll-snap-align: start;
+            height: 280px;
+            cursor: pointer; 
+            position: relative;
+        }
+
+        .art-slide::after {
+            content: '\f00e'; 
+            font-family: 'Font Awesome 5 Free';
+            font-weight: 900;
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            font-size: 2rem;
+            color: rgba(255,255,255,0.8);
+            transition: 0.3s;
+            pointer-events: none;
+        }
+        .art-slide:hover::after { transform: translate(-50%, -50%) scale(1); }
+        .art-slide:hover img { filter: brightness(0.7); }
+
+        .art-slide img {
+            width: 100%; height: 100%; object-fit: cover; display: block;
+            transition: 0.3s;
+        }
+
+        .slider-btn {
+            position: absolute; top: 50%; transform: translateY(-50%);
+            background: rgba(0,0,0,0.6); color: #fff; border: none;
+            width: 36px; height: 36px; border-radius: 50%;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            opacity: 0; transition: 0.3s; z-index: 2;
+        }
+        .art-slider-wrap:hover .slider-btn { opacity: 1; }
+        .slider-btn:hover { background: var(--primary); }
+        .slider-prev { left: 10px; }
+        .slider-next { right: 10px; }
+
+        .slider-badge {
+            position: absolute; bottom: 10px; right: 10px;
+            background: rgba(0,0,0,0.7); color: #fff; font-size: 0.75rem;
+            padding: 2px 8px; border-radius: 10px; pointer-events: none; z-index: 2;
+        }
+
+        .lightbox-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 9999; 
+            display: flex; justify-content: center; align-items: center;
+            opacity: 0; pointer-events: none;
+            transition: 0.3s ease;
+            backdrop-filter: blur(5px);
+        }
+        .lightbox-overlay.active { opacity: 1; pointer-events: all; }
+        
+        .lightbox-content {
+            max-width: 90%; max-height: 90%;
+            position: relative;
+            animation: zoomIn 0.3s ease;
+        }
+        .lightbox-content img {
+            max-width: 100%; max-height: 90vh;
+            border-radius: 8px;
+            box-shadow: 0 0 50px rgba(88, 101, 242, 0.2);
+            display: block;
+        }
+        
+        .lightbox-close {
+            position: absolute; top: -40px; right: 0;
+            color: #fff; font-size: 2rem; cursor: pointer;
+            transition: 0.3s;
+        }
+        .lightbox-close:hover { color: var(--primary); transform: rotate(90deg); }
+
+        @keyframes zoomIn {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .attachments-box {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px; padding: 20px; margin: 40px 0;
+            clear: both;
+        }
+        .attach-title { font-size: 1.2rem; font-weight: 700; margin-bottom: 15px; color: #fff; display: flex; align-items: center; gap: 10px; }
+        .attach-list { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); }
+        .attach-item {
+            display: flex; align-items: center; justify-content: space-between;
+            background: rgba(0,0,0,0.2); padding: 12px 15px; border-radius: 8px;
+            text-decoration: none; color: #ddd; transition: 0.2s; border: 1px solid transparent;
+        }
+        .attach-item:hover { background: rgba(88, 101, 242, 0.1); border-color: var(--primary); color: #fff; transform: translateY(-2px); }
+        .attach-info { display: flex; align-items: center; gap: 10px; overflow: hidden; }
+        .attach-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 180px; font-weight: 500; }
+        .file-icon { font-size: 1.2rem; color: var(--primary); min-width: 20px; }
+
+        .content h2 { 
+            font-size: 1.8rem; color: #fff; margin: 35px 0 20px; font-weight: 800; 
+            border-left: 4px solid #5865F2; padding-left: 15px; 
+            overflow: hidden; 
+        }
+        .content > h2:first-child { margin-top: 0; }
+        .content h3 { font-size: 1.4rem; color: #fff; margin: 25px 0 15px; font-weight: 700; }
+        .content p { margin-bottom: 20px; }
+        .content ul, .content ol { margin-bottom: 20px; padding-left: 20px; }
+        .content li { margin-bottom: 8px; }
+        
+        .content img:not(.art-slide img) { 
+    max-width: 100%; 
+    height: auto;
+    width: 100%; 
+    aspect-ratio: 16/9; 
+    border-radius: 12px; 
+    margin: 20px 0; 
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3); 
+    border: 1px solid rgba(255,255,255,0.05);
+    clear: both;
+    cursor: zoom-in;
+    display: block; 
+}
+        
+        .content code {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'JetBrains Mono', monospace; 
+            color: #FFD700;
+            font-size: 0.9em;
+            word-wrap: break-word; 
+            white-space: pre-wrap; 
+        }
+
+        .content pre {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto; 
+            margin: 20px 0;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .content pre code {
+            background: none; 
+            padding: 0;
+            color: #ccc;
+            white-space: pre; 
+            word-wrap: normal; 
+        }
+        
+        .content blockquote { 
+            border-left: 4px solid var(--primary); 
+            margin: 25px 0; padding: 15px 25px; 
+            font-style: italic; color: #fff; 
+            background: linear-gradient(90deg, rgba(88, 101, 242, 0.1), transparent);
+            border-radius: 0 12px 12px 0;
+        }
+
+        .related-box { margin-top: 60px; padding-top: 30px; border-top: 1px solid rgba(255,255,255,0.1); clear: both; }
+        .rel-title { font-size: 1.4rem; color: #fff; margin-bottom: 20px; font-weight: 800; }
+        .rel-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; }
+        .rel-card { 
+            background: #12141a; padding: 20px; border-radius: 12px; 
+            display: flex; align-items: center; gap: 15px; 
+            transition: 0.3s; border: 1px solid rgba(255,255,255,0.05); text-decoration: none; 
+        }
+        .rel-card:hover { transform: translateY(-3px); border-color: var(--primary); background: #161922; }
+        .rel-card i { font-size: 1.5rem; color: var(--primary); }
+        .rel-card span { font-weight: 700; color: #fff; font-size: 1rem; }
+
+.toc-box {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 30px;
+    display: inline-block;
+    min-width: 250px;
+}
+.toc-title { font-weight: 700; margin-bottom: 10px; color: #fff; }
+.toc-list { list-style: none; padding: 0; margin: 0; }
+.toc-list li { margin-bottom: 5px; }
+.toc-list a { 
+    color: #aaa; text-decoration: none; transition: 0.2s; font-size: 0.95rem; 
+    display: block;
+}
+.toc-list a:hover { color: var(--primary); transform: translateX(5px); }
+.toc-sub { margin-left: 20px; font-size: 0.9rem; }
+
+.code-wrapper { position: relative; margin: 20px 0; }
+.copy-btn {
+    position: absolute; top: 5px; right: 5px;
+    background: rgba(255,255,255,0.1); border: none; color: #fff;
+    padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.8rem;
+    opacity: 0.5; transition: 0.2s;
+}
+.copy-btn:hover { opacity: 1; background: var(--primary); }
+
+        @media (max-width: 1000px) {
+            .art-h1 { font-size: 2rem; }
+            .art-slider-wrap { float: none; width: 100%; margin: 0 0 25px 0; }
+            .art-slide { height: auto; aspect-ratio: 16/9; }
+            .slider-btn { opacity: 1; }
+        }

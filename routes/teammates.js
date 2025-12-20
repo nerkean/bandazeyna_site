@@ -1,16 +1,13 @@
 import express from 'express';
 import TeammateRequest from '../src/models/TeammateRequest.js';
-import { checkAuth } from '../middleware/checkAuth.js'; // ⚠️ ПРОВЕРЬ: путь до твоего checkAuth может отличаться!
+import { checkAuth } from '../middleware/checkAuth.js'; 
 
 const router = express.Router();
 
-// 1. Показать страницу списка
 router.get('/', async (req, res) => {
     try {
-        // Берем все заявки (новые сверху)
         const requests = await TeammateRequest.find().sort({ createdAt: -1 });
-        
-        // Проверяем, создавал ли заявку ТЕКУЩИЙ пользователь
+
         let myRequest = null;
         if (req.user) {
             myRequest = await TeammateRequest.findOne({ userId: req.user.id });
@@ -29,13 +26,10 @@ router.get('/', async (req, res) => {
     }
 });
 
-// 2. API: Создать заявку
 router.post('/create', checkAuth, async (req, res) => {
     try {
-        // Удаляем старую (если была), чтобы перезаписать
         await TeammateRequest.findOneAndDelete({ userId: req.user.id });
 
-        // Формируем ссылку на аватарку
         const avatarUrl = req.user.avatar 
             ? `https://cdn.discordapp.com/avatars/${req.user.id}/${req.user.avatar}.png` 
             : '/assets/img/default.png';
@@ -56,7 +50,6 @@ router.post('/create', checkAuth, async (req, res) => {
     }
 });
 
-// 3. API: Удалить свою заявку
 router.post('/delete', checkAuth, async (req, res) => {
     try {
         await TeammateRequest.findOneAndDelete({ userId: req.user.id });

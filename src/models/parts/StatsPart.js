@@ -1,7 +1,5 @@
 import mongoose from 'mongoose';
 
-// === СХЕМЫ СТАТИСТИКИ ===
-
 const dailyChannelStatsSchema = new mongoose.Schema({
   messageCount: { type: Number, default: 0 },
   voiceSeconds: { type: Number, default: 0 },
@@ -28,7 +26,6 @@ const topCategoryStatsSchema = new mongoose.Schema({
     lastAppearance: topAppearanceSchema,
 }, { _id: false });
 
-// === МЕТОДЫ СТАТИСТИКИ ===
 export const attachStatsMethods = (userProfileSchema) => {
 
     userProfileSchema.methods.hasAchievement = function(achievementId) {

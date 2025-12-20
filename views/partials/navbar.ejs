@@ -156,7 +156,6 @@
 
 <script nonce="<%= nonce %>">
     document.addEventListener('DOMContentLoaded', () => {
-        // === 1. ЭЛЕМЕНТЫ ===
         const mobileBtn = document.getElementById('mobileMenuBtn');
         const navMenu = document.getElementById('navMenu');
         const overlay = document.getElementById('navOverlay');
@@ -176,7 +175,6 @@
         
         let notifOpen = false;
 
-        // === 2. ЗВУК ===
         const audioElement = document.getElementById('audioNotification');
         const soundToast = document.getElementById('soundToast');
         let soundEnabled = false;
@@ -203,7 +201,6 @@
             audioElement.play().catch(() => showSoundPrompt());
         };
 
-        // === 3. UI (Меню) ===
         const closeAllDropdowns = () => {
             if (navMenu) navMenu.classList.remove('active');
             if (mobileBtn) mobileBtn.classList.remove('open');
@@ -244,7 +241,6 @@
             });
         }
 
-        // === 4. ЛОГИКА УВЕДОМЛЕНИЙ ===
         if (notifBtn && notifDropdown) {
             notifBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -265,12 +261,10 @@
                 }
             });
 
-            // Кнопка "Прочитать все"
             if (markAllReadBtn) {
                 markAllReadBtn.addEventListener('click', async (e) => {
                     e.stopPropagation();
                     updateBadge(0);
-                    // Очищаем список визуально
                     if (notifItems) {
                         notifItems.innerHTML = '<div class="notif-empty">Пусто</div>';
                     }
@@ -285,33 +279,27 @@
             }
         }
 
-        // 🔥 КЛИК ПО УВЕДОМЛЕНИЮ (ИСЧЕЗНОВЕНИЕ) 🔥
         window.readOne = async (id, link, element) => {
-            // 1. Переход по ссылке (если есть)
             if (link && link !== '#' && link !== 'undefined') window.location.href = link;
 
-            // 2. Визуальное удаление элемента
             if (element) {
                 element.style.transition = 'all 0.3s ease';
                 element.style.opacity = '0';
                 element.style.transform = 'translateX(20px)';
                 setTimeout(() => {
                     element.remove();
-                    // Проверяем, пусто ли теперь
                     if (notifItems && notifItems.children.length === 0) {
                         notifItems.innerHTML = '<div class="notif-empty">Пусто</div>';
                     }
                 }, 300);
             }
 
-            // 3. Обновление бейджа (минус 1)
             let currentCount = 0;
             if (notifBadge && notifBadge.style.display !== 'none') {
                 currentCount = parseInt(notifBadge.innerText) || 0;
             }
             if (currentCount > 0) updateBadge(currentCount - 1);
 
-            // 4. Запрос на сервер (пометить прочитанным)
             try {
                 await fetch('/api/notifications/read', {
                     method: 'POST',
@@ -340,7 +328,6 @@
             return '<i class="fas fa-info-circle" style="color: #3498db"></i>';
         }
 
-        // === 5. SOCKET.IO ===
         if (typeof io !== 'undefined') {
             const socket = io();
 
@@ -367,9 +354,7 @@
                 }
             });
 
-            // Новое уведомление
             socket.on('new_notification', (notif) => {
-                // Анимация и звук
                 if (bellIcon) {
                     bellIcon.classList.remove('bell-shake');
                     void bellIcon.offsetWidth; 
@@ -378,19 +363,16 @@
                 }
                 playNotificationSound();
 
-                // Бейдж +1
                 let currentCount = 0;
                 if (notifBadge && notifBadge.style.display !== 'none') {
                     currentCount = parseInt(notifBadge.innerText) || 0;
                 }
                 updateBadge(currentCount + 1);
 
-                // Добавление в список
                 if (notifItems) {
                     const emptyMsg = notifItems.querySelector('.notif-empty');
                     if (emptyMsg) emptyMsg.remove();
 
-                    // Обрати внимание: добавляем "this" в вызов функции
                     const html = `
                         <div class="notif-item unread" onclick="readOne('${notif._id}', '${notif.link || '#'}', this)">
                             <div class="notif-icon">

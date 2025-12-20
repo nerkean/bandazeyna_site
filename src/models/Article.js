@@ -7,8 +7,8 @@ const articleSchema = new mongoose.Schema({
     content: { type: String, required: true }, 
 
     attachments: [{
-        name: String, // Имя файла (config.json)
-        path: String  // Ссылка на ImageKit
+        name: String,
+        path: String 
     }],
     
     category: { 

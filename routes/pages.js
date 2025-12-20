@@ -21,14 +21,13 @@ import cache from '../src/utils/cache.js';
 const router = express.Router();
 
 router.get('/', async (req, res) => {
-    // 1. Объявляем JSON-LD в самом начале (гарантируем, что он есть всегда)
     const jsonLD = {
         "@context": "https://schema.org",
         "@graph": [
             {
                 "@type": "Organization",
                 "name": "Дача Зейна",
-                "url": "https://dachazeyna.com", // Google любит слеш в конце, но так тоже ок
+                "url": "https://dachazeyna.com",
                 "logo": "https://dachazeyna.com/assets/img/logo.png",
                 "sameAs": [
                     "https://discord.gg/bandazeyna",
@@ -37,7 +36,7 @@ router.get('/', async (req, res) => {
             },
             {
                 "@type": "WebSite",
-                "url": "https://dachazeyna.com/", // Тут лучше добавить слеш /
+                "url": "https://dachazeyna.com/",
                 "potentialAction": {
                     "@type": "SearchAction",
                     "target": "https://dachazeyna.com/leaderboard?q={search_term_string}",
@@ -68,7 +67,6 @@ router.get('/', async (req, res) => {
             myProfile = await UserProfile.findOne({ userId: req.user.id, guildId: process.env.GUILD_ID }).lean();
         }
 
-        // Рендер при УСПЕХЕ
         res.render('index', { 
             user: req.user, 
             stats, 
@@ -77,32 +75,30 @@ router.get('/', async (req, res) => {
             heroStock: topStock || { ticker: 'INDEX', lastChange: 0, currentPrice: 100 },
             myProfile, 
             currentPath: '/', 
-            jsonLD // <--- Передаем
+            jsonLD
         });
 
     } catch (e) { 
-        console.error('Ошибка главной страницы:', e); // Логируем ошибку, чтобы знать о проблемах
+        console.error('Ошибка главной страницы:', e);
         
-        // Рендер при ОШИБКЕ (fallback)
         res.render('index', { 
             user: req.user, 
             stats: { users: 0, stars: 0 }, 
             heroStock: {}, 
             myProfile: null,
-            currentPath: '/', // Не забудь path для каноникал
+            currentPath: '/',
             title: 'Главная | Дача Зейна',
-            jsonLD // <--- ТЕПЕРЬ ОНО ЕСТЬ И ТУТ!
+            jsonLD
         }); 
     }
 });
 
 router.get('/wrapped', async (req, res) => {
     try {
-        const cacheKey = 'wrapped_data_v5'; // Версия 5
+        const cacheKey = 'wrapped_data_v5';
         let wrappedData = cache.get(cacheKey);
 
         if (!wrappedData) {
-            // 1. Глобальная статистика
             const globalAgg = await UserProfile.aggregate([{
                 $group: {
                     _id: null,
@@ -117,7 +113,6 @@ router.get('/wrapped', async (req, res) => {
 
             const marketAgg = await StockTransaction.aggregate([{ $group: { _id: null, volume: { $sum: "$totalValue" }, trades: { $sum: 1 } } }]);
 
-            // --- ЛОГИКА ДЛЯ ИМПЕРАТОРА (Net Worth) ---
             const allStocks = await Stock.find({}).lean();
             const priceMap = {};
             allStocks.forEach(s => priceMap[s.ticker] = s.currentPrice);
@@ -142,21 +137,17 @@ router.get('/wrapped', async (req, res) => {
                 }
             });
 
-            // 2. Сбор Легенд
             const [
-                richest,        // Богач (кэш)
-                richestShards,  // Магнат Осколков
-                chatty,         // Болтун
-                voice,          // Голос
-                taxPayer,       // Налогоплательщик
-                reputation,     // Авторитет
-                ghostHunter,    // Охотник
-                streakerData,   // Данные стриккера (из отдельной коллекции)
-                
-                // Новые номинации:
-                topCollectorAgg, // Коллекционер
-                mostPopularAgg,  // Любимчик (по комментам)
-                
+                richest,
+                richestShards,
+                chatty,
+                voice,
+                taxPayer,
+                reputation,
+                ghostHunter,
+                streakerData,
+                topCollectorAgg,
+                mostPopularAgg,
                 totalUsers
             ] = await Promise.all([
                 UserProfile.findOne({ stars: { $gt: 0 } }).sort({ stars: -1 }).select('username avatar userId stars').lean(),
@@ -168,14 +159,12 @@ router.get('/wrapped', async (req, res) => {
                 UserProfile.findOne({ event_ghostsCaught: { $gt: 0 } }).sort({ event_ghostsCaught: -1 }).select('username avatar userId event_ghostsCaught').lean(),
                 UserDailyStreak.findOne({ currentStreak: { $gt: 0 } }).sort({ currentStreak: -1 }).lean(),
                 
-                // Коллекционер (длина инвентаря)
                 UserProfile.aggregate([
                     { $project: { username: 1, avatar: 1, userId: 1, itemCount: { $size: { $ifNull: ["$inventory", []] } } } },
                     { $sort: { itemCount: -1 } },
                     { $limit: 1 }
                 ]),
 
-                // Любимчик (длина массива комментов)
                 UserProfile.aggregate([
                     { $project: { username: 1, avatar: 1, userId: 1, commCount: { $size: { $ifNull: ["$profileComments", []] } } } },
                     { $sort: { commCount: -1 } },
@@ -188,14 +177,12 @@ router.get('/wrapped', async (req, res) => {
             const topCollector = topCollectorAgg[0] || null;
             const topPopular = mostPopularAgg[0] || null;
 
-            // Обработка Марафонца (Стриккера)
             let topStreaker = null;
             if (streakerData) {
                 const u = await UserProfile.findOne({ userId: streakerData.userId }).select('username avatar userId').lean();
                 if (u) topStreaker = { ...u, streak: streakerData.currentStreak };
             }
 
-            // 3. Агрегация Трофи Хантера
             const topAchieverAgg = await UserProfile.aggregate([
                 { $project: { username: 1, avatar: 1, userId: 1, achCount: { $size: "$achievements" } } },
                 { $sort: { achCount: -1 } },
@@ -203,7 +190,6 @@ router.get('/wrapped', async (req, res) => {
             ]);
             const topAchiever = topAchieverAgg[0] || null;
 
-            // 4. Трейдер Года
             const topTraderAgg = await StockTransaction.aggregate([
                 { $group: { _id: "$userId", volume: { $sum: "$totalValue" } } },
                 { $sort: { volume: -1 } }, { $limit: 1 }
@@ -214,7 +200,6 @@ router.get('/wrapped', async (req, res) => {
                 if (u) topTrader = { ...u, volume: topTraderAgg[0].volume };
             }
 
-            // 5. Акция года
             const popularStockAgg = await StockTransaction.aggregate([
                 { $group: { _id: "$ticker", count: { $sum: 1 } } }, 
                 { $sort: { count: -1 } }, { $limit: 1 }
@@ -232,11 +217,9 @@ router.get('/wrapped', async (req, res) => {
                 richest, richestShards, chatty, voice, 
                 taxPayer, reputation, ghostHunter, 
                 topAchiever, topTrader, topStreaker,
-                
-                // Новые поля:
                 richestNet,
                 topCollector,
-                topPopular // Вместо ветерана
+                topPopular
             };
 
             cache.set(cacheKey, wrappedData, 600);
@@ -285,70 +268,53 @@ router.get('/wiki/:slug', async (req, res) => {
         const article = await Article.findOne({ slug: req.params.slug });
 
         if (!article) {
-            // Если статья не найдена — 404
             return res.status(404).render('404', { 
                 user: req.user, 
                 title: 'Страница не найдена' 
             });
         }
 
-        // --- 🧠 УМНАЯ СИСТЕМА ПРОСМОТРОВ ---
-        
         let shouldCount = true;
         const userAgent = req.get('User-Agent') || '';
 
-        // 1. Отсеиваем ботов (Google, Yandex, Discordbot и т.д.)
         const isBot = /bot|googlebot|crawler|spider|robot|crawling/i.test(userAgent);
         if (isBot) {
             shouldCount = false;
         }
 
-        // 2. Инициализируем массив просмотренных статей в сессии, если его нет
         if (!req.session.viewedArticles) {
             req.session.viewedArticles = [];
         }
 
-        // 3. Проверяем, есть ли ID этой статьи в сессии пользователя
         const articleIdStr = article._id.toString();
         if (req.session.viewedArticles.includes(articleIdStr)) {
-            shouldCount = false; // Уже смотрел в этой сессии
+            shouldCount = false;
         }
 
-        // 4. (Опционально) Автор статьи не накручивает просмотры сам себе
         if (req.user && req.user.username === article.author) {
             shouldCount = false; 
         }
 
-        // Если все проверки пройдены — засчитываем просмотр
         if (shouldCount) {
-            // Атомарно увеличиваем счетчик в базе (лучше, чем article.views++)
             await Article.findByIdAndUpdate(article._id, { $inc: { views: 1 } });
             
-            // Добавляем ID в сессию, чтобы больше не считать этот просмотр
             req.session.viewedArticles.push(articleIdStr);
             
-            // Визуально обновляем объект article для текущего рендера, 
-            // чтобы пользователь сразу увидел +1
             article.views += 1;
         }
 
-        // --- КОНЕЦ ЛОГИКИ ПРОСМОТРОВ ---
-
-        // Поиск похожих статей (как у тебя было)
         const related = await Article.find({ 
             category: article.category, 
             _id: { $ne: article._id },
             isPublished: true 
         }).limit(3);
 
-        let ogImage = 'https://dachazeyna.com/assets/img/og-image.png'; // Дефолт
+        let ogImage = 'https://dachazeyna.com/assets/img/og-image.png';
         
         if (article.image) {
             if (article.image.startsWith('http')) {
-                // Если это ссылка на ImageKit/Cloudinary
                 ogImage = article.image;
             } else {
-                // Если локальный файл, добавляем домен
                 ogImage = `https://dachazeyna.com${article.image.startsWith('/') ? '' : '/'}${article.image}`;
             }
         }
@@ -357,13 +323,11 @@ res.render('wiki-article', {
             user: req.user, 
             article, 
             related, 
-            
-            // 👇 ДАННЫЕ ДЛЯ HEAD.EJS 👇
-            title: `${article.title} | Вики`, // Заголовок вкладки
-            description: article.description,   // Описание для Google/Discord
-            image: ogImage,                     // Картинка статьи
-            currentPath: `/wiki/${article.slug}`, // Для канонической ссылки
-            ogType: 'article'                   // Тип контента (важно для SEO)
+            title: `${article.title} | Вики`,
+            description: article.description,
+            image: ogImage,
+            currentPath: `/wiki/${article.slug}`,
+            ogType: 'article'
         });
 
     } catch (e) {
@@ -443,7 +407,6 @@ router.get('/profile/:userId', async (req, res) => {
 
 router.get('/market', checkAuth, async (req, res) => {
     try {
-        // 1. Сначала получаем профиль (он нужен и для обычной биржи, и для страницы обслуживания, чтобы работал Navbar)
         let profile = null;
         let userPortfolio = [];
         
@@ -452,21 +415,17 @@ router.get('/market', checkAuth, async (req, res) => {
             if (profile) userPortfolio = profile.portfolio || [];
         }
 
-        // 2. ПРОВЕРКА НА ТЕХНИЧЕСКОЕ ОБСЛУЖИВАНИЕ
-        // Если в .env стоит MARKET_MAINTENANCE=true, показываем заглушку
         if (process.env.MARKET_MAINTENANCE === 'true') {
             return res.render('market_maintenance', {
                 user: req.user,
-                profile: profile, // Передаем профиль для навбара
+                profile: profile,
                 title: 'Биржа | Тех. обслуживание',
                 description: 'Биржа временно закрыта на обновление.',
                 currentPath: '/market',
-                // Если в футере используется systemStatus, добавь заглушку:
                 systemStatus: { online: true, ping: '---' } 
             });
         }
 
-        // 3. ОБЫЧНАЯ ЛОГИКА БИРЖИ (если не обслуживание)
         let stocks = cache.get('stocks_data');
         if (!stocks) {
             stocks = await Stock.find({}).sort({ currentPrice: -1 }).lean();
@@ -482,7 +441,6 @@ router.get('/market', checkAuth, async (req, res) => {
             cache.set('stocks_data', stocks, 60);
         }
 
-        // Рендерим обычную биржу
         res.render('market', { 
             user: req.user, 
             stocks, 
@@ -640,7 +598,6 @@ router.get('/test-notification', checkAuth, async (req, res) => {
             link: '/inventory'
         });
 
-        // --- ОТЛАДКА ---
         const io = req.app.get('io');
         
         console.log('--- TEST NOTIFICATION DEBUG ---');
@@ -651,10 +608,8 @@ router.get('/test-notification', checkAuth, async (req, res) => {
         } else {
             console.log('2. IO найден. Попытка отправки в комнату:', String(req.user.id));
             
-            // Принудительно приводим к строке
             const roomName = String(req.user.id);
             
-            // Проверяем, есть ли кто-то в этой комнате
             const sockets = await io.in(roomName).fetchSockets();
             console.log('3. Сокетов в этой комнате:', sockets.length);
 
@@ -673,7 +628,6 @@ router.get('/test-notification', checkAuth, async (req, res) => {
             }
         }
         console.log('-----------------------------');
-        // --- КОНЕЦ ОТЛАДКИ ---
 
         res.send('<h1>Отправлено</h1><p>Смотри консоль сервера</p>');
     } catch (e) {
@@ -784,18 +738,16 @@ router.get('/giveaways', checkAuth, async (req, res) => {
     }
 });
 
-// routes/pages.js (внизу)
 router.get('/banned', async (req, res) => {
     if (!req.user || !req.user.isBanned) return res.redirect('/');
     
-    // Проверяем, есть ли активная заявка
     const existingAppeal = await BanAppeal.findOne({ userId: req.user.id, status: 'PENDING' });
 
     res.render('banned', { 
         user: req.user, 
         title: 'Доступ ограничен',
         reason: req.user.banReason || 'Нарушение правил',
-        hasPendingAppeal: !!existingAppeal // true/false
+        hasPendingAppeal: !!existingAppeal
     });
 });
 
@@ -803,7 +755,6 @@ router.get('/admin/appeals', checkAuth, async (req, res) => {
     const ADMIN_IDS = ['438744415734071297'];
     if (!ADMIN_IDS.includes(req.user.id)) return res.redirect('/');
 
-    // Берем только ожидающие заявки
     const appeals = await BanAppeal.find({ status: 'PENDING' }).sort({ createdAt: 1 }).lean();
 
     res.render('admin-appeals', { 
@@ -815,7 +766,6 @@ router.get('/admin/appeals', checkAuth, async (req, res) => {
 });
 
 router.get('/admin/logs', checkAuth, checkWikiAccess, async (req, res) => {
-    // Берем последние 100 действий, новые сверху
     const logs = await AdminLog.find().sort({ timestamp: -1 }).limit(100).lean();
     
     res.render('admin-logs', { 
@@ -828,16 +778,11 @@ router.get('/admin/logs', checkAuth, checkWikiAccess, async (req, res) => {
 
 router.get('/sitemap.xml', async (req, res) => {
     try {
-        // 1. Получаем все опубликованные статьи из базы
-        // Нам нужны только slug и updatedAt (или createdAt)
         const articles = await Article.find({ isPublished: true })
                                       .select('slug updatedAt');
 
-        // 2. Базовый URL сайта
         const baseUrl = 'https://dachazeyna.com';
         
-        // 3. Статические страницы (которые есть всегда)
-        // lastmod для них ставим текущий или фиксированный, если они редко меняются
         const staticPages = [
             { url: '/', priority: 1.00 },
             { url: '/wrapped', priority: 0.80 },
@@ -845,16 +790,13 @@ router.get('/sitemap.xml', async (req, res) => {
             { url: '/teammates', priority: 0.80 },
             { url: '/leaderboard', priority: 0.80 },
             { url: '/bot', priority: 0.80 },
-            // Служебные страницы можно понизить в приоритете
             { url: '/terms', priority: 0.50 },
             { url: '/privacy', priority: 0.50 }
         ];
 
-        // 4. Генерируем XML
         let xml = '<?xml version="1.0" encoding="UTF-8"?>';
         xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
 
-        // Добавляем статику
         const today = new Date().toISOString();
         staticPages.forEach(page => {
             xml += `
@@ -866,7 +808,6 @@ router.get('/sitemap.xml', async (req, res) => {
             </url>`;
         });
 
-        // Добавляем динамические статьи из БД
         articles.forEach(article => {
             xml += `
             <url>
@@ -879,7 +820,6 @@ router.get('/sitemap.xml', async (req, res) => {
 
         xml += '</urlset>';
 
-        // 5. Отправляем ответ с правильным заголовком
         res.header('Content-Type', 'application/xml');
         res.send(xml);
 

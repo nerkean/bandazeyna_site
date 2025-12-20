@@ -4,12 +4,12 @@ const depositSchema = new mongoose.Schema({
     userId: { type: String, required: true, index: true },
     guildId: { type: String, required: true },
     amount: { type: Number, required: true },
-    interestRate: { type: Number, required: true }, // Например 0.05 для 5%
-    payoutAmount: { type: Number, required: true }, // Сколько вернется
+    interestRate: { type: Number, required: true }, 
+    payoutAmount: { type: Number, required: true }, 
     planType: { type: String, enum: ['SAVINGS', 'FLEXIBLE'], required: true },
     
     depositDate: { type: Date, default: Date.now },
-    maturityDate: { type: Date, required: true }, // Дата окончания
+    maturityDate: { type: Date, required: true }, 
     
     status: { 
         type: String, 

@@ -1,7 +1,5 @@
 import mongoose from 'mongoose';
 
-// === СХЕМЫ ИНВЕНТАРЯ ===
-
 const inventoryItemSchema = new mongoose.Schema({
   itemId: { type: String, required: true },
   quantity: { type: Number, required: true, default: 1, min: 0 },
@@ -26,13 +24,10 @@ const activeLuckCloverSchema = new mongoose.Schema({
 }, { _id: false });
 
 export const attachInventoryMethods = (userProfileSchema) => {
-    
-    // === НОВЫЙ МЕТОД (Добавляем сюда) ===
     userProfileSchema.methods.countItem = function(itemId) {
         const item = this.inventory.find(invItem => invItem.itemId === itemId);
         return item ? item.quantity : 0;
     };
-    // ====================================
 
     userProfileSchema.methods.hasItem = function(itemId, quantity = 1) {
         const item = this.inventory.find(invItem => invItem.itemId === itemId);
@@ -110,7 +105,6 @@ export const attachInventoryMethods = (userProfileSchema) => {
     };
 };
 
-// Экспортируем схемы, чтобы использовать их в UserProfile.js
 export {
     inventoryItemSchema,
     activeStarBoostSchema,

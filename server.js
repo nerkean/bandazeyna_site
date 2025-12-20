@@ -37,33 +37,28 @@ const io = new Server(httpServer, {
 
 app.set('io', io)
 
-// app.set('trust proxy', 1); 
 app.use(compression());
 
 app.use((req, res, next) => {
     res.locals.nonce = crypto.randomBytes(16).toString('base64');
-    
-    // ДОБАВЛЯЕМ ЭТУ СТРОКУ:
     res.locals.gaId = process.env.GOOGLE_ANALYTICS_ID; 
-    
     next();
 });
 
-// Список основных доменов Google для рекламы и аналитики
 const googleDomains = [
     "https://www.google.com",
-    "https://www.google.com.ua", // Украина
-    "https://www.google.pl",     // Польша
-    "https://www.google.ru",     // РФ
-    "https://www.google.de",     // Германия
-    "https://www.google.co.uk",  // Великобритания
-    "https://www.google.fr",     // Франция
-    "https://www.google.it",     // Италия
-    "https://www.google.es",     // Испания
-    "https://www.google.nl",     // Нидерланды
-    "https://www.google.be",     // Бельгия
-    "https://www.google.kz",     // Казахстан
-    "https://www.google.by",     // Беларусь
+    "https://www.google.com.ua",
+    "https://www.google.pl",
+    "https://www.google.ru",
+    "https://www.google.de",
+    "https://www.google.co.uk",
+    "https://www.google.fr",
+    "https://www.google.it",
+    "https://www.google.es",
+    "https://www.google.nl",
+    "https://www.google.be",
+    "https://www.google.kz",
+    "https://www.google.by",
     "https://googleads.g.doubleclick.net",
     "https://www.googleadservices.com",
     "https://stats.g.doubleclick.net"
@@ -105,7 +100,7 @@ app.use(helmet({
                 "https://www.googletagmanager.com",
                 "https://*.clarity.ms",
                 "https://c.bing.com",
-                ...googleDomains // <--- Разворачиваем список здесь
+                ...googleDomains
             ],
             fontSrc: ["'self'", "https://fonts.gstatic.com"],
             connectSrc: [
@@ -154,24 +149,19 @@ mongoose.connect(process.env.MONGODB_URI)
     .then(() => console.log('🌍 Сайт подключен к MongoDB'))
     .catch(err => console.error('Ошибка БД:', err));
 
-// В server.js (Сайт)
 const connection = mongoose.connection;
 
 connection.once('open', () => {
     console.log('👀 Сайт следит за балансом пользователей...');
     
-    // Следим за изменениями в таблице userprofiles
     const changeStream = UserProfile.watch([], { fullDocument: 'updateLookup' });
 
     changeStream.on('change', (change) => {
-        // Если что-то обновилось
         if (change.operationType === 'update') {
             const doc = change.fullDocument;
             const updatedFields = change.updateDescription.updatedFields;
 
-            // Если изменились звезды или осколки
             if (updatedFields.stars !== undefined || updatedFields.shards !== undefined) {
-                // Шлем ивент в навбар
                 io.to(doc.userId).emit('user_update', { 
                     stars: doc.stars, 
                     shards: doc.shards 
@@ -210,13 +200,11 @@ const onlineUsers = new Set();
 
 let boardCache = new Array(10000).fill('#222222');
 
-// Загружаем доску из БД при старте сервера
 async function initBoard() {
     let board = await PixelBoard.findOne();
     if (!board) {
         board = await PixelBoard.create({ pixels: boardCache });
     } else {
-        // Если размер массива в БД меньше (например, расширили поле), добиваем пустотой
         if (board.pixels.length < 10000) {
             board.pixels = board.pixels.concat(new Array(10000 - board.pixels.length).fill('#222222'));
         }
@@ -226,29 +214,23 @@ async function initBoard() {
 }
 initBoard();
 
-// Функция сохранения доски (чтобы не дёргать БД на каждый пиксель)
 async function saveBoard() {
     await PixelBoard.findOneAndUpdate({}, { pixels: boardCache, lastUpdated: new Date() }, { upsert: true });
 }
-// Сохраняем каждые 30 секунд (если сервер упадет, потеряется максимум 30 сек рисунков)
 setInterval(saveBoard, 30000);
 
 io.on('connection', (socket) => {
     console.log(`🔌 [SOCKET] Новое соединение: ${socket.id}`);
 
-    // Проверяем, нашла ли сессия пользователя
     const user = socket.request.user;
 
    if (user) {
-        // ВАЖНО: Приводим ID к строке
         const userId = String(user.id); 
         
         console.log(`✅ [SOCKET] Пользователь опознан: ${user.username} (ID: ${userId})`);
         
-        // 1. АВТОМАТИЧЕСКИЙ ВХОД (если сессия есть)
         socket.join(userId);
 
-        // 2. РУЧНОЙ ВХОД (для надежности, если клиент пришлет join_room)
         socket.on('join_room', (id) => {
             if (id === userId) {
                 socket.join(id);
@@ -261,7 +243,6 @@ io.on('connection', (socket) => {
 
         socket.on('disconnect', () => {
             console.log(`❌ [SOCKET] Отключился: ${user.username}`);
-            // Проверяем, остались ли еще сокеты у этого юзера
             const socketsInRoom = io.sockets.adapter.rooms.get(userId);
             if (!socketsInRoom || socketsInRoom.size === 0) {
                 onlineUsers.delete(userId);
@@ -273,25 +254,21 @@ socket.on('get_board', () => {
         socket.emit('board_data', boardCache);
     });
 
-    // 2. Юзер ставит пиксель
     socket.on('place_pixel', async ({ index, color, userId }) => {
         try {
             if (index < 0 || index >= 10000) return;
             
-            // Находим юзера в БД (чтобы проверить кулдаун и баланс)
             const user = await UserProfile.findOne({ userId });
             if (!user) return;
 
             const now = new Date();
-            const cooldownTime = 5 * 60 * 1000; // 5 минут
+            const cooldownTime = 5 * 60 * 1000; 
             const lastPlace = user.lastPixelTime || 0;
             const diff = now - lastPlace;
 
             let cost = 0;
 
-            // Если кулдаун не прошел
             if (diff < cooldownTime) {
-                // Платная установка без очереди
                 cost = 10; 
                 if (user.stars < cost) {
                     socket.emit('pixel_error', 'Кулдаун! Либо жди, либо плати 10 звезд (не хватает).');
@@ -299,28 +276,20 @@ socket.on('get_board', () => {
                 }
             }
 
-            // Списываем деньги и обновляем время
             if (cost > 0) {
                 user.stars -= cost;
-                // Не обновляем lastPixelTime, если заплатил? 
-                // Или обновляем? Давай обновлять, чтобы снова включился таймер.
                 user.lastPixelTime = now; 
                 await user.save();
                 
-                // Отправляем обновление баланса лично юзеру
                 socket.emit('user_update', { stars: user.stars });
             } else {
-                // Бесплатная установка
                 user.lastPixelTime = now;
                 await user.save();
             }
 
-            // ОБНОВЛЯЕМ ДОСКУ
             boardCache[index] = color;
 
-            // Отправляем всем этот пиксель
             io.emit('pixel_update', { index, color, userId: user.userId, username: user.username });
-
         } catch (e) {
             console.error(e);
         }
@@ -356,16 +325,11 @@ passport.use(new DiscordStrategy({
 passport.serializeUser((user, done) => done(null, { id: user.id, username: user.username, avatar: user.avatar }));
 passport.deserializeUser(async (obj, done) => {
     try {
-        // [FIX] Используем .lean(), чтобы получить обычный объект, а не Mongoose-документ
         const user = await UserProfile.findOne({ userId: obj.id }).lean();
         
         if (user) {
-            // Теперь можно безопасно перезаписывать поля
             user.avatar = obj.avatar; 
             user.discordUsername = obj.username;
-            
-            // [КРИТИЧНО] Принудительно делаем user.id равным Discord ID
-            // Чтобы проверки типа (user.id === targetId) работали правильно
             user.id = user.userId; 
             
             done(null, user);
@@ -378,20 +342,18 @@ passport.deserializeUser(async (obj, done) => {
 });
 
 app.use(async (req, res, next) => {
-    // По умолчанию пустые значения
     res.locals.notifications = [];
     res.locals.unreadCount = 0;
 
     if (req.user) {
         try {
-            // Берем уведомления за последние 24 часа, которые НЕ прочитаны
             const timeLimit = new Date(Date.now() - 24 * 60 * 60 * 1000);
             
             const notifs = await Notification.find({
                 userId: req.user.id,
                 read: false,
                 createdAt: { $gt: timeLimit }
-            }).sort({ createdAt: -1 }).lean(); // .lean() ускоряет запрос
+            }).sort({ createdAt: -1 }).lean();
 
             res.locals.notifications = notifs;
             res.locals.unreadCount = notifs.length;
@@ -412,7 +374,6 @@ app.use(async (req, res, next) => {
 });
 
 app.use((req, res, next) => {
-    // Проверяем только если юзер авторизован И забанен
     if (req.user && req.user.isBanned) {
         
         const allowedPaths = [
@@ -426,22 +387,18 @@ app.use((req, res, next) => {
             '/js/',          
             '/assets/',      
             '/img/',
-            '/api/appeal' // <--- ДОБАВИТЬ ЭТУ СТРОКУ (Разрешаем отправку формы)
+            '/api/appeal' 
         ];
 
-        // Разрешаем Главную страницу (точное совпадение)
         if (req.path === '/') return next();
 
-        // Проверяем, начинается ли путь с разрешенного
         const isAllowed = allowedPaths.some(prefix => req.path.startsWith(prefix));
 
         if (!isAllowed) {
-            // Если это API запрос (например, попытка купить акцию через консоль)
             if (req.path.startsWith('/api/')) {
                 return res.status(403).json({ error: 'Ваш аккаунт заблокирован.' });
             }
             
-            // Если пытается зайти в профиль, инвентарь, магазин и т.д. -> на страницу бана
             return res.redirect('/banned');
         }
     }
@@ -463,11 +420,9 @@ cron.schedule('0 20 * * *', async () => {
     console.log('⏰ [CRON] Проверка ежедневных наград (Timezone: MSK)...');
     
     try {
-        // 1. Определяем начало сегодняшнего дня (чтобы понять, брал ли сегодня)
         const startOfToday = new Date();
         startOfToday.setHours(0, 0, 0, 0);
 
-        // 2. Ищем "забывчивых" (кто не брал награду после 00:00)
         const usersToRemind = await UserProfile.find({
             $or: [
                 { lastDailyReward: { $exists: false } },
@@ -478,9 +433,7 @@ cron.schedule('0 20 * * *', async () => {
 
         console.log(`🔍 Найдено ${usersToRemind.length} игроков, не забравших награду.`);
 
-        // 3. Рассылаем
         for (const user of usersToRemind) {
-            // Создаем в БД
             const newNotif = await Notification.create({
                 userId: user.userId,
                 type: 'WARNING',
@@ -488,7 +441,6 @@ cron.schedule('0 20 * * *', async () => {
                 link: '/daily'
             });
 
-            // Шлем в сокет (если онлайн)
             io.to(user.userId).emit('new_notification', {
                 _id: newNotif._id,
                 type: newNotif.type,
@@ -504,7 +456,7 @@ cron.schedule('0 20 * * *', async () => {
     }
 }, {
     scheduled: true,
-    timezone: "Europe/Moscow" // 👈 САМОЕ ВАЖНОЕ: Жесткая привязка к МСК
+    timezone: "Europe/Moscow" 
 });
 
 const PORT = process.env.PORT || 3000;

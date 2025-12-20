@@ -36,7 +36,6 @@ h3 { font-weight: 700; }
 a { text-decoration: none; color: inherit; transition: 0.3s; }
 ul { list-style: none; }
 
-/* Кастомный скроллбар для всего сайта */
 ::-webkit-scrollbar { width: 8px; }
 ::-webkit-scrollbar-track { background: var(--bg-dark); }
 ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
@@ -114,15 +113,10 @@ ul { list-style: none; }
 }
 .btn-discord:hover { background: #4752c4; transform: translateY(-2px); }
 
-/* =========================================
-   УВЕДОМЛЕНИЯ (ОБНОВЛЕННЫЙ ДИЗАЙН)
-   ========================================= */
-
-/* Кнопка (колокольчик) */
 .nav-notif-btn {
     position: relative;
     width: 40px; height: 40px;
-    border-radius: 12px; /* Чуть мягче углы */
+    border-radius: 12px;
     display: flex; align-items: center; justify-content: center;
     background: rgba(255, 255, 255, 0.05);
     color: #ccc;
@@ -138,12 +132,11 @@ ul { list-style: none; }
     border-color: rgba(255,255,255,0.2);
 }
 
-/* Красный кружок (badge) */
 .notif-badge {
     position: absolute;
     top: -6px; right: -6px;
     background: #e74c3c; color: white;
-    font-family: 'Montserrat', sans-serif; /* Важно */
+    font-family: 'Montserrat', sans-serif;
     font-size: 0.65rem; font-weight: 800;
     padding: 2px 6px; border-radius: 10px;
     border: 2px solid #050505;
@@ -153,11 +146,10 @@ ul { list-style: none; }
     box-shadow: 0 2px 5px rgba(0,0,0,0.5);
 }
 
-/* Выпадающее окно */
 .notif-dropdown {
     position: absolute;
     top: 140%; right: -10px;
-    width: 380px; /* Чуть шире для удобства */
+    width: 380px;
     background: rgba(18, 20, 24, 0.98);
     backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.08);
@@ -167,8 +159,6 @@ ul { list-style: none; }
     overflow: hidden; z-index: 2000;
     transform: translateY(10px); opacity: 0;
     transition: 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
-    
-    /* ГЛАВНОЕ ИСПРАВЛЕНИЕ ШРИФТОВ */
     font-family: 'Montserrat', sans-serif;
 }
 
@@ -176,7 +166,6 @@ ul { list-style: none; }
     display: flex; transform: translateY(0); opacity: 1;
 }
 
-/* Шапка уведомлений */
 .notif-header {
     display: flex; justify-content: space-between; align-items: center;
     padding: 16px 20px;
@@ -194,10 +183,9 @@ ul { list-style: none; }
     letter-spacing: 0.05em;
 }
 
-/* Кнопка "Прочитать все" - ФИКС ШРИФТА */
 .notif-read-all {
     background: none; border: none;
-    font-family: 'Montserrat', sans-serif; /* Принудительно ставим шрифт */
+    font-family: 'Montserrat', sans-serif;
     color: var(--primary); 
     font-size: 0.75rem; 
     font-weight: 700;
@@ -210,10 +198,9 @@ ul { list-style: none; }
 }
 .notif-read-all:hover { 
     color: #fff; 
-    background: rgba(88, 101, 242, 0.15); /* Легкий фон при наведении */
+    background: rgba(88, 101, 242, 0.15);
 }
 
-/* Список со скроллом */
 .notif-list {
     max-height: 450px;
     overflow-y: auto;
@@ -222,7 +209,6 @@ ul { list-style: none; }
 .notif-list::-webkit-scrollbar { width: 4px; }
 .notif-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 4px; }
 
-/* Элемент уведомления */
 .notif-item {
     display: flex; gap: 15px;
     padding: 16px 20px;
@@ -235,17 +221,15 @@ ul { list-style: none; }
 .notif-item:hover { background: rgba(255, 255, 255, 0.04); }
 .notif-item:last-child { border-bottom: none; }
 
-/* Непрочитанное */
 .notif-item.unread {
     background: linear-gradient(90deg, rgba(88, 101, 242, 0.08) 0%, transparent 100%);
     border-left: 3px solid var(--primary);
 }
 
-/* Иконка уведомления */
 .notif-item .notif-icon {
     min-width: 36px; height: 36px;
     background: rgba(255,255,255,0.05);
-    border-radius: 10px; /* Квадратные скругленные */
+    border-radius: 10px;
     display: flex; align-items: center; justify-content: center;
     font-size: 1rem;
     margin-top: 2px;
@@ -277,18 +261,16 @@ ul { list-style: none; }
     font-weight: 500;
 }
 
-/* АДАПТИВНОСТЬ ДЛЯ МОБИЛКИ */
 @media (max-width: 900px) {
     .notif-dropdown {
         position: fixed;
         top: 80px; left: 10px; right: 10px;
         width: auto; 
         max-height: 70vh;
-        box-shadow: 0 0 0 100vmax rgba(0,0,0,0.8); /* Затемнение фона */
+        box-shadow: 0 0 0 100vmax rgba(0,0,0,0.8);
     }
 }
 
-/* --- МОБИЛЬНОЕ МЕНЮ (BURGER) --- */
 .mobile-menu-btn {
     display: none; flex-direction: column; gap: 6px;
     cursor: pointer; z-index: 1002; padding: 10px;
@@ -301,7 +283,6 @@ ul { list-style: none; }
 .mobile-menu-btn.open span:nth-child(2) { opacity: 0; }
 .mobile-menu-btn.open span:nth-child(3) { transform: rotate(-45deg) translate(5px, -6px); }
 
-/* --- ПРОФИЛЬ (DROPDOWN) --- */
 .profile-dropdown-wrapper { position: relative; display: inline-block; }
 
 .profile-trigger {
@@ -339,7 +320,6 @@ ul { list-style: none; }
 .dd-logout:hover { background: rgba(239, 68, 68, 0.1); }
 
 
-/* --- АДАПТИВНОСТЬ (MOBILE) --- */
 @media (max-width: 900px) {
     .mobile-menu-btn { display: flex; }
     
@@ -361,9 +341,8 @@ ul { list-style: none; }
     .nav-balance-group { display: flex; justify-content: center; width: 100%; gap: 10px; margin-bottom: 10px; }
     .nav-balance { flex: 1; max-width: 160px; justify-content: center; height: 45px; border-radius: 12px; margin: 0; }
     
-    /* Уведомления на мобилке */
     .notif-dropdown {
-        position: fixed; /* Фиксируем по центру экрана */
+        position: fixed;
         top: 80px; left: 10px; right: 10px;
         width: auto; margin: 0 auto;
         max-height: 80vh;
@@ -411,7 +390,6 @@ ul { list-style: none; }
     }
 }
 
-/* --- FOOTER --- */
 .cyber-footer { position: relative; background: #050505; padding: 80px 0 30px; overflow: hidden; border-top: 1px solid rgba(255, 255, 255, 0.05); margin-top: auto; }
 .footer-hex-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0.03; background-image: radial-gradient(circle at 100% 100%, transparent 10px, #ffffff 11px, #ffffff 12px, transparent 13px), radial-gradient(circle at 0% 100%, transparent 10px, #ffffff 11px, #ffffff 12px, transparent 13px), radial-gradient(circle at 100% 0%, transparent 10px, #ffffff 11px, #ffffff 12px, transparent 13px), radial-gradient(circle at 0% 0%, transparent 10px, #ffffff 11px, #ffffff 12px, transparent 13px); background-size: 60px 60px; pointer-events: none; }
 .footer-glow-top { position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 60%; height: 1px; background: linear-gradient(90deg, transparent, var(--primary), transparent); box-shadow: 0 0 30px var(--primary); opacity: 0.5; }
@@ -465,7 +443,6 @@ ul { list-style: none; }
     }
 }
 
-/* --- АНИМАЦИЯ КОЛОКОЛЬЧИКА --- */
 @keyframes bellShake {
     0% { transform: rotate(0); }
     15% { transform: rotate(15deg); }
@@ -477,17 +454,16 @@ ul { list-style: none; }
 }
 
 .bell-shake {
-    animation: bellShake 0.6s ease-in-out; /* Длительность 0.6 сек */
-    color: #fff !important; /* Подсвечиваем белым во время звонка */
+    animation: bellShake 0.6s ease-in-out;
+    color: #fff !important;
 }
 
-/* Всплывашка "Включить звук" */
 .sound-toast {
     position: fixed;
     bottom: 20px;
     left: 50%;
-    transform: translateX(-50%) translateY(100px); /* Спрятан внизу */
-    background: rgba(88, 101, 242, 0.9); /* Primary color */
+    transform: translateX(-50%) translateY(100px);
+    background: rgba(88, 101, 242, 0.9);
     color: white;
     padding: 12px 24px;
     border-radius: 50px;
@@ -532,61 +508,25 @@ ul { list-style: none; }
     .footer-bottom { margin-top: 30px; font-size: 0.75rem; opacity: 0.5; }
 }
 
-/* --- ВЫПАДАЮЩЕЕ МЕНЮ В НАВИГАЦИИ (FINAL) --- */
 .nav-item-dropdown {
     position: relative;
     display: flex;
     align-items: center;
+    height: 100%;
 }
-
 
 .dropdown-trigger {
     height: 40px;
     display: flex;
     align-items: center;
+    cursor: pointer;
+    gap: 6px;
+    font-weight: 600; 
+    font-size: 0.95rem; 
+    color: #b0b3b8;
+    transition: 0.3s;
 }
 
-
-/* Выпадающий список */
-.nav-dropdown-menu {
-    position: absolute;
-    /* Позиционируем ровно под хедером */
-    top: 100%; 
-    left: 50%;
-    transform: translateX(-50%) translateY(15px); /* Чуть ниже */
-    width: 230px;
-    background: #16181e;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 12px;
-    padding: 8px;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    
-    /* Скрыто */
-    opacity: 0;
-    visibility: hidden;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 10px 40px rgba(0,0,0,0.6);
-    z-index: 2000;
-}
-
-/* Показываем при наведении */
-.nav-item-dropdown:hover .nav-dropdown-menu {
-    opacity: 1;
-    visibility: visible;
-    transform: translateX(-50%) translateY(0); /* Выезжает вверх */
-}
-
-/* Стрелочка */
-.dropdown-trigger .fa-chevron-down {
-    transition: transform 0.3s;
-}
-.nav-item-dropdown:hover .dropdown-trigger .fa-chevron-down {
-    transform: rotate(180deg);
-}
-
-/* Ссылки внутри меню */
 .dd-link {
     display: flex;
     align-items: center;
@@ -608,20 +548,60 @@ ul { list-style: none; }
     font-size: 1.1rem;
 }
 
-.dd-link:hover {
-    background: rgba(255, 255, 255, 0.08);
-    color: #fff;
-    transform: translateX(5px);
+.nav-dropdown-menu {
+    position: absolute;
+    top: 100%; 
+    left: 50%;
+    transform: translateX(-50%) translateY(15px);
+    width: 230px;
+    background: #16181e;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+    z-index: 2000;
 }
 
-/* --- МОБИЛЬНАЯ АДАПТАЦИЯ --- */
-@media (max-width: 900px) {
-    .nav-item-dropdown {
-        display: contents; 
+@media (min-width: 901px) {
+    .dropdown-trigger:hover { color: #fff; }
+
+    .nav-item-dropdown:hover .nav-dropdown-menu {
+        opacity: 1;
+        visibility: visible;
+        transform: translateX(-50%) translateY(0);
     }
     
+    .nav-item-dropdown:hover .dropdown-trigger { color: #fff; }
+    .nav-item-dropdown:hover .fa-chevron-down { transform: rotate(180deg); }
+    .dropdown-trigger .fa-chevron-down { transition: transform 0.3s; }
+
+    .dd-link:hover {
+        background: rgba(255, 255, 255, 0.08);
+        transform: translateX(5px);
+        color: #fff;
+    }
+}
+
+@media (max-width: 900px) {
     .dropdown-trigger {
-        display: none !important; /* Скрываем кнопку "Меню" */
+        display: none !important;
+    }
+
+    .nav-item-dropdown {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        align-items: center;
+        gap: 20px;
+        padding: 0;
+        margin: 0;
+        height: auto;
     }
 
     .nav-dropdown-menu {
@@ -635,8 +615,6 @@ ul { list-style: none; }
         transform: none;
         padding: 0;
         gap: 20px;
-        display: flex;
-        flex-direction: column;
         align-items: center;
     }
 
@@ -645,22 +623,32 @@ ul { list-style: none; }
         font-weight: 800;
         color: #b0b3b8;
         padding: 0;
+        margin: 0;
         justify-content: center;
-    }
-    
-    .dd-link:hover {
         background: transparent;
+        width: 100%;
+        transform: none !important; 
+    }
+
+    .dd-link i {
+        font-size: 1.3rem;
+        margin-right: 8px;
+    }
+
+    .dd-link:hover,
+    .dd-link:active,
+    .dd-link:focus {
+        background: transparent;
+        transform: none !important;
         color: #fff;
-        transform: none;
     }
 }
 
-/* Стилизация заголовков футера, чтобы заменить h4 */
 .f-heading {
-    color: #fff;             /* Белый цвет */
-    font-size: 1.1rem;       /* Размер шрифта как у h4 */
-    font-weight: 700;        /* Жирность */
-    margin-bottom: 15px;     /* Отступ снизу */
-    text-transform: uppercase; /* Если нужно капсом */
-    letter-spacing: 0.5px;   /* Немного разрядки */
+    color: #fff;
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 15px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }

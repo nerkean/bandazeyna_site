@@ -1,5 +1,3 @@
-/* public/js/modals.js */
-
 window.Modal = {
     closeTimer: null, 
 

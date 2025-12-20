@@ -189,7 +189,6 @@ body {
     .l-card { padding: 20px; }
 }
 
-/* --- STORYTELLING LAYOUT (ИСПРАВЛЕНО) --- */
 .timeline-feed {
     display: flex;
     flex-direction: column;
@@ -212,38 +211,26 @@ body {
 .sb-image {
     flex: 1;
     position: relative;
-    /* Убираем ограничения на flex контейнер, чтобы картинка могла раскрыться */
 }
 
-/* СТИЛИ ДЛЯ КАРТИНКИ */
 .sb-image img {
     width: 100%;
-    height: auto; /* Высота теперь зависит от самой картинки */
-    
-    /* УДАЛЯЕМ aspect-ratio и object-fit, чтобы не обрезалось */
-    /* aspect-ratio: 16 / 9; */
-    /* object-fit: cover; */
-    
-    border-radius: 20px; /* Чуть меньше скругление для аккуратности */
+    height: auto; 
+    border-radius: 20px; 
     border: 1px solid rgba(255,255,255,0.1);
     box-shadow: 0 10px 40px rgba(0,0,0,0.5);
-    
     transition: transform 0.4s ease, border-color 0.4s ease;
     display: block;
-    
-    /* Опционально: ограничение высоты, если вдруг зальешь очень длинный скриншот */
     max-height: 600px; 
-    object-fit: contain; /* На случай, если сработает max-height, картинка не обрежется, а впишется */
-    background: rgba(0,0,0,0.2); /* Темный фон, если пропорции не стандартные */
+    object-fit: contain; 
+    background: rgba(0,0,0,0.2); 
 }
 
-/* Ховер эффект для картинки */
 .story-block:hover .sb-image img {
     transform: scale(1.03);
     border-color: rgba(255,255,255,0.2);
 }
 
-/* Плейсхолдер (если вдруг используется вместо img) */
 .img-placeholder {
     width: 100%;
     aspect-ratio: 16 / 9;
@@ -294,7 +281,6 @@ body {
     margin: 0;
 }
 
-/* Адаптив для стори блоков */
 @media (max-width: 900px) {
     .story-block, .story-block.reverse {
         flex-direction: column;
@@ -307,7 +293,6 @@ body {
     .timeline-feed { gap: 60px; }
 }
 
-/* --- FINAL CHAPTER STYLES --- */
 .final-chapter {
     min-height: 60vh;
     text-align: center;

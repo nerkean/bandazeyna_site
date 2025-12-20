@@ -9,12 +9,9 @@ const userDailyStreakSchema = new mongoose.Schema({
 
 userDailyStreakSchema.index({ userId: 1, guildId: 1 }, { unique: true });
 
-// === [НОВОЕ] СТАТИЧЕСКИЙ МЕТОД ПОЛУЧЕНИЯ ДАННЫХ ===
-// Этот метод вызывается как UserDailyStreak.fetchStreakData(...)
 userDailyStreakSchema.statics.fetchStreakData = async function(userId, guildId) {
     let streak = await this.findOne({ userId, guildId });
     
-    // Если данных нет, возвращаем объект-заглушку, чтобы код не падал
     if (!streak) {
         return { 
             currentStreak: 0, 
@@ -26,9 +23,6 @@ userDailyStreakSchema.statics.fetchStreakData = async function(userId, guildId) 
     return streak;
 };
 
-/**
- * Проверяет, может ли пользователь забрать ежедневную награду.
- */
 userDailyStreakSchema.methods.canClaim = async function() {
     const now = new Date();
     if (!this.lastClaimTimestamp) {
@@ -50,9 +44,6 @@ userDailyStreakSchema.methods.canClaim = async function() {
     }
 };
 
-/**
- * Засчитывает получение награды и обновляет стрик.
- */
 userDailyStreakSchema.methods.claim = async function() {
     const now = new Date();
     const today = new Date(now);

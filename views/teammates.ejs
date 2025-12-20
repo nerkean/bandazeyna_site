@@ -1,8 +1,16 @@
+<% 
+    function getOptimizedAvatar(url) {
+        if (!url) return '/assets/img/avatars/default_avatar.png';
+        if (url.includes('cdn.discordapp.com')) {
+            return url.replace(/\.(png|jpg|jpeg)(\?.*)?$/, '.webp?size=128');
+        }
+        return url;
+    }
+%>
 <!DOCTYPE html>
 <html lang="ru">
 <head>
     <style>
-        /* Шрифты */
         @font-face { font-family: 'Montserrat'; font-style: normal; font-weight: 400; font-display: swap; src: url('/assets/fonts/web/montserrat-v31-cyrillic_latin-regular.woff2') format('woff2'); }
         @font-face { font-family: 'Montserrat'; font-style: normal; font-weight: 700; font-display: swap; src: url('/assets/fonts/web/montserrat-v31-cyrillic_latin-700.woff2') format('woff2'); }
         
@@ -47,8 +55,6 @@
         /* Сетка (Каркас) */
         .grid-container { 
             display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 25px;
-            /* content-visibility помогает браузеру не рендерить низ страницы сразу */
-            content-visibility: auto; contain-intrinsic-size: 1px 300px;
         }
 
         /* Доп. стили для ника (замена h4) */
@@ -106,14 +112,14 @@
                     
                     <div class="card-top">
                         <div class="user-wrap">
-                            <img src="<%= req.avatar %>" 
-                                 class="tm-avatar" 
-                                 alt="<%= req.username %>" 
-                                 width="45" height="45"
-                                 loading="<%= index < 2 ? 'eager' : 'lazy' %>"
-                                 fetchpriority="<%= index < 2 ? 'high' : 'auto' %>"
-                                 decoding="async"
-                                 onerror="this.src='/assets/img/avatars/default_avatar.png'">
+                            <img src="<%= getOptimizedAvatar(req.avatar) %>" 
+     class="tm-avatar" 
+     alt="<%= req.username %>" 
+     width="45" height="45"
+     loading="<%= index < 4 ? 'eager' : 'lazy' %>"
+     fetchpriority="<%= index < 4 ? 'high' : 'auto' %>"
+     decoding="async"
+     onerror="this.src='/assets/img/avatars/default_avatar.png'">
                             
                             <div class="user-details">
                                 <div class="tm-username"><%= req.username %></div>
@@ -216,7 +222,6 @@
     <% } %>
 
     <script nonce="<%= nonce %>">
-        // (Твой JS код оставляем без изменений - он в порядке)
         document.addEventListener('DOMContentLoaded', () => {
             const ITEMS_PER_PAGE = 12;
             let currentPage = 1;

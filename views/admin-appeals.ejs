@@ -192,12 +192,9 @@
         <% } %>
 
         <% appeals.forEach(appeal => { 
-            // --- ПАРСИНГ ТЕКСТА ---
-            // Пытаемся разбить текст на "Версию игрока" и "Оправдание"
             let userReason = "Не указано (Старый формат)";
             let userAppeal = appeal.appealText;
 
-            // Если заявка создана через новую форму
             if (appeal.appealText.includes('[Причина бана со слов игрока]:')) {
                 const parts = appeal.appealText.split('\n\n[Оправдание]:');
                 userReason = parts[0].replace('[Причина бана со слов игрока]:', '').trim();
@@ -263,7 +260,6 @@
             
             if (!confirm(action === 'approve' ? 'Снять блокировку с этого пользователя?' : 'Отклонить заявку? (Бан останется)')) return;
 
-            // Визуальный эффект загрузки
             card.style.opacity = '0.5';
             card.style.pointerEvents = 'none';
 
@@ -276,12 +272,10 @@
                 const data = await res.json();
                 
                 if (data.success) {
-                    // Анимация удаления карточки
                     card.style.transform = 'translateX(100px)';
                     card.style.opacity = '0';
                     setTimeout(() => card.remove(), 300);
-                    
-                    // Обновляем бейдж счетчика
+
                     const badge = document.querySelector('.badge-count');
                     if (badge) {
                         const count = parseInt(badge.innerText) - 1;

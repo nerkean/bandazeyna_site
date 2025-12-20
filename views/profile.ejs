@@ -1,5 +1,4 @@
 <% 
-    // --- ЛОГИКА ОПРЕДЕЛЕНИЯ ФОНА И РАМОК ---
     const assetMap = {
         'profile_frame_veteran': 'veteran',
         'profile_frame_laurel_blue': 'laurel_blue',
@@ -20,10 +19,8 @@
         return `/assets/frames/${filename}.webp`; 
     }
 
-    // --- SEO ЛОГИКА ---
     let noIndex = false;
 
-    // 1. Бан
     if (profile.isBanned) {
         noIndex = true;
     }
@@ -66,11 +63,9 @@
     <link rel="preload" as="image" href="<%= headerBgUrl %>" fetchpriority="high">
     
     <style>
-        /* Критические стили, чтобы страница не "прыгала" пока грузится CSS */
         .profile-wrapper { max-width: 1200px; margin: 0 auto; padding-top: 80px; min-height: 100vh; }
         .dashboard-grid { display: grid; gap: 20px; }
 
-        /* Стили для забаненного профиля */
         .banned-badge {
             display: inline-flex; align-items: center; gap: 8px;
             background: rgba(231, 76, 60, 0.15); color: #e74c3c;
@@ -468,7 +463,6 @@
             document.addEventListener('DOMContentLoaded', () => {
                 loadComments(1);
                 
-                // ОТЛОЖЕННАЯ ЗАГРУЗКА ГРАФИКА (Снижает нагрузку на CPU при старте)
                 setTimeout(initChart, 500);
 
                 const wallInput = document.getElementById('wallComment');
@@ -479,7 +473,6 @@
                 }
             });
 
-            // Функция для показа деталей предмета (ОБНОВЛЕННЫЙ ДИЗАЙН)
             function showItemDetails(name, description, image, rarity, emoji) {
                 const rarityColors = {
                     'COMMON': '#bdc3c7', 'RARE': '#3498db', 'EPIC': '#9b59b6',
@@ -511,11 +504,9 @@
                 }
             }
 
-            // --- MODALS ---
             function openEditModal() { const modal = document.getElementById('editModal'); if (modal) modal.classList.add('active'); }
             function closeEditModal() { const modal = document.getElementById('editModal'); if (modal) modal.classList.remove('active'); }
 
-            // --- ACTIONS ---
             async function saveTitle() {
                 const title = document.getElementById('editTitle').value;
                 if(!title.trim()) return alert("Введите текст титула!");
@@ -553,7 +544,6 @@
                 } catch (e) { alert("Ошибка сети"); }
             }
 
-            // --- CHART ---
             function initChart() {
                 if (typeof ApexCharts === 'undefined') return;
                 

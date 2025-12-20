@@ -1,5 +1,4 @@
 <%
-    // --- ХЕЛПЕР ДЛЯ ЧИСЕЛ ---
     function formatBigNum(num, type = 'standard') {
         if (!num) return '0';
         if (type === 'voice') return Math.floor(num / 3600) + ' ч.';
@@ -450,12 +449,11 @@
 
     <script nonce="<%= nonce %>">
         document.addEventListener('DOMContentLoaded', () => {
-            // КОНФИГУРАЦИЯ AOS (Уменьшили offset чтобы срабатывало раньше)
             const aosConfig = {
                 duration: 1000,
                 once: true,
-                offset: 20, // <-- ВАЖНО: Срабатывает, как только край элемента касается экрана (было 120)
-                anchorPlacement: 'top-bottom' // Анимировать, когда верх элемента доходит до низа экрана
+                offset: 20,
+                anchorPlacement: 'top-bottom'
             };
 
             if (typeof AOS !== 'undefined') AOS.init(aosConfig);

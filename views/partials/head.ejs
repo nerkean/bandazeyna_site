@@ -75,37 +75,25 @@
 <% if (typeof gaId !== 'undefined' && gaId) { %>
     <script nonce="<%= nonce %>">
         let analyticsLoaded = false;
-        const gaId = '<%= gaId %>'; // Твой ID аналитики (G-XXXXX)
-        const adsId = 'AW-17815408362'; // Твой новый ID рекламы
+        const gaId = '<%= gaId %>'; 
+        const adsId = 'AW-17815408362';
 
         function loadAnalytics() {
             if (analyticsLoaded) return;
             analyticsLoaded = true;
-
-            // Грузим библиотеку gtag.js (она одна на всех)
             const script = document.createElement('script');
             script.async = true;
-            // Можно использовать любой ID в URL, это не важно, библиотека одна
             script.src = `https://www.googletagmanager.com/gtag/js?id=${adsId}`;
             document.head.appendChild(script);
-
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
             gtag('js', new Date());
-
-            // 1. Подключаем Аналитику
             gtag('config', gaId, { 'page_path': window.location.pathname });
-            
-            // 2. Подключаем Рекламу (Ads)
             gtag('config', adsId);
         }
-
-        // Загружаем скрипты при первом движении мыши, скролле или клике (для скорости)
         ['click', 'scroll', 'mousemove', 'touchstart'].forEach(evt => 
             window.addEventListener(evt, loadAnalytics, { once: true, passive: true })
         );
-
-        // Или через 4 секунды, если юзер ничего не делает
         setTimeout(loadAnalytics, 4000);
     </script>
 <% } else { %>

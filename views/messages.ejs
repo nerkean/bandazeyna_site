@@ -122,7 +122,7 @@
             if (isOnline) {
                 el.innerHTML = '<span style="color: #2ecc71; text-shadow: 0 0 10px rgba(46,204,113,0.4);">● В сети</span>';
             } else {
-                el.innerHTML = '<span style="color: #999;">Не в сети</span>'; // Улучшен контраст
+                el.innerHTML = '<span style="color: #999;">Не в сети</span>';
             }
         }
 
@@ -160,7 +160,6 @@
                         let previewText = c.lastMessage ? escapeHtml(c.lastMessage) : '<i class="fas fa-camera"></i> Фотография';
                         if (c.lastMessage && c.lastMessage.length > 30) previewText = previewText.substring(0, 30) + '...';
 
-                        // ИСПРАВЛЕНИЕ 3: Добавлен alt="${c.username}" в шаблон
                         return `
                             <div class="chat-item ${activeClass} ${unreadClass}" onclick="openChat('${c.partnerId}')" role="button" tabindex="0">
                                 <img src="${ava}" class="ci-avatar" alt="${c.username}">
@@ -265,7 +264,6 @@
                 statusIcon = `<span class="${iconClass}" title="${msg.isRead ? 'Прочитано' : 'Отправлено'}">${iconHtml}</span>`;
             }
 
-            // ИСПРАВЛЕНИЕ 4: Добавлен alt для изображений в чате
             let imageHtml = '';
             if (msg.imageUrl) imageHtml = `<img src="${msg.imageUrl}" class="msg-image" onclick="openLightbox(this.src)" alt="Вложение">`;
             
