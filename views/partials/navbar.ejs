@@ -152,36 +152,33 @@
     <span>Нажми, чтобы включить звук уведомлений</span>
 </div>
 
-<script src="/socket.io/socket.io.js" nonce="<%= nonce %>" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/socket.io-client@4.7.5/dist/socket.io.min.js" integrity="sha384-2huaZvOR9iDzHqslqwpR87isEmrfxqyWOF7hr7BY6KG0+hVKLoEXMPUJw3ynWuhO" crossorigin="anonymous" defer></script>
 
 <script nonce="<%= nonce %>">
     document.addEventListener('DOMContentLoaded', () => {
+        // --- 1. UI КОД (Меню, Профиль, Аудио) ---
+        // (Оставляем твой существующий код UI без изменений)
         const mobileBtn = document.getElementById('mobileMenuBtn');
         const navMenu = document.getElementById('navMenu');
         const overlay = document.getElementById('navOverlay');
         const navbar = document.querySelector('.navbar');
-
         const profileTrigger = document.getElementById('profileTrigger');
         const profileDropdown = document.getElementById('profileDropdown');
         const triggerArrow = document.querySelector('.trigger-arrow');
         const logoutBtn = document.getElementById('logoutBtn');
-
         const notifBtn = document.getElementById('notifBtn');
         const notifDropdown = document.getElementById('notifDropdown');
         const notifItems = document.getElementById('notifItems'); 
         const notifBadge = document.getElementById('notifBadge');
         const markAllReadBtn = document.getElementById('markAllReadBtn');
         const bellIcon = notifBtn ? notifBtn.querySelector('i') : null;
-        
-        let notifOpen = false;
-
         const audioElement = document.getElementById('audioNotification');
         const soundToast = document.getElementById('soundToast');
         let soundEnabled = false;
+        let notifOpen = false;
 
         const showSoundPrompt = () => { if (soundToast && !soundEnabled) soundToast.classList.add('show'); };
         const hideSoundPrompt = () => { if (soundToast) soundToast.classList.remove('show'); };
-
         const unlockSound = () => {
             if (soundEnabled || !audioElement) return;
             audioElement.play().then(() => {
@@ -237,19 +234,13 @@
         if (logoutBtn) {
             logoutBtn.addEventListener('click', async (e) => {
                 e.preventDefault();
-                
-                const isConfirmed = await window.Modal.confirm(
-                    'Выход',               
-                    'Вы точно хотите выйти из аккаунта?',
-                    'warning'           
-                );
-
-                if (isConfirmed) {
+                if (window.Modal && await window.Modal.confirm('Выход', 'Вы точно хотите выйти из аккаунта?', 'warning')) {
+                    window.location.href = '/auth/logout';
+                } else if (!window.Modal && confirm("Вы точно хотите выйти?")) {
                     window.location.href = '/auth/logout';
                 }
             });
         }
-
         if (notifBtn && notifDropdown) {
             notifBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -262,21 +253,17 @@
                     notifDropdown.classList.remove('active');
                 }
             });
-
             document.addEventListener('click', (e) => {
                 if (!notifDropdown.contains(e.target) && !notifBtn.contains(e.target) && !e.target.closest('.sound-toast')) {
                     notifDropdown.classList.remove('active');
                     notifOpen = false;
                 }
             });
-
             if (markAllReadBtn) {
                 markAllReadBtn.addEventListener('click', async (e) => {
                     e.stopPropagation();
                     updateBadge(0);
-                    if (notifItems) {
-                        notifItems.innerHTML = '<div class="notif-empty">Пусто</div>';
-                    }
+                    if (notifItems) notifItems.innerHTML = '<div class="notif-empty">Пусто</div>';
                     try {
                         await fetch('/api/notifications/read', { 
                             method: 'POST', 
@@ -290,25 +277,18 @@
 
         window.readOne = async (id, link, element) => {
             if (link && link !== '#' && link !== 'undefined') window.location.href = link;
-
             if (element) {
                 element.style.transition = 'all 0.3s ease';
                 element.style.opacity = '0';
                 element.style.transform = 'translateX(20px)';
                 setTimeout(() => {
                     element.remove();
-                    if (notifItems && notifItems.children.length === 0) {
-                        notifItems.innerHTML = '<div class="notif-empty">Пусто</div>';
-                    }
+                    if (notifItems && notifItems.children.length === 0) notifItems.innerHTML = '<div class="notif-empty">Пусто</div>';
                 }, 300);
             }
-
             let currentCount = 0;
-            if (notifBadge && notifBadge.style.display !== 'none') {
-                currentCount = parseInt(notifBadge.innerText) || 0;
-            }
+            if (notifBadge && notifBadge.style.display !== 'none') currentCount = parseInt(notifBadge.innerText) || 0;
             if (currentCount > 0) updateBadge(currentCount - 1);
-
             try {
                 await fetch('/api/notifications/read', {
                     method: 'POST',
@@ -337,65 +317,98 @@
             return '<i class="fas fa-info-circle" style="color: #3498db"></i>';
         }
 
-        if (typeof io !== 'undefined') {
-            const socket = io();
+        // --- 2. ОПТИМИЗИРОВАННЫЙ SOCKET.IO ---
+        // Исправляем ошибку "восстановление из возвратного кеша"
+        
+        let socket;
+
+        function connectSocket() {
+            if (typeof io === 'undefined' || socket) return;
+
+            socket = io({
+                transports: ['websocket'], // Сразу используем вебсокеты (быстрее)
+                reconnection: true
+            });
 
             <% if (typeof user !== 'undefined' && user) { %>
                 socket.on('connect', () => {
                     socket.emit('join_room', '<%= user.id %>');
                 });
+
+                socket.on('user_update', (data) => {
+                    if (typeof data.stars !== 'undefined') {
+                        document.querySelectorAll('.nav-balance.stars .nb-val').forEach(el => {
+                            el.innerText = Math.floor(data.stars).toLocaleString();
+                            el.style.color = '#2ecc71';
+                            setTimeout(() => el.style.color = '', 500);
+                        });
+                    }
+                    if (typeof data.shards !== 'undefined') {
+                        document.querySelectorAll('.nav-balance.shards .nb-val').forEach(el => {
+                            el.innerText = Math.floor(data.shards).toLocaleString();
+                            el.style.color = '#e67e22';
+                            setTimeout(() => el.style.color = '', 500);
+                        });
+                    }
+                });
+
+                socket.on('new_notification', (notif) => {
+                    if (bellIcon) {
+                        bellIcon.classList.remove('bell-shake');
+                        void bellIcon.offsetWidth; 
+                        bellIcon.classList.add('bell-shake');
+                        setTimeout(() => bellIcon.classList.remove('bell-shake'), 600);
+                    }
+                    playNotificationSound();
+                    
+                    let currentCount = 0;
+                    if (notifBadge && notifBadge.style.display !== 'none') currentCount = parseInt(notifBadge.innerText) || 0;
+                    updateBadge(currentCount + 1);
+
+                    if (notifItems) {
+                        const emptyMsg = notifItems.querySelector('.notif-empty');
+                        if (emptyMsg) emptyMsg.remove();
+                        const html = `
+                            <div class="notif-item unread" onclick="readOne('${notif._id}', '${notif.link || '#'}', this)">
+                                <div class="notif-icon">${getNotifIcon(notif.type)}</div>
+                                <div class="notif-content">
+                                    <span class="notif-text">${notif.message}</span>
+                                    <span class="notif-time">только что</span>
+                                </div>
+                            </div>`;
+                        notifItems.insertAdjacentHTML('afterbegin', html);
+                    }
+                    // Если есть Toast-уведомления
+                    if (typeof window.showToast === 'function') {
+                        window.showToast('Новое уведомление', notif.message, 'info');
+                    }
+                });
             <% } %>
-
-            socket.on('user_update', (data) => {
-                if (typeof data.stars !== 'undefined') {
-                    document.querySelectorAll('.nav-balance.stars .nb-val').forEach(el => {
-                        el.innerText = Math.floor(data.stars).toLocaleString();
-                        el.style.color = '#2ecc71';
-                        setTimeout(() => el.style.color = '', 500);
-                    });
-                }
-                if (typeof data.shards !== 'undefined') {
-                    document.querySelectorAll('.nav-balance.shards .nb-val').forEach(el => {
-                        el.innerText = Math.floor(data.shards).toLocaleString();
-                        el.style.color = '#e67e22';
-                        setTimeout(() => el.style.color = '', 500);
-                    });
-                }
-            });
-
-            socket.on('new_notification', (notif) => {
-                if (bellIcon) {
-                    bellIcon.classList.remove('bell-shake');
-                    void bellIcon.offsetWidth; 
-                    bellIcon.classList.add('bell-shake');
-                    setTimeout(() => bellIcon.classList.remove('bell-shake'), 600);
-                }
-                playNotificationSound();
-
-                let currentCount = 0;
-                if (notifBadge && notifBadge.style.display !== 'none') {
-                    currentCount = parseInt(notifBadge.innerText) || 0;
-                }
-                updateBadge(currentCount + 1);
-
-                if (notifItems) {
-                    const emptyMsg = notifItems.querySelector('.notif-empty');
-                    if (emptyMsg) emptyMsg.remove();
-
-                    const html = `
-                        <div class="notif-item unread" onclick="readOne('${notif._id}', '${notif.link || '#'}', this)">
-                            <div class="notif-icon">
-                                ${getNotifIcon(notif.type)}
-                            </div>
-                            <div class="notif-content">
-                                <span class="notif-text">${notif.message}</span>
-                                <span class="notif-time">только что</span>
-                            </div>
-                        </div>
-                    `;
-                    notifItems.insertAdjacentHTML('afterbegin', html);
-                }
-            });
         }
+
+        function disconnectSocket() {
+            if (socket) {
+                socket.disconnect();
+                socket = null;
+            }
+        }
+
+        // Запускаем сокет
+        if (typeof io !== 'undefined') {
+            connectSocket();
+        }
+
+        // --- ИСПРАВЛЕНИЕ BFCACHE ---
+        // Отключаем сокет при уходе со страницы, чтобы браузер мог закешировать её
+        window.addEventListener('pagehide', () => {
+            disconnectSocket();
+        });
+
+        // Восстанавливаем при возвращении (кнопка "Назад")
+        window.addEventListener('pageshow', (event) => {
+            if (event.persisted) {
+                connectSocket();
+            }
+        });
     });
 </script>

@@ -3,13 +3,73 @@
 <head>
     <%- include('partials/head', { title: 'Дача Зейна | Bee Swarm Simulator' }) %>
     
-    <link rel="preload" href="/css/style.css" as="style">
-    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        body { margin: 0; background-color: #050505; color: #fff; font-family: 'Montserrat', sans-serif; }
+        
+        /* Фиксируем высоту Hero секции, чтобы не было сдвигов */
+        .hero-section { 
+            position: relative; 
+            min-height: 80vh; 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between; 
+            padding: 120px 5% 60px; 
+            overflow: hidden; 
+            contain: layout paint; /* Изолируем блок для браузера */
+        }
+        
+        .hero-content { max-width: 600px; z-index: 2; position: relative; }
+        
+        /* Заголовок: задаем размеры шрифта сразу */
+        h1 { 
+            font-size: 3.5rem; 
+            font-weight: 900; 
+            line-height: 1.1; 
+            margin: 0 0 25px 0; 
+            letter-spacing: -0.02em; 
+        }
+        
+        h1 .highlight { 
+            background: linear-gradient(135deg, #5865F2 0%, #A020F0 100%); 
+            -webkit-background-clip: text; 
+            -webkit-text-fill-color: transparent; 
+        }
+        
+        .hero-tag { 
+            display: inline-block; padding: 8px 16px; 
+            background: rgba(255,255,255,0.05); 
+            border: 1px solid rgba(255,255,255,0.1); 
+            border-radius: 50px; font-size: 0.9rem; font-weight: 600; 
+            color: #ccc; margin-bottom: 25px; 
+        }
+        
+        .hero-buttons { display: flex; gap: 15px; flex-wrap: wrap; }
+        
+        /* Базовые стили кнопок, чтобы они имели размер до загрузки CSS */
+        .btn-discord, .btn-secondary { 
+            display: inline-flex; align-items: center; justify-content: center; 
+            gap: 10px; padding: 0 28px; height: 50px; 
+            border-radius: 12px; font-weight: 700; font-size: 1rem; 
+            text-decoration: none; cursor: pointer; box-sizing: border-box;
+        }
+        .btn-discord { background: #5865F2; color: white; }
+        .btn-secondary { background: rgba(255,255,255,0.05); color: white; border: 1px solid rgba(255,255,255,0.1); }
+
+        /* Адаптив для первого экрана */
+        @media (max-width: 968px) {
+            .hero-section { flex-direction: column; text-align: center; padding-top: 100px; justify-content: flex-start; }
+            .hero-content { margin: 0 auto; width: 100%; }
+            h1 { font-size: 2.5rem; }
+            .hero-buttons { justify-content: center; }
+            .hero-visual { margin-top: 50px; transform: scale(0.9); }
+        }
+    </style>
+
+    <link rel="preload" href="/css/style.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="/css/style.css"></noscript>
     
     <link rel="stylesheet" href="https://unpkg.com/aos@2.3.1/dist/aos.css" media="print" onload="this.media='all'">
-    <noscript>
-        <link rel="stylesheet" href="https://unpkg.com/aos@2.3.1/dist/aos.css">
-    </noscript>
+    <noscript><link rel="stylesheet" href="https://unpkg.com/aos@2.3.1/dist/aos.css"></noscript>
 </head>
 <body>
     <%- include('partials/navbar') %>
@@ -19,7 +79,7 @@
             <div class="hero-content hero-animate">
                 <div class="hero-tag">Roblox • BSS RU Community #1</div>
                 <h1><span class="highlight">Дача Зейна</span> - не просто сервер</h1>
-                <p>
+                <p style="font-size: 1.1rem; color: #9CA3AF; line-height: 1.6; margin-bottom: 35px; max-width: 500px;">
                     Крупнейшее сообщество по <b>Bee Swarm Simulator</b>. 
                     Тысячи игроков, актуальные гайды, поиск тиммейтов
                     и уникальная экономика сервера.
@@ -72,8 +132,8 @@
                 </a>
                 <div class="glass-pill pill-float">
                     <div class="avatar-stack">
-                        <img src="assets/img/avatars/1.png" alt="" loading="lazy">
-                        <img src="assets/img/avatars/2.png" alt="" loading="lazy">
+                        <img src="assets/img/avatars/1.png" alt="" width="30" height="30" decoding="async">
+                        <img src="assets/img/avatars/2.png" alt="" width="30" height="30" decoding="async">
                         <span class="online-dot"></span>
                     </div>
                     <span><%= stats.users %> Online</span>
@@ -85,68 +145,45 @@
             </div>
         </section>
 
-        <div class="ticker-wrap">
+        <div class="ticker-wrap" style="content-visibility: auto;">
             <div class="ticker">
                 <span class="ticker-item">🐝 <b>Bee Swarm</b> Community #1</span>
                 <span class="ticker-item">🍯 <b>$HONEY</b> Rate: High</span>
                 <span class="ticker-item">🎟️ <b>$TICKETS</b> +5.2%</span>
                 <span class="ticker-item">💰 <b>Giveaways</b> Coming Soon</span>
                 <span class="ticker-item">💎 <b>Robux</b> Giveaways</span>
-                <span class="ticker-item">🐝 <b>Bee Swarm</b> Community #1</span>
-                <span class="ticker-item">🍯 <b>$HONEY</b> Rate: High</span>
             </div>
         </div>
 
-        <section class="features-section">
+        <section class="features-section" style="content-visibility: auto; contain-intrinsic-size: 800px;">
             <div class="section-header" data-aos="fade-up">
                 <h2>Всё для комфортной игры</h2>
                 <p>Экосистема, созданная игроками для игроков.</p>
             </div>
             
             <div class="features-grid">
-                <div class="feature-box f-wiki" 
-                     onclick="window.location.href='/wiki'" 
-                     style="cursor: pointer;"
-                     data-tilt data-tilt-glare data-tilt-max-glare="0.2" 
-                     data-aos="zoom-in" 
-                     data-aos-delay="100">
+                <div class="feature-box f-wiki" onclick="window.location.href='/wiki'" style="cursor: pointer;" data-tilt data-tilt-glare data-tilt-max-glare="0.2" data-aos="zoom-in" data-aos-delay="100">
                     <div class="fb-bg"></div>
                     <div class="fb-icon"><i class="fas fa-book-open"></i></div>
                     <h3>База Знаний</h3>
                     <p>Гайды, билды и советы от профи. Узнай, как сделать той или иной улей</p>
-                    <div style="margin-top: 15px; color: var(--primary); font-weight: 700; font-size: 0.9rem;">
-                        Читать <i class="fas fa-arrow-right"></i>
-                    </div>
+                    <div style="margin-top: 15px; color: var(--primary); font-weight: 700; font-size: 0.9rem;">Читать <i class="fas fa-arrow-right"></i></div>
                 </div>
 
-                <div class="feature-box f-team" 
-                     onclick="window.location.href='/teammates'"
-                     style="cursor: pointer;"
-                     data-tilt data-tilt-glare data-tilt-max-glare="0.2" 
-                     data-aos="zoom-in" 
-                     data-aos-delay="200">
+                <div class="feature-box f-team" onclick="window.location.href='/teammates'" style="cursor: pointer;" data-tilt data-tilt-glare data-tilt-max-glare="0.2" data-aos="zoom-in" data-aos-delay="200">
                     <div class="fb-bg"></div>
                     <div class="fb-icon"><i class="fas fa-users"></i></div>
                     <h3>Поиск Тиммейтов</h3>
                     <p>Найди напарника для макро, фарма мёда или стикеров за пару минут.</p>
-                    <div style="margin-top: 15px; color: var(--primary); font-weight: 700; font-size: 0.9rem;">
-                        Найти сейчас <i class="fas fa-arrow-right"></i>
-                    </div>
+                    <div style="margin-top: 15px; color: var(--primary); font-weight: 700; font-size: 0.9rem;">Найти сейчас <i class="fas fa-arrow-right"></i></div>
                 </div>
 
-                <div class="feature-box f-event" 
-                     onclick="window.location.href='/giveaways'" 
-                     style="cursor: pointer;" 
-                     data-tilt data-tilt-glare data-tilt-max-glare="0.2" 
-                     data-aos="zoom-in" 
-                     data-aos-delay="300">
+                <div class="feature-box f-event" onclick="window.location.href='/giveaways'" style="cursor: pointer;" data-tilt data-tilt-glare data-tilt-max-glare="0.2" data-aos="zoom-in" data-aos-delay="300">
                     <div class="fb-bg"></div>
                     <div class="fb-icon"><i class="fas fa-gift"></i></div>
                     <h3>Ивенты & Розыгрыши</h3>
                     <p>Регулярные раздачи Robux, ваучеров и редких предметов. Халява — это святое.</p>
-                    <div style="margin-top: 15px; font-size: 0.85rem; color: var(--primary); font-weight: 700;">
-                        Перейти к раздачам <i class="fas fa-arrow-right"></i>
-                    </div>
+                    <div style="margin-top: 15px; font-size: 0.85rem; color: var(--primary); font-weight: 700;">Перейти к раздачам <i class="fas fa-arrow-right"></i></div>
                 </div>
 
                 <div class="feature-box f-trade" data-tilt data-tilt-glare data-tilt-max-glare="0.2" data-aos="zoom-in" data-aos-delay="400">
@@ -158,27 +195,29 @@
             </div>
         </section>
 
-        <section class="steps-section">
+        <section class="steps-section" style="content-visibility: auto; contain-intrinsic-size: 600px;">
             <div class="section-header" data-aos="fade-up">
                 <h2>Как начать играть?</h2>
                 <p>Твой путь от новичка до магната сервера.</p>
             </div>
             
             <div class="steps-grid">
-                
                 <div class="step-card" data-aos="fade-right" data-aos-delay="100">
                     <div class="step-window">
-                        <div class="win-bar">
-                            <div class="win-dots"><span></span><span></span><span></span></div>
-                            <div class="win-title">discord_invite.exe</div>
-                        </div>
-                        <div class="win-screen">
-                            <video autoplay loop muted playsinline class="step-video">
-                                <source src="/videos/step1.mp4" type="video/mp4">
-                            </video>
-                            <div class="scanline"></div>
-                        </div>
-                    </div>
+    <div class="win-bar">
+        <div class="win-dots"><span></span><span></span><span></span></div>
+        <div class="win-title">discord_invite.exe</div>
+    </div>
+    <div class="win-screen">
+        <video class="lazy-video step-video" 
+               loop muted playsinline 
+               width="100%" height="100%"
+               poster="/assets/img/video-placeholder.jpg"
+               data-src="/videos/step1.mp4">
+        </video>
+        <div class="scanline"></div>
+    </div>
+</div>
                     <div class="step-info">
                         <div class="step-badge">01</div>
                         <h3>Вступи в улей</h3>
@@ -186,23 +225,23 @@
                     </div>
                 </div>
 
-                <div class="step-connector" data-aos="fade-in" data-aos-delay="200" aria-hidden="true">
-                    <i class="fas fa-chevron-right"></i>
-                </div>
+                <div class="step-connector" data-aos="fade-in" data-aos-delay="200" aria-hidden="true"><i class="fas fa-chevron-right"></i></div>
 
-                <div class="step-card" data-aos="fade-up" data-aos-delay="300">
-                    <div class="step-window">
-                        <div class="win-bar">
-                            <div class="win-dots"><span></span><span></span><span></span></div>
-                            <div class="win-title">command_prompt</div>
-                        </div>
-                        <div class="win-screen">
-                            <video autoplay loop muted playsinline class="step-video">
-                                <source src="/videos/step2.mp4" type="video/mp4">
-                            </video>
-                            <div class="scanline"></div>
-                        </div>
-                    </div>
+               <div class="step-window">
+    <div class="win-bar">
+        <div class="win-dots"><span></span><span></span><span></span></div>
+        <div class="win-title">command_prompt</div>
+    </div>
+    <div class="win-screen">
+        <video class="lazy-video step-video" 
+               loop muted playsinline 
+               width="100%" height="100%"
+               poster="/assets/img/video-placeholder.jpg"
+               data-src="/videos/step2.mp4">
+        </video>
+        <div class="scanline"></div>
+    </div>
+</div>
                     <div class="step-info">
                         <div class="step-badge">02</div>
                         <h3>Создай профиль</h3>
@@ -210,184 +249,115 @@
                     </div>
                 </div>
 
-                <div class="step-connector" data-aos="fade-in" data-aos-delay="400" aria-hidden="true">
-                    <i class="fas fa-chevron-right"></i>
-                </div>
+                <div class="step-connector" data-aos="fade-in" data-aos-delay="400" aria-hidden="true"><i class="fas fa-chevron-right"></i></div>
 
-                <div class="step-card" data-aos="fade-left" data-aos-delay="500">
-                    <div class="step-window">
-                        <div class="win-bar">
-                            <div class="win-dots"><span></span><span></span><span></span></div>
-                            <div class="win-title">market_terminal</div>
-                        </div>
-                        <div class="win-screen">
-                            <video autoplay loop muted playsinline class="step-video">
-                                <source src="/videos/step3.mp4" type="video/mp4">
-                            </video>
-                            <div class="scanline"></div>
-                        </div>
-                    </div>
+                <div class="step-window">
+    <div class="win-bar">
+        <div class="win-dots"><span></span><span></span><span></span></div>
+        <div class="win-title">market_terminal</div>
+    </div>
+    <div class="win-screen">
+        <video class="lazy-video step-video" 
+               loop muted playsinline 
+               width="100%" height="100%"
+               poster="/assets/img/video-placeholder.jpg"
+               data-src="/videos/step3.mp4">
+        </video>
+        <div class="scanline"></div>
+    </div>
+</div>
                     <div class="step-info">
                         <div class="step-badge">03</div>
                         <h3>Фарми и торгуй</h3>
                         <p>Общайся, получай валюту и скупай перспективные акции.</p>
                     </div>
                 </div>
-
             </div>
         </section>
 
-        <section class="section-life">
+        <section class="section-life" style="content-visibility: auto; contain-intrinsic-size: 600px;">
             <div class="life-bg-text"></div>
-            
             <div class="section-header" data-aos="fade-up">
                 <h2>Больше, чем просто игра</h2>
                 <p>Мы здесь не только ради цифр. Мы здесь ради эмоций.</p>
             </div>
 
             <div class="life-gallery">
-                
                 <div class="life-card card-raid" data-aos="fade-right" data-aos-delay="100">
-                    <div class="lc-image">
-                        <i class="fas fa-snowflake"></i>
-                        <div class="lc-overlay"></div>
-                    </div>
+                    <div class="lc-image"><i class="fas fa-snowflake"></i><div class="lc-overlay"></div></div>
                     <div class="lc-content">
                         <h3>Совместные интересы</h3>
                         <p>Фарм Стик-Багов, мёда и стикеров. Собираем фулл-пати за 5 минут и разносим игру.</p>
                         <div class="lc-tag">#Team</div>
                     </div>
                 </div>
-
                 <div class="life-card card-chill" data-aos="zoom-in" data-aos-delay="200">
-                    <div class="lc-image">
-                        <i class="fas fa-headphones-alt"></i>
-                        <div class="lc-visualizer">
-                            <span></span><span></span><span></span><span></span><span></span>
-                        </div>
-                    </div>
+                    <div class="lc-image"><i class="fas fa-headphones-alt"></i><div class="lc-visualizer"><span></span><span></span><span></span><span></span><span></span></div></div>
                     <div class="lc-content">
                         <h3>Голосовая активность</h3>
                         <p>Устали гриндить? Залетай в войс. Музыка, караоке, ночные разговоры и просмотр фильмов.</p>
                         <div class="lc-tag">#Voice</div>
                     </div>
                 </div>
-
                 <div class="life-card card-fun" data-aos="fade-left" data-aos-delay="300">
-                    <div class="lc-image">
-                        <i class="fas fa-laugh-squint"></i>
-                        <div class="lc-shapes"></div>
-                    </div>
+                    <div class="lc-image"><i class="fas fa-laugh-squint"></i><div class="lc-shapes"></div></div>
                     <div class="lc-content">
                         <h3>Мемы и ивенты</h3>
                         <p>Творческие конкурсы, турниры по другим играм и локальные мемы, которые понимают только свои.</p>
                         <div class="lc-tag">#Fun</div>
                     </div>
                 </div>
-
             </div>
         </section>
 
-        <section class="section-faq">
+        <section class="section-faq" style="content-visibility: auto; contain-intrinsic-size: 600px;">
             <div class="section-header" data-aos="fade-up">
                 <h2>База Знаний</h2>
                 <p>Всё, что нужно знать о нашем сообществе.</p>
             </div>
-
             <div class="faq-wrapper">
-                
                 <div class="faq-card" data-aos="fade-up" data-aos-delay="100">
                     <div class="faq-status-bar"></div>
-                    <div class="faq-header">
-                        <span class="faq-num">01</span>
-                        <h3>Что такое "Дача Зейна"?</h3>
-                        <div class="faq-icon"><span></span><span></span></div>
-                    </div>
-                    <div class="faq-content">
-                        <div class="faq-inner">
-                            <p>Это крупнейшее русскоязычное сообщество по игре <b>Bee Swarm Simulator</b> в Roblox. Здесь мы объединяем игроков для совместной игры, торговли и общения. У нас есть собственный уникальный бот, который добавляет экономику, квесты и мини-игры прямо в Discord.</p>
-                        </div>
-                    </div>
+                    <div class="faq-header"><span class="faq-num">01</span><h3>Что такое "Дача Зейна"?</h3><div class="faq-icon"><span></span><span></span></div></div>
+                    <div class="faq-content"><div class="faq-inner"><p>Это крупнейшее русскоязычное сообщество по игре <b>Bee Swarm Simulator</b> в Roblox. Здесь мы объединяем игроков для совместной игры, торговли и общения. У нас есть собственный уникальный бот, который добавляет экономику, квесты и мини-игры прямо в Discord.</p></div></div>
                 </div>
-
                 <div class="faq-card" data-aos="fade-up" data-aos-delay="200">
                     <div class="faq-status-bar"></div>
-                    <div class="faq-header">
-                        <span class="faq-num">02</span>
-                        <h3>Как работает экономика сервера?</h3>
-                        <div class="faq-icon"><span></span><span></span></div>
-                    </div>
-                    <div class="faq-content">
-                        <div class="faq-inner">
-                            <p>Наша экономика основана на <b>Звездах</b> (основная валюта) и <b>Осколках</b> (донатной валюте). Вы получаете их за активность в чате и голосовых каналах (Smart Mining). На эти средства можно покупать роли, предметы в магазине <code>/shop</code> и торговать акциями на нашей внутренней бирже.</p>
-                        </div>
-                    </div>
+                    <div class="faq-header"><span class="faq-num">02</span><h3>Как работает экономика сервера?</h3><div class="faq-icon"><span></span><span></span></div></div>
+                    <div class="faq-content"><div class="faq-inner"><p>Наша экономика основана на <b>Звездах</b> (основная валюта) и <b>Осколках</b> (донатной валюте). Вы получаете их за активность в чате и голосовых каналах (Smart Mining). На эти средства можно покупать роли, предметы в магазине <code>/shop</code> и торговать акциями на нашей внутренней бирже.</p></div></div>
                 </div>
-
                 <div class="faq-card" data-aos="fade-up" data-aos-delay="300">
                     <div class="faq-status-bar"></div>
-                    <div class="faq-header">
-                        <span class="faq-num">03</span>
-                        <h3>Где найти правила сервера?</h3>
-                        <div class="faq-icon"><span></span><span></span></div>
-                    </div>
-                    <div class="faq-content">
-                        <div class="faq-inner">
-                            <p>Полный свод правил находится в текстовом канале <b>#правила</b> в Discord. Мы настоятельно рекомендуем ознакомиться с ними сразу после входа, чтобы избежать мутов и блокировок. Незнание правил не освобождает от ответственности!</p>
-                        </div>
-                    </div>
+                    <div class="faq-header"><span class="faq-num">03</span><h3>Где найти правила сервера?</h3><div class="faq-icon"><span></span><span></span></div></div>
+                    <div class="faq-content"><div class="faq-inner"><p>Полный свод правил находится в текстовом канале <b>#правила</b> в Discord. Мы настоятельно рекомендуем ознакомиться с ними сразу после входа, чтобы избежать мутов и блокировок. Незнание правил не освобождает от ответственности!</p></div></div>
                 </div>
-
                 <div class="faq-card" data-aos="fade-up" data-aos-delay="400">
                     <div class="faq-status-bar"></div>
-                    <div class="faq-header">
-                        <span class="faq-num">04</span>
-                        <h3>Куда обращаться за помощью?</h3>
-                        <div class="faq-icon"><span></span><span></span></div>
-                    </div>
-                    <div class="faq-content">
-                        <div class="faq-inner">
-                            <p>Если у вас возникли вопросы или проблемы, вы всегда можете открыть тикет в канале <b>#тикеты</b>. Наша команда администрации готова помочь вам. Также рекомендуем прочитать канал с правилами.</p>
-                        </div>
-                    </div>
+                    <div class="faq-header"><span class="faq-num">04</span><h3>Куда обращаться за помощью?</h3><div class="faq-icon"><span></span><span></span></div></div>
+                    <div class="faq-content"><div class="faq-inner"><p>Если у вас возникли вопросы или проблемы, вы всегда можете открыть тикет в канале <b>#тикеты</b>. Наша команда администрации готова помочь вам. Также рекомендуем прочитать канал с правилами.</p></div></div>
                 </div>
-
             </div>
         </section>
 
         <section class="section-cta">
             <div class="cta-bg-layer">
-                <div class="stars-static"></div>
-                <div class="grid-floor"></div>
-                <div class="horizon-light"></div>
+                <div class="stars-static"></div><div class="grid-floor"></div><div class="horizon-light"></div>
             </div>
-
             <div class="cta-content" data-aos="zoom-in">
                 <div class="cta-badge">FINAL ZONE</div>
                 <h2 class="glitch-title" data-text="Дача Зейна ждет тебя">Дача Зейна ждет тебя</h2>
                 <p>Хватит играть в одиночку. Присоединяйся к самому активному сообществу по Roblox в СНГ прямо сейчас.</p>
-                
                 <div class="cta-actions">
                     <a href="https://discord.gg/bandazeyna" class="btn-primary big pulse-btn" aria-label="Вступить в Discord сервер">
                         <i class="fab fa-discord"></i> Вступить в Улей
                     </a>
                 </div>
-
                 <div class="cta-stats-row">
-                    <div class="cs-stat">
-                        <i class="fas fa-user-check"></i>
-                        <span>5,000+ Участников</span>
-                    </div>
+                    <div class="cs-stat"><i class="fas fa-user-check"></i><span>5,000+ Участников</span></div>
                     <div class="cs-divider"></div>
-                    <div class="cs-stat">
-                        <i class="fas fa-bolt"></i>
-                        <span>24/7 Актив</span>
-                    </div>
+                    <div class="cs-stat"><i class="fas fa-bolt"></i><span>24/7 Актив</span></div>
                     <div class="cs-divider"></div>
-                    <div class="cs-stat">
-                        <i class="fas fa-shield-alt"></i>
-                        <span>Безопасно</span>
-                    </div>
+                    <div class="cs-stat"><i class="fas fa-shield-alt"></i><span>Безопасно</span></div>
                 </div>
             </div>
         </section>
@@ -397,14 +367,13 @@
 
     <script nonce="<%= nonce %>">
         document.addEventListener('DOMContentLoaded', () => {
-            AOS.init({ 
-                once: true, 
-                offset: 100,
-                duration: 800 
-            });
+            // Инициализация AOS (Анимации)
+            if (typeof AOS !== 'undefined') {
+                AOS.init({ once: true, offset: 100, duration: 800 });
+            }
 
+            // FAQ Аккордеон
             const faqCards = document.querySelectorAll('.faq-card');
-            
             faqCards.forEach(card => {
                 card.addEventListener('click', () => {
                     faqCards.forEach(otherCard => {
@@ -413,8 +382,67 @@
                     card.classList.toggle('active');
                 });
             });
+
+           const lazyVideos = document.querySelectorAll('video.lazy-video');
+
+    if ('IntersectionObserver' in window) {
+        const videoObserver = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+    const video = entry.target;
+    // Проверяем, есть ли что грузить, чтобы не было ошибок
+    if (video.dataset.src) {
+        video.src = video.dataset.src;
+        video.load();
+        video.removeAttribute('data-src'); // Убираем атрибут, чтобы не грузить дважды
+        
+        const playPromise = video.play();
+        if (playPromise !== undefined) {
+            playPromise.catch(error => console.log('Autoplay blocked'));
+        }
+        observer.unobserve(video);
+    }
+}
+            });
+        }, {
+            rootMargin: "200px 0px" // Начинать грузить, когда видео в 200px от экрана
         });
+
+        lazyVideos.forEach(video => videoObserver.observe(video));
+    }
+        });
+
+        // 3. ОТЛОЖЕННАЯ ЗАГРУЗКА АНАЛИТИКИ (Unused JS Fix)
+        // Загружаем Google Ads и Clarity с задержкой, чтобы не портить LCP
+        const loadAnalytics = () => {
+            if (window.analyticsLoaded) return;
+            window.analyticsLoaded = true;
+            console.log('🚀 Loading Lazy Analytics...');
+            
+            // 1. Google Ads / Analytics
+            const gtmScript = document.createElement('script');
+            gtmScript.async = true;
+            gtmScript.src = 'https://www.googletagmanager.com/gtag/js?id=AW-17815408362'; 
+            document.head.appendChild(gtmScript);
+
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'AW-17815408362');
+            
+            // 2. Clarity (Microsoft)
+            (function(c,l,a,r,i,t,y){
+                c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+                t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+                y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+            })(window, document, "clarity", "script", "um1b962jsc");
+        };
+
+        // Запускаем через 4 секунды или при взаимодействии
+        window.addEventListener('load', () => setTimeout(loadAnalytics, 4000));
+        ['scroll', 'mousemove', 'touchstart'].forEach(evt => 
+            window.addEventListener(evt, loadAnalytics, { once: true })
+        );
     </script>
-    
 </body>
 </html>

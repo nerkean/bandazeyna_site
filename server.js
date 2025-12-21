@@ -85,7 +85,9 @@ app.use(helmet({
             scriptSrcAttr: ["'unsafe-inline'"],
             styleSrc: [
                 "'self'", "'unsafe-inline'",
-                "https://fonts.googleapis.com", "https://unpkg.com", "https://cdnjs.cloudflare.com"
+                "https://fonts.googleapis.com", 
+                "https://unpkg.com", 
+                "https://cdnjs.cloudflare.com"
             ],
             imgSrc: [
                 "'self'",
@@ -102,7 +104,11 @@ app.use(helmet({
                 "https://c.bing.com",
                 ...googleDomains
             ],
-            fontSrc: ["'self'", "https://fonts.gstatic.com"],
+            fontSrc: [
+                "'self'", 
+                "https://fonts.gstatic.com",
+                "https://cdnjs.cloudflare.com" 
+            ],
             connectSrc: [
                 "'self'", 
                 "https://dachazeyna.com", 
