@@ -220,17 +220,33 @@ passport.use(new DiscordStrategy({
     clientID: process.env.DISCORD_CLIENT_ID,
     clientSecret: process.env.DISCORD_CLIENT_SECRET,
     callbackURL: process.env.DISCORD_CALLBACK_URL,
-    scope: ['identify'],
-    state: true 
+    scope: ['identify'], 
+    state: true,
+    proxy: true,
+    authorizationURL: 'https://discord.com/api/oauth2/authorize',
+    tokenURL: 'https://discord.com/api/oauth2/token',
+    customHeaders: {
+        'User-Agent': 'DachaZeyna/1.0 (https://dachazeyna.com, 1.0.0)',
+        'Accept': 'application/json'
+    }
 }, async (accessToken, refreshToken, profile, done) => {
     try {
-        await UserProfile.findOneAndUpdate(
+        console.log(`📡 [AUTH] Обмен токена прошел успешно для: ${profile.username}`);
+
+        const user = await UserProfile.findOneAndUpdate(
             { userId: profile.id, guildId: process.env.GUILD_ID },
-            { username: profile.username, avatar: profile.avatar },
-            { upsert: true }
+            {
+                username: profile.username,
+                avatar: profile.avatar, 
+                $setOnInsert: { stars: 100, joinedAt: new Date() }
+            },
+            { upsert: true, new: true, setDefaultsOnInsert: true }
         );
         return done(null, profile);
-    } catch (err) { return done(err, null); }
+    } catch (err) { 
+        console.error('🔴 [AUTH DB ERROR]:', err);
+        return done(err, null); 
+    }
 }));
 
 passport.serializeUser((user, done) => done(null, { id: user.id, username: user.username, avatar: user.avatar }));
