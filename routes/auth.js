@@ -9,20 +9,23 @@ router.get('/discord', passport.authenticate('discord'));
 router.get('/discord/callback', (req, res, next) => {
     passport.authenticate('discord', (err, user, info) => {
         if (err) {
-            console.error('🔴 [AUTH] Ошибка Passport:', err);
-            
-            if (err.oauthError && err.oauthError.statusCode === 429) {
-                return res.redirect('/?error=discord_rate_limit');
+            console.error('🔴 [AUTH ERROR]:', err);
+
+            if (err.oauthError && (err.oauthError.statusCode === 429 || err.oauthError.data?.includes('1015'))) {
+                console.warn('⚠️ [AUTH] Обнаружен бан IP от Discord/Cloudflare на Render.');
+                return res.redirect('/?error=discord_limit');
             }
-            
-            return res.redirect('/?error=auth_error');
+
+            return res.redirect('/?error=auth_failed');
         }
-        
+
         if (!user) return res.redirect('/?error=no_user');
 
         req.logIn(user, (loginErr) => {
             if (loginErr) return next(loginErr);
-            req.session.save(() => res.redirect(`/profile/${user.id}`));
+            req.session.save(() => {
+                res.redirect(`/profile/${user.id}`);
+            });
         });
     })(req, res, next);
 });
