@@ -18,8 +18,7 @@
     <style>
         @font-face { font-family: 'Montserrat'; font-style: normal; font-weight: 400; font-display: swap; src: url('/assets/fonts/web/montserrat-v31-cyrillic_latin-regular.woff2') format('woff2'); }
         @font-face { font-family: 'Montserrat'; font-style: normal; font-weight: 700; font-display: swap; src: url('/assets/fonts/web/montserrat-v31-cyrillic_latin-700.woff2') format('woff2'); }
-        
-        /* База и Фон */
+    
         body { 
             font-family: 'Montserrat', sans-serif; 
             margin: 0;
@@ -31,15 +30,12 @@
             overflow-y: scroll; 
         }
 
-        /* Контейнер */
         .container { max-width: 1200px; margin: 0 auto; padding: 120px 20px 80px; }
 
-        /* Шапка страницы (LCP элемент) */
         .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; flex-wrap: wrap; gap: 20px; }
         .header-text h1 { font-size: 2.5rem; font-weight: 900; margin: 0; text-transform: uppercase; line-height: 1; }
         .header-text p { margin: 5px 0 0; color: #888; font-size: 0.95rem; }
         
-        /* Кнопка создания */
         .create-btn-floating {
             background: linear-gradient(135deg, #2ecc71, #27ae60); color: white;
             border: none; padding: 12px 24px; border-radius: 50px;
@@ -48,7 +44,6 @@
             text-decoration: none; display: inline-flex; align-items: center; gap: 10px;
         }
 
-        /* Фильтры */
         .filter-container { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 15px; margin-bottom: 30px; }
         .filter-btn {
             background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
@@ -57,15 +52,12 @@
         }
         .filter-btn.active { background: #fff; color: #000; transform: scale(1.05); }
 
-        /* Сетка (Каркас) */
         .grid-container { 
             display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 25px;
         }
 
-        /* Доп. стили для ника (замена h4) */
         .tm-username { font-size: 1.1rem; font-weight: 700; color: #fff; margin-bottom: 2px; }
         
-        /* Кнопка помощи */
         .help-btn { width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #aaa; display: flex; align-items: center; justify-content: center; cursor: pointer; }
     </style>
 

@@ -92,19 +92,21 @@
                 </div>
 
                 <div class="profile-dropdown-wrapper">
-                    <div class="profile-trigger" id="profileTrigger">
-                        <% if (user.avatar) { %>
-                            <% if (user.avatar.startsWith('tg_')) { %>
-                                <img src="/img/tg-proxy/<%= user.avatar.replace('tg_', '') %>" alt="Ava">
-                            <% } else { %>
-                                <img src="/img/proxy/avatar/<%= user.id %>/<%= user.avatar %>" alt="Ava">
-                            <% } %>
-                        <% } else { %>
-                            <img src="/assets/img/avatars/default_avatar.png" alt="Ava">
-                        <% } %>
-                        <span class="trigger-name"><%= user.username %></span>
-                        <i class="fas fa-chevron-down trigger-arrow"></i>
-                    </div>
+                 <div class="profile-trigger" id="profileTrigger">
+    <% if (typeof user !== 'undefined' && user.avatar) { %>
+        <% if (user.avatar.startsWith('tg_')) { %>
+            <img src="/img/tg-proxy/<%= user.avatar.replace('tg_', '') %>" alt="Ava">
+        <% } else if (user.avatar.startsWith('http')) { %>
+            <img src="<%= user.avatar %>" alt="Ava">
+        <% } else { %>
+            <img src="/img/proxy/avatar/<%= user.id %>/<%= user.avatar %>" alt="Ava">
+        <% } %>
+    <% } else { %>
+        <img src="/assets/img/avatars/default_avatar.png" alt="Ava">
+    <% } %>
+    <span class="trigger-name"><%= user.username %></span>
+    <i class="fas fa-chevron-down trigger-arrow"></i>
+</div>
 
                     <div class="profile-dropdown" id="profileDropdown">
                         <div class="dropdown-header"><span class="role-badge">Игрок</span></div>

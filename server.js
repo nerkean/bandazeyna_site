@@ -170,21 +170,39 @@ app.use(async (req, res, next) => {
     next();
 });
 
-// Прокси Telegram
 app.get('/img/tg-proxy/:fileId', async (req, res) => {
     try {
         const fileId = req.params.fileId;
-        const botToken = process.env.TELEGRAM_BOT_TOKEN;
+        // ИСПРАВЛЕНО: Используем ту же переменную, что и для самого бота
+        const botToken = process.env.BOT_TOKEN; 
+
+        if (!botToken) {
+            console.error('🔴 [PROXY] BOT_TOKEN не задан в окружении');
+            return res.status(500).end();
+        }
+
+        // 1. Получаем путь к файлу у Telegram
         const getFileUrl = `https://api.telegram.org/bot${botToken}/getFile?file_id=${fileId}`;
         const fileData = await fetch(getFileUrl).then(r => r.json());
-        if (!fileData.ok) return res.status(404).end();
+
+        if (!fileData.ok) {
+            console.error('🔴 [PROXY] Ошибка получения пути файла:', fileData.description);
+            return res.status(404).end();
+        }
+
+        // 2. Стримим саму картинку
         const fileUrl = `https://api.telegram.org/file/bot${botToken}/${fileData.result.file_path}`;
         const response = await fetch(fileUrl);
+        
         res.setHeader('Content-Type', response.headers.get('content-type'));
         res.setHeader('Cache-Control', 'public, max-age=31536000'); 
+        
         const arrayBuffer = await response.arrayBuffer();
         res.send(Buffer.from(arrayBuffer));
-    } catch (e) { res.status(500).end(); }
+    } catch (e) {
+        console.error('🔴 [PROXY ERROR]:', e.message);
+        res.status(500).end();
+    }
 });
 
 app.use('/auth', authRouter); 
