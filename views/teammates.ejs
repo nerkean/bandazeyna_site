@@ -1,6 +1,11 @@
 <% 
     function getOptimizedAvatar(url) {
         if (!url) return '/assets/img/avatars/default_avatar.png';
+        
+        if (url.startsWith('tg_')) {
+            return '/img/tg-proxy/' + url.replace('tg_', '');
+        }
+
         if (url.includes('cdn.discordapp.com')) {
             return url.replace(/\.(png|jpg|jpeg)(\?.*)?$/, '.webp?size=128');
         }
@@ -122,11 +127,19 @@
      onerror="this.src='/assets/img/avatars/default_avatar.png'">
                             
                             <div class="user-details">
-                                <div class="tm-username"><%= req.username %></div>
-                                <span class="hive-tag" style="color: <%= req.hiveColor === 'BLUE' ? '#3498db' : req.hiveColor === 'RED' ? '#e74c3c' : req.hiveColor === 'WHITE' ? '#ecf0f1' : '#9b59b6' %>">
-                                    <%= req.hiveColor %> Hive
-                                </span>
-                            </div>
+    <div class="tm-username" style="display: flex; align-items: center; gap: 5px;">
+        <%= req.username %>
+        <% if (req.userId.startsWith('tg_')) { %>
+            <i class="fab fa-telegram" title="Telegram" style="color: #0088cc; font-size: 0.8em;"></i>
+        <% } else { %>
+            <i class="fab fa-discord" title="Discord" style="color: #5865F2; font-size: 0.8em;"></i>
+        <% } %>
+    </div>
+    
+    <span class="hive-tag" style="color: <%= req.hiveColor === 'BLUE' ? '#3498db' : req.hiveColor === 'RED' ? '#e74c3c' : req.hiveColor === 'WHITE' ? '#ecf0f1' : '#9b59b6' %>">
+        <%= req.hiveColor || 'MIXED' %> Hive
+    </span>
+</div>
                         </div>
 
                         <div class="activity-badge act-<%= req.activityType %>">
@@ -144,15 +157,20 @@
                     </div>
 
                     <div class="card-footer">
-                        <button class="discord-btn" onclick="copyDiscord('<%= req.username %>', this)">
-                            <i class="fab fa-discord"></i> Copy Nick
-                        </button>
-                        
-                        <span class="time-ago">
-                            <% const diff = Math.floor((Date.now() - new Date(req.createdAt)) / 60000); %>
-                            <%= diff < 1 ? 'Только что' : diff + ' мин. назад' %>
-                        </span>
-                    </div>
+    <button class="discord-btn" onclick="copyDiscord('<%= req.username %>', this)">
+        <% if (req.userId.startsWith('tg_')) { %>
+            <i class="fab fa-telegram"></i>
+        <% } else { %>
+            <i class="fab fa-discord"></i>
+        <% } %>
+        Copy Nick
+    </button>
+    
+    <span class="time-ago">
+        <% const diff = Math.floor((Date.now() - new Date(req.createdAt)) / 60000); %>
+        <%= diff < 1 ? 'Только что' : diff + ' мин. назад' %>
+    </span>
+</div>
                 </div>
             <% }) %>
         </div>

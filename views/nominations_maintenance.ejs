@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <%- include('partials/head', { title: 'Идет подготовка...' }) %>
+    <style>
+        /* Используем предоставленные вами стили и переменные */
+        :root {
+            --gold: #FFD700;
+            --gold-dim: #C5A000;
+            --gold-grad: linear-gradient(135deg, #FFF5C3 0%, #FFD700 50%, #B8860B 100%);
+            --primary: #5865F2;
+            --bg-dark: #050505;
+            --card-bg: rgba(255, 255, 255, 0.02);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --glass-blur: blur(12px);
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            margin: 0;
+            font-family: 'Montserrat', sans-serif;
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        /* Кинематографичный фон из вашего CSS */
+        .cinematic-bg {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 0;
+            pointer-events: none;
+            background: radial-gradient(circle at 50% -20%, #1a1a2e 0%, #000 80%);
+        }
+
+        /* Эффекты тумана */
+        .fog-layer {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.3;
+            animation: driftFog 20s infinite alternate ease-in-out;
+        }
+        .fog-layer.one {
+            top: -10%; left: -10%; width: 60vw; height: 60vw;
+            background: radial-gradient(circle, rgba(88, 101, 242, 0.15), transparent 70%);
+        }
+        .fog-layer.two {
+            bottom: -10%; right: -10%; width: 50vw; height: 50vw;
+            background: radial-gradient(circle, rgba(255, 215, 0, 0.05), transparent 70%);
+            animation-delay: -10s;
+            animation-direction: alternate-reverse;
+        }
+
+        @keyframes driftFog {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(30px, 50px) scale(1.1); }
+        }
+
+        /* Искры */
+        .firefly {
+            position: absolute;
+            width: 3px; height: 3px;
+            background: var(--gold);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--gold);
+            opacity: 0;
+            animation: fireflyMove 15s infinite linear;
+        }
+
+        @keyframes fireflyMove {
+            0% { transform: translateY(0) scale(0); opacity: 0; }
+            20% { opacity: 0.8; transform: translateY(-50px) scale(1); }
+            80% { opacity: 0.5; }
+            100% { transform: translateY(-300px) scale(0); opacity: 0; }
+        }
+
+        /* Контент заглушки */
+        .maintenance-wrap {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 90vh;
+            text-align: center;
+            padding: 0 20px;
+        }
+
+        .nom-tag {
+            display: inline-block;
+            padding: 6px 14px;
+            background: rgba(255, 215, 0, 0.08);
+            border: 1px solid rgba(255, 215, 0, 0.25);
+            color: var(--gold);
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: 800;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 25px;
+            backdrop-filter: blur(5px);
+        }
+
+        .maintenance-title {
+            font-size: 4rem;
+            font-weight: 900;
+            margin: 0 0 20px;
+            line-height: 1;
+            text-transform: uppercase;
+            letter-spacing: -1px;
+            color: #fff;
+        }
+
+        .maintenance-title span {
+            background: var(--gold-grad);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .maintenance-desc {
+            font-size: 1.1rem;
+            color: #9ca3af;
+            max-width: 550px;
+            margin: 0 auto 40px;
+            line-height: 1.6;
+        }
+
+        .broom-icon {
+            font-size: 3rem;
+            color: var(--gold);
+            margin-bottom: 20px;
+            filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.4));
+            animation: sweep 3s infinite ease-in-out;
+        }
+
+        @keyframes sweep {
+            0%, 100% { transform: rotate(-10deg); }
+            50% { transform: rotate(15deg); }
+        }
+
+        .back-home {
+            padding: 14px 35px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            color: #fff;
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+            transition: 0.3s;
+        }
+
+        .back-home:hover {
+            background: var(--primary);
+            border-color: var(--primary);
+            box-shadow: 0 10px 20px rgba(88, 101, 242, 0.2);
+        }
+
+        @media (max-width: 800px) {
+            .maintenance-title { font-size: 2.5rem; }
+            .maintenance-desc { font-size: 1rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="cinematic-bg">
+        <div class="fog-layer one"></div>
+        <div class="fog-layer two"></div>
+        
+        <% for(let i=0; i<10; i++) { %>
+            <div class="firefly" style="left: <%= Math.random()*100 %>%; top: <%= Math.random()*100 %>%; animation-delay: <%= Math.random()*10 %>s;"></div>
+        <% } %>
+    </div>
+
+    <%- include('partials/navbar') %>
+
+    <main class="maintenance-wrap">
+        <div class="nom-tag">Coming Soon</div>
+        
+        <div class="broom-icon">
+            <i class="fas fa-broom"></i>
+        </div>
+
+        <h1 class="maintenance-title">Мы всё <span>готовим</span></h1>
+        
+        <p class="maintenance-desc">
+            Наводим финальный лоск и подводим итоги года. <br>
+            Совсем скоро эта страница оживет, и вы сможете отдать свой голос за лучших из лучших.
+        </p>
+
+        <a href="/" class="back-home">На главную</a>
+    </main>
+
+    <%- include('partials/footer') %>
+</body>
+</html>

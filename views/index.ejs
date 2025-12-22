@@ -2,14 +2,9 @@
 <html lang="ru">
 <head>
     <%- include('partials/head', { title: 'Дача Зейна | Bee Swarm Simulator' }) %>
-    
+        
     <link rel="preload" href="/css/style.css" as="style">
     <link rel="stylesheet" href="/css/style.css">
-    
-    <link rel="stylesheet" href="https://unpkg.com/aos@2.3.1/dist/aos.css" media="print" onload="this.media='all'">
-    <noscript>
-        <link rel="stylesheet" href="https://unpkg.com/aos@2.3.1/dist/aos.css">
-    </noscript>
 </head>
 <body>
     <%- include('partials/navbar') %>
@@ -395,16 +390,22 @@
 
     <%- include('partials/footer') %>
 
-    <script nonce="<%= nonce %>">
+<script nonce="<%= nonce %>">
         document.addEventListener('DOMContentLoaded', () => {
-            AOS.init({ 
-                once: true, 
-                offset: 100,
-                duration: 800 
-            });
+            const initAOS = () => {
+                if (typeof AOS !== 'undefined') {
+                    AOS.init({ 
+                        once: true, 
+                        offset: 100,
+                        duration: 800 
+                    });
+                } else {
+                    setTimeout(initAOS, 100); 
+                }
+            };
+            initAOS();
 
             const faqCards = document.querySelectorAll('.faq-card');
-            
             faqCards.forEach(card => {
                 card.addEventListener('click', () => {
                     faqCards.forEach(otherCard => {

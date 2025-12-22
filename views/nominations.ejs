@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <%- include('partials/head', { title: 'Dacha Awards 2025' }) %>
+    <link rel="stylesheet" href="/css/nominations.css">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+</head>
+<body>
+    <%- include('partials/navbar') %>
+
+    <main class="nominations-page">
+        <div class="cinematic-bg">
+            <div class="fog-layer one"></div>
+            <div class="fog-layer two"></div>
+            <div class="fireflies">
+                <% for(let i=0; i<20; i++) { %><div class="firefly"></div><% } %>
+            </div>
+        </div>
+
+        <div class="nominations-container">
+            
+            <header class="nom-page-header" data-aos="zoom-out" data-aos-duration="1000">
+                <div class="nom-tag">Global Event</div>
+                <h1>Dacha <span>Awards</span></h1>
+                <p>Твой голос решает судьбу легенд сервера.</p>
+            </header>
+
+            <section class="about-event" data-aos="fade-up">
+                <div class="info-card">
+                    <div class="ic-icon"><i class="far fa-calendar-alt"></i></div>
+                    <h4>Сроки</h4>
+                    <p>Голосование до 31.12.2025</p>
+                </div>
+                <div class="info-card center">
+                    <div class="ic-icon"><i class="fas fa-trophy"></i></div>
+                    <h4>Суть события</h4>
+                    <p>Ежегодная премия, где мы выбираем лучших участников, контент-мейкеров и трейдеров.</p>
+                </div>
+                <div class="info-card">
+                    <div class="ic-icon"><i class="fas fa-vote-yea"></i></div>
+                    <h4>Правила</h4>
+                    <p>1 голос в каждой категории</p>
+                </div>
+            </section>
+
+            <% if (nominations && nominations.length > 0) { %>
+                <% nominations.forEach((nom, index) => { %>
+                    <section class="nomination-block" data-aos="fade-up" data-aos-delay="<%= index * 100 %>">
+                        
+                        <div class="nom-header-styled">
+                            <div class="nom-number">NOMINATION 0<%= index + 1 %></div>
+                            <h2 class="nom-title"><%= nom.title %></h2>
+                            <div class="nom-subtitle"><%= nom.category %></div>
+                            <% if (nom.description) { %>
+                                <p class="nom-desc-text"><%= nom.description %></p>
+                            <% } %>
+                        </div>
+                        
+                        <div class="candidates-grid">
+                            <% nom.candidates.forEach(can => { %>
+                                <% 
+                                   const hasVoted = nom.votes.some(v => v.voterId === user.id);
+                                   const isHisChoice = nom.votes.some(v => v.voterId === user.id && v.candidateId === can.userId);
+                                %>
+                                <div class="candidate-card js-tilt-card <%= isHisChoice ? 'is-winner' : '' %> <%= hasVoted && !isHisChoice ? 'is-disabled' : '' %>">
+                                    <div class="can-visual">
+                                        <div class="img-ring"></div>
+                                        <% if (isHisChoice) { %>
+                                            <div class="winner-crown"><i class="fas fa-crown"></i></div>
+                                        <% } %>
+                                        <img src="/img/proxy/avatar/<%= can.userId %>/<%= can.avatar %>" 
+                                             alt="<%= can.username %>"
+                                             loading="lazy"
+                                             onerror="this.src='/assets/img/avatars/default_avatar.png'">
+                                    </div>
+                                    <div class="can-content">
+                                        <h3><%= can.username %></h3>
+                                        <% if (can.description) { %>
+                                            <p class="can-desc"><%= can.description %></p>
+                                        <% } %>
+                                    </div>
+                                    <div class="can-action">
+                                        <% if (isHisChoice) { %>
+                                            <button class="vote-btn voted" disabled><i class="fas fa-check"></i></button>
+                                        <% } else if (hasVoted) { %>
+                                            <button class="vote-btn disabled" disabled><i class="fas fa-lock"></i></button>
+                                        <% } else { %>
+                                            <button class="vote-btn active js-vote-btn" 
+        data-nom-id="<%= nom._id %>" 
+        data-can-id="<%= can.userId %>">
+    ГОЛОС
+</button>
+                                        <% } %>
+                                    </div>
+                                </div>
+                            <% }) %>
+                        </div>
+                    </section>
+                <% }) %>
+            <% } else { %>
+                <div class="empty-nominations"><h2>Скоро...</h2></div>
+            <% } %>
+        </div>
+    </main>
+
+    <%- include('partials/footer') %>
+
+    <script nonce="<%= locals.nonce %>">
+    window.addEventListener('load', () => { 
+        if (typeof AOS !== 'undefined') AOS.init({ duration: 800, once: true });
+    });
+
+    // Эффект карточек
+    const cards = document.querySelectorAll(".js-tilt-card");
+    cards.forEach((card) => {
+        card.addEventListener("mousemove", (e) => {
+            const rect = card.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            card.style.setProperty("--mouse-x", `${x}px`);
+            card.style.setProperty("--mouse-y", `${y}px`);
+        });
+    });
+
+    // Обработка клика по кнопке (вместо onclick в HTML)
+    document.querySelectorAll('.js-vote-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const nomId = this.getAttribute('data-nom-id');
+            const canId = this.getAttribute('data-can-id');
+            vote(this, nomId, canId);
+        });
+    });
+
+    async function vote(btn, nomId, canId) {
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        try {
+            const res = await fetch('/api/nominations/vote', {
+                method: 'POST', 
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ nominationId: nomId, candidateId: canId })
+            });
+            const data = await res.json();
+            if (data.success) {
+                if (typeof confetti !== 'undefined') {
+                    confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#FFD700', '#FFF'] });
+                }
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                btn.innerHTML = originalText;
+                alert(data.error);
+            }
+        } catch (e) { 
+            console.error(e);
+            btn.innerHTML = originalText; 
+        }
+    }
+</script>
+</body>
+</html>

@@ -2,7 +2,6 @@ import express from 'express';
 import UserProfile from '../src/models/UserProfile.js';
 import Stock from '../src/models/Stock.js';
 import StockPriceHistory from '../src/models/StockPriceHistory.js';
-import StockTransaction from '../src/models/StockTransaction.js';
 import Deposit from '../src/models/Deposit.js';
 import Article from '../src/models/Article.js';
 import UserDailyStreak from '../src/models/UserDailyStreak.js';
@@ -12,6 +11,7 @@ import { getShopItems, getItemDefinition } from '../src/utils/definitions/itemDe
 import { getQuestDefinition } from '../src/utils/definitions/questDefinitions.js';
 import { getAchievementDefinition } from '../src/utils/definitions/achievementDefinitions.js';
 import { dailyRewards } from '../src/utils/definitions/dailyRewardDefinitions.js';
+import Nomination from '../src/models/Nomination.js';
 import Notification from '../src/models/Notification.js';
 import AdminLog from '../src/models/AdminLog.js';
 import { checkWikiAccess } from '../middleware/checkWikiAccess.js';
@@ -19,6 +19,13 @@ import Giveaway from '../src/models/Giveaway.js'
 import cache from '../src/utils/cache.js';
 
 const router = express.Router();
+
+const discordOnly = (req, res, next) => {
+    if (req.user && req.user.id.startsWith('tg_')) {
+        return res.redirect('/teammates?error=discord_only');
+    }
+    next();
+};
 
 router.get('/', async (req, res) => {
     const jsonLD = {
@@ -90,153 +97,6 @@ router.get('/', async (req, res) => {
             title: 'Главная | Дача Зейна',
             jsonLD
         }); 
-    }
-});
-
-router.get('/wrapped', async (req, res) => {
-    try {
-        const cacheKey = 'wrapped_data_v5';
-        let wrappedData = cache.get(cacheKey);
-
-        if (!wrappedData) {
-            const globalAgg = await UserProfile.aggregate([{
-                $group: {
-                    _id: null,
-                    totalMsgs: { $sum: "$totalMessages" },
-                    totalVoice: { $sum: "$totalVoiceTime" },
-                    totalMoney: { $sum: "$stars" },
-                    totalShards: { $sum: "$shards" },
-                    totalItems: { $sum: { $size: { $ifNull: ["$inventory", []] } } },
-                    totalGhosts: { $sum: "$event_ghostsCaught" }
-                }
-            }]);
-
-            const marketAgg = await StockTransaction.aggregate([{ $group: { _id: null, volume: { $sum: "$totalValue" }, trades: { $sum: 1 } } }]);
-
-            const allStocks = await Stock.find({}).lean();
-            const priceMap = {};
-            allStocks.forEach(s => priceMap[s.ticker] = s.currentPrice);
-
-            const candidates = await UserProfile.find({
-                $or: [{ stars: { $gt: 1000 } }, { 'portfolio.0': { $exists: true } }]
-            }).select('username avatar userId stars portfolio').lean();
-
-            let richestNet = { netWorth: 0, username: 'Никто', userId: null, avatar: null };
-
-            candidates.forEach(user => {
-                let stockValue = 0;
-                if (user.portfolio && user.portfolio.length > 0) {
-                    user.portfolio.forEach(p => {
-                        const price = priceMap[p.ticker] || 0;
-                        stockValue += p.quantity * price;
-                    });
-                }
-                const totalNet = user.stars + stockValue;
-                if (totalNet > richestNet.netWorth) {
-                    richestNet = { ...user, netWorth: totalNet };
-                }
-            });
-
-            const [
-                richest,
-                richestShards,
-                chatty,
-                voice,
-                taxPayer,
-                reputation,
-                ghostHunter,
-                streakerData,
-                topCollectorAgg,
-                mostPopularAgg,
-                totalUsers
-            ] = await Promise.all([
-                UserProfile.findOne({ stars: { $gt: 0 } }).sort({ stars: -1 }).select('username avatar userId stars').lean(),
-                UserProfile.findOne({ shards: { $gt: 0 } }).sort({ shards: -1 }).select('username avatar userId shards').lean(),
-                UserProfile.findOne({ totalMessages: { $gt: 0 } }).sort({ totalMessages: -1 }).select('username avatar userId totalMessages').lean(),
-                UserProfile.findOne({ totalVoiceTime: { $gt: 0 } }).sort({ totalVoiceTime: -1 }).select('username avatar userId totalVoiceTime').lean(),
-                UserProfile.findOne({ totalStarsPaidInTax: { $gt: 0 } }).sort({ totalStarsPaidInTax: -1 }).select('username avatar userId totalStarsPaidInTax').lean(),
-                UserProfile.findOne({ reputation: { $gt: 0 } }).sort({ reputation: -1 }).select('username avatar userId reputation').lean(),
-                UserProfile.findOne({ event_ghostsCaught: { $gt: 0 } }).sort({ event_ghostsCaught: -1 }).select('username avatar userId event_ghostsCaught').lean(),
-                UserDailyStreak.findOne({ currentStreak: { $gt: 0 } }).sort({ currentStreak: -1 }).lean(),
-                
-                UserProfile.aggregate([
-                    { $project: { username: 1, avatar: 1, userId: 1, itemCount: { $size: { $ifNull: ["$inventory", []] } } } },
-                    { $sort: { itemCount: -1 } },
-                    { $limit: 1 }
-                ]),
-
-                UserProfile.aggregate([
-                    { $project: { username: 1, avatar: 1, userId: 1, commCount: { $size: { $ifNull: ["$profileComments", []] } } } },
-                    { $sort: { commCount: -1 } },
-                    { $limit: 1 }
-                ]),
-
-                UserProfile.countDocuments()
-            ]);
-
-            const topCollector = topCollectorAgg[0] || null;
-            const topPopular = mostPopularAgg[0] || null;
-
-            let topStreaker = null;
-            if (streakerData) {
-                const u = await UserProfile.findOne({ userId: streakerData.userId }).select('username avatar userId').lean();
-                if (u) topStreaker = { ...u, streak: streakerData.currentStreak };
-            }
-
-            const topAchieverAgg = await UserProfile.aggregate([
-                { $project: { username: 1, avatar: 1, userId: 1, achCount: { $size: "$achievements" } } },
-                { $sort: { achCount: -1 } },
-                { $limit: 1 }
-            ]);
-            const topAchiever = topAchieverAgg[0] || null;
-
-            const topTraderAgg = await StockTransaction.aggregate([
-                { $group: { _id: "$userId", volume: { $sum: "$totalValue" } } },
-                { $sort: { volume: -1 } }, { $limit: 1 }
-            ]);
-            let topTrader = null;
-            if (topTraderAgg.length) {
-                const u = await UserProfile.findOne({ userId: topTraderAgg[0]._id }).select('username avatar userId').lean();
-                if (u) topTrader = { ...u, volume: topTraderAgg[0].volume };
-            }
-
-            const popularStockAgg = await StockTransaction.aggregate([
-                { $group: { _id: "$ticker", count: { $sum: 1 } } }, 
-                { $sort: { count: -1 } }, { $limit: 1 }
-            ]);
-            const popularStock = popularStockAgg[0] ? popularStockAgg[0]._id : 'N/A';
-
-            wrappedData = {
-                totalUsers,
-                global: globalAgg[0] || { totalMsgs: 0, totalMoney: 0, totalVoice: 0, totalItems: 0, totalGhosts: 0 },
-                market: { 
-                    volume: marketAgg[0]?.volume || 0, 
-                    trades: marketAgg[0]?.trades || 0,
-                    popularStock 
-                },
-                richest, richestShards, chatty, voice, 
-                taxPayer, reputation, ghostHunter, 
-                topAchiever, topTrader, topStreaker,
-                richestNet,
-                topCollector,
-                topPopular
-            };
-
-            cache.set(cacheKey, wrappedData, 600);
-        }
-
-        res.render('wrapped', { 
-            user: req.user, 
-            stats: wrappedData, 
-            title: 'Итоги 2025 | Дача Зейна',
-            description: `Итоги года сервера. Всего сообщений: ${(wrappedData.global.totalMsgs / 1000000).toFixed(1)}M.`,
-            currentPath: '/wrapped',
-            jsonLD: null 
-        });
-
-    } catch (e) {
-        console.error("Wrapped Error:", e);
-        res.status(500).render('500', { user: req.user, error: e });
     }
 });
 
@@ -336,7 +196,7 @@ res.render('wiki-article', {
     }
 });
 
-router.get('/profile', checkAuth, async (req, res) => res.redirect(`/profile/${req.user.id}`));
+router.get('/profile', checkAuth, discordOnly, async (req, res) => res.redirect(`/profile/${req.user.id}`));
 
 router.get('/profile/:userId', async (req, res) => {
     try {
@@ -405,7 +265,7 @@ router.get('/profile/:userId', async (req, res) => {
     }
 });
 
-router.get('/market', checkAuth, async (req, res) => {
+router.get('/market', discordOnly, checkAuth, async (req, res) => {
     try {
         let profile = null;
         let userPortfolio = [];
@@ -457,7 +317,7 @@ router.get('/market', checkAuth, async (req, res) => {
     }
 });
 
-router.get('/leaderboard', async (req, res) => {
+router.get('/leaderboard', discordOnly, async (req, res) => {
     try {
         const sortType = req.query.sort || 'stars';
         const period = req.query.period || 'all'; 
@@ -509,7 +369,7 @@ router.get('/leaderboard', async (req, res) => {
     } catch (e) { res.status(500).render('404', { user: req.user }); }
 });
 
-router.get('/shop', checkAuth, async (req, res) => {
+router.get('/shop', discordOnly, checkAuth, async (req, res) => {
     try {
         const profile = await UserProfile.findOne({ userId: req.user.id, guildId: process.env.GUILD_ID }).lean();
         const items = getShopItems();
@@ -517,7 +377,7 @@ router.get('/shop', checkAuth, async (req, res) => {
     } catch (e) { res.status(500).send("Ошибка"); }
 });
 
-router.get('/inventory', checkAuth, async (req, res) => {
+router.get('/inventory', discordOnly, checkAuth, async (req, res) => {
     try {
         const userProfile = await UserProfile.findOne({ userId: req.user.id, guildId: process.env.GUILD_ID }).lean();
         if (!userProfile) return res.redirect('/');
@@ -526,7 +386,7 @@ router.get('/inventory', checkAuth, async (req, res) => {
     } catch (e) { res.status(500).send("Error"); }
 });
 
-router.get('/deposit', checkAuth, async (req, res) => {
+router.get('/deposit', discordOnly, checkAuth, async (req, res) => {
     try {
         const userId = req.user.id;
         const profile = await UserProfile.findOne({ userId, guildId: process.env.GUILD_ID }).lean();
@@ -538,7 +398,7 @@ router.get('/deposit', checkAuth, async (req, res) => {
     } catch (e) { res.status(500).render('404', { user: req.user }); }
 });
 
-router.get('/daily', checkAuth, async (req, res) => {
+router.get('/daily', discordOnly, checkAuth, async (req, res) => {
     try {
         const userId = req.user.id;
         let streakData = await UserDailyStreak.findOne({ userId }).lean();
@@ -658,7 +518,7 @@ router.get('/img/proxy/avatar/:userId/:hash', async (req, res) => {
     }
 });
 
-router.get('/giveaways', checkAuth, async (req, res) => {
+router.get('/giveaways', discordOnly, checkAuth, async (req, res) => {
     try {
         const now = new Date();
 
@@ -785,7 +645,6 @@ router.get('/sitemap.xml', async (req, res) => {
         
         const staticPages = [
             { url: '/', priority: 1.00 },
-            { url: '/wrapped', priority: 0.80 },
             { url: '/wiki', priority: 0.80 },
             { url: '/teammates', priority: 0.80 },
             { url: '/leaderboard', priority: 0.80 },
@@ -826,6 +685,28 @@ router.get('/sitemap.xml', async (req, res) => {
     } catch (e) {
         console.error(e);
         res.status(500).end();
+    }
+});
+
+router.get('/nominations', checkAuth, async (req, res) => {
+    try {
+        const nominations = await Nomination.find({ isActive: true });
+        
+        // res.render('nominations', { 
+        //     user: req.user, 
+        //     profile: req.userProfile,
+        //     nominations,
+        //     currentPage: 'nominations'
+        // });
+
+        res.render('nominations_maintenance', {
+        user: req.user,
+        title: 'Подготовка к номинациям | Дача Зейна',
+        currentPath: '/nominations'
+    });
+    } catch (e) {
+        console.error(e);
+        res.status(500).send('Ошибка загрузки номинаций');
     }
 });
 

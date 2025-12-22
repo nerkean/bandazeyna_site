@@ -1,64 +1,178 @@
-       :root { --bg: #050505; --card: #12141a; }
-        body { background: var(--bg); font-family: 'Montserrat', sans-serif; }
+:root {
+    --bg-dark: #050505;
+    --card-bg: #111319;
+    --primary: #5865F2;
+    --text-main: #ffffff;
+    --text-muted: #b0b3b8;
+    --text-meta: #9ca3af; 
+}
 
-        .wiki-hero {
-            text-align: center; padding: 100px 20px 40px;
-            background: radial-gradient(circle at 50% 0%, rgba(88, 101, 242, 0.15), transparent 60%);
-        }
-        .wiki-h1 { font-size: 3rem; font-weight: 900; color: #fff; margin-bottom: 20px; }
-        
-        .search-box {
-            max-width: 700px; 
-            margin: 0 auto; position: relative;
-        }
-        .search-input {
-            width: 100%; padding: 18px 60px 18px 30px; border-radius: 50px;
-            background: #1a1d24; border: 1px solid rgba(255,255,255,0.1);
-            color: #fff; font-size: 1.1rem; font-family: inherit;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3); transition: 0.3s;
-        }
-        .search-input:focus { border-color: #5865F2; box-shadow: 0 10px 40px rgba(88, 101, 242, 0.2); outline: none; }
-        .search-btn {
-            position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
-            background: #5865F2; color: #fff; width: 40px; height: 40px; border-radius: 50%;
-            border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.1rem;
-        }
+body {
+    background-color: var(--bg-dark);
+    color: var(--text-main);
+    font-family: 'Montserrat', sans-serif;
+    margin: 0;
+}
 
-        .wiki-container { max-width: 1300px; margin: 0 auto; padding: 40px 20px 100px; }
-        
-        .cat-section { margin-bottom: 50px; }
-        
-        .cat-title { 
-            font-size: 1.4rem; color: #fff; margin-bottom: 20px; 
-            display: inline-flex; 
-            align-items: center; gap: 10px; 
-            border-bottom: 2px solid rgba(255,255,255,0.1); 
-            padding-bottom: 5px; padding-right: 20px;
-            width: fit-content;
-        }
-        .cat-title i { color: #FFD700; }
+.wiki-hero {
+    background: radial-gradient(circle at center, #1a1d26 0%, #050505 100%);
+    padding: 120px 20px 60px;
+    text-align: center;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
 
-        .articles-grid {
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px;
-        }
+.wiki-h1 {
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin-bottom: 30px;
+    background: linear-gradient(135deg, #fff 0%, #aaa 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
 
-        .art-card {
-            background: var(--card); border: 1px solid rgba(255,255,255,0.05); border-radius: 16px;
-            padding: 20px; transition: 0.3s; display: flex; flex-direction: column;
-            text-decoration: none; position: relative; overflow: hidden;
-        }
-        .art-card:hover { transform: translateY(-3px); border-color: #5865F2; background: #161920; }
-        
-        .art-icon { font-size: 1.8rem; margin-bottom: 12px; color: #5865F2; }
-        .art-title { font-size: 1.1rem; font-weight: 700; color: #fff; margin-bottom: 8px; line-height: 1.3; }
-        .art-desc { font-size: 0.85rem; color: #999; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-        
-        .art-meta { margin-top: auto; padding-top: 12px; display: flex; gap: 15px; font-size: 0.75rem; color: #555; }
-        .art-meta span { display: flex; align-items: center; gap: 4px; }
+.search-box {
+    max-width: 600px;
+    margin: 0 auto;
+    position: relative;
+    display: flex;
+}
 
-        @media (max-width: 768px) {
-            .wiki-h1 { font-size: 2.2rem; }
-            .articles-grid { grid-template-columns: 1fr; }
-        }
+.search-input {
+    width: 100%;
+    padding: 15px 25px;
+    border-radius: 50px;
+    border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.05);
+    color: #fff;
+    font-size: 1rem;
+    outline: none;
+    transition: 0.3s;
+}
 
-        
+.search-input:focus {
+    border-color: var(--primary);
+    background: rgba(255,255,255,0.08);
+}
+
+.search-btn {
+    position: absolute;
+    right: 5px;
+    top: 5px;
+    bottom: 5px;
+    width: 50px;
+    border-radius: 50%;
+    border: none;
+    background: var(--primary);
+    color: #fff;
+    cursor: pointer;
+    transition: 0.3s;
+    font-size: 1rem;
+    display: flex; 
+    align-items: center;
+    justify-content: center;
+}
+
+.search-btn:hover {
+    background: #4752c4;
+}
+
+.wiki-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 60px 20px;
+}
+
+.cat-section {
+    margin-bottom: 60px;
+}
+
+.cat-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 25px;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.cat-title i { color: var(--primary); }
+
+.articles-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.art-card {
+    background: var(--card-bg);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 16px;
+    padding: 25px;
+    text-decoration: none;
+    transition: 0.3s;
+    display: flex;
+    flex-direction: column;
+    height: 100%; 
+    position: relative;
+    overflow: hidden;
+}
+
+.art-card:hover {
+    transform: translateY(-5px);
+    border-color: rgba(88, 101, 242, 0.3);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+.art-icon {
+    font-size: 2rem;
+    color: var(--primary);
+    margin-bottom: 15px;
+    background: rgba(88, 101, 242, 0.1);
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.art-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 10px;
+    line-height: 1.4;
+}
+
+.art-desc {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    margin-bottom: 20px;
+    line-height: 1.6;
+    flex-grow: 1; 
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.art-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    color: var(--text-meta); 
+    border-top: 1px solid rgba(255,255,255,0.05);
+    padding-top: 15px;
+}
+
+.art-meta span {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+@media (max-width: 768px) {
+    .wiki-h1 { font-size: 2rem; }
+    .articles-grid { grid-template-columns: 1fr; }
+}

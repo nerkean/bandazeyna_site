@@ -1,61 +1,275 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <%- include('partials/head') %>
+    <%- include('partials/head', { title: 'База Знаний | Дача Зейна' }) %>
+    
+    <style>
+:root {
+    --bg-dark: #050505;
+    --card-bg: #111319;
+    --primary: #5865F2;
+    --text-main: #ffffff;
+    --text-muted: #b0b3b8; /* Lighter grey for better contrast */
+    --text-meta: #9ca3af;  /* Even lighter for meta info */
+}
 
-        <link rel="stylesheet" href="/css/wiki.css">
+body {
+    background-color: var(--bg-dark);
+    color: var(--text-main);
+    font-family: 'Montserrat', sans-serif;
+    margin: 0;
+}
+
+/* Hero Section */
+.wiki-hero {
+    background: radial-gradient(circle at center, #1a1d26 0%, #050505 100%);
+    padding: 120px 20px 60px;
+    text-align: center;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.wiki-h1 {
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin-bottom: 30px;
+    background: linear-gradient(135deg, #fff 0%, #aaa 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* Search Box */
+.search-box {
+    max-width: 600px;
+    margin: 0 auto;
+    position: relative;
+    display: flex;
+}
+
+.search-input {
+    width: 100%;
+    padding: 15px 25px;
+    border-radius: 50px;
+    border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.05);
+    color: #fff;
+    font-size: 1rem;
+    outline: none;
+    transition: 0.3s;
+}
+
+.search-input:focus {
+    border-color: var(--primary);
+    background: rgba(255,255,255,0.08);
+}
+
+.search-btn {
+    position: absolute;
+    right: 5px;
+    top: 5px;
+    bottom: 5px;
+    width: 50px;
+    border-radius: 50%;
+    border: none;
+    background: var(--primary);
+    color: #fff;
+    cursor: pointer;
+    transition: 0.3s;
+    font-size: 1rem;
+    display: flex; /* Fix for centering icon */
+    align-items: center;
+    justify-content: center;
+}
+
+.search-btn:hover {
+    background: #4752c4;
+}
+
+/* Container */
+.wiki-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 60px 20px;
+}
+
+.cat-section {
+    margin-bottom: 60px;
+}
+
+.cat-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 25px;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.cat-title i { color: var(--primary); }
+
+/* Grid */
+.articles-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+/* Article Card */
+.art-card {
+    background: var(--card-bg);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 16px;
+    padding: 25px;
+    text-decoration: none;
+    transition: 0.3s;
+    display: flex;
+    flex-direction: column;
+    height: 100%; /* Equal height */
+    position: relative;
+    overflow: hidden;
+}
+
+.art-card:hover {
+    transform: translateY(-5px);
+    border-color: rgba(88, 101, 242, 0.3);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+.art-icon {
+    font-size: 2rem;
+    color: var(--primary);
+    margin-bottom: 15px;
+    background: rgba(88, 101, 242, 0.1);
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.art-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 10px;
+    line-height: 1.4;
+}
+
+.art-desc {
+    font-size: 0.9rem;
+    color: var(--text-muted); /* Fixed contrast */
+    margin-bottom: 20px;
+    line-height: 1.6;
+    flex-grow: 1; /* Pushes meta to bottom */
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.art-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    color: var(--text-meta); /* Fixed contrast */
+    border-top: 1px solid rgba(255,255,255,0.05);
+    padding-top: 15px;
+}
+
+.art-meta span {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+@media (max-width: 768px) {
+    .wiki-h1 { font-size: 2rem; }
+    .articles-grid { grid-template-columns: 1fr; }
+}
+    </style>
 </head>
 <body>
     <%- include('partials/navbar') %>
 
-    <div class="wiki-hero">
-        <h1 class="wiki-h1">База Знаний</h1>
-        <form action="/wiki" method="GET" class="search-box">
-            <input type="text" name="q" class="search-input" placeholder="Поиск..." value="<%= searchQuery || '' %>">
-            <button type="submit" class="search-btn"><i class="fas fa-search"></i></button>
-        </form>
-    </div>
+    <main>
+        <div class="wiki-hero">
+            <h1 class="wiki-h1">База Знаний</h1>
+            <form action="/wiki" method="GET" class="search-box">
+                <input type="text" name="q" class="search-input" placeholder="Поиск..." value="<%= searchQuery || '' %>">
+                <button type="submit" class="search-btn" aria-label="Найти">
+                    <i class="fas fa-search"></i>
+                </button>
+            </form>
+        </div>
 
-    <div class="wiki-container">
-        
-        <% const cats = [
-            { id: 'guides', name: 'Гайды и Советы', icon: 'fas fa-book-open' },
-            { id: 'items', name: 'Предметы', icon: 'fas fa-cube' },
-            { id: 'bees', name: 'Пчелы', icon: 'fas fa-bug' },
-            { id: 'mechanics', name: 'Механики', icon: 'fas fa-cogs' },
-            { id: 'server', name: 'О Сервере', icon: 'fas fa-info-circle' }
-        ]; %>
+        <div class="wiki-container">
+            <% const cats = [
+                { id: 'guides', name: 'Гайды и Советы', icon: 'fas fa-book-open' },
+                { id: 'items', name: 'Предметы', icon: 'fas fa-cube' },
+                { id: 'bees', name: 'Пчелы', icon: 'fas fa-bug' },
+                { id: 'mechanics', name: 'Механики', icon: 'fas fa-cogs' },
+                { id: 'server', name: 'О Сервере', icon: 'fas fa-info-circle' }
+            ]; %>
 
-        <% cats.forEach(cat => { %>
-            <% if (categories[cat.id] && categories[cat.id].length > 0) { %>
-                <div class="cat-section">
-                    <h2 class="cat-title"><i class="<%= cat.icon %>"></i> <%= cat.name %></h2>
-                    <div class="articles-grid">
-                        <% categories[cat.id].forEach(art => { %>
-                            <a href="/wiki/<%= art.slug %>" class="art-card">
-                                <div class="art-icon"><i class="<%= art.icon %>"></i></div>
-                                <div class="art-title"><%= art.title %></div>
-                                <div class="art-desc"><%= art.description %></div>
-                                <div class="art-meta">
-                                    <span><i class="far fa-eye"></i> <%= art.views %></span>
-                                    <span><i class="far fa-calendar"></i> <%= new Date(art.createdAt).toLocaleDateString() %></span>
-                                </div>
-                            </a>
-                        <% }) %>
+            <% cats.forEach(cat => { %>
+                <% if (categories[cat.id] && categories[cat.id].length > 0) { %>
+                    <div class="cat-section">
+                        <h2 class="cat-title"><i class="<%= cat.icon %>"></i> <%= cat.name %></h2>
+                        <div class="articles-grid">
+                            <% categories[cat.id].forEach(art => { %>
+                                <a href="/wiki/<%= art.slug %>" class="art-card">
+                                    <div class="art-icon"><i class="<%= art.icon %>"></i></div>
+                                    <div class="art-title"><%= art.title %></div>
+                                    <div class="art-desc"><%= art.description %></div>
+                                    <div class="art-meta">
+                                        <span><i class="far fa-eye"></i> <%= art.views %></span>
+                                        <span><i class="far fa-calendar"></i> <%= new Date(art.createdAt).toLocaleDateString() %></span>
+                                    </div>
+                                </a>
+                            <% }) %>
+                        </div>
                     </div>
+                <% } %>
+            <% }); %>
+
+            <% if (Object.values(categories).flat().length === 0) { %>
+                <div style="text-align: center; color: #888; padding: 50px;">
+                    <i class="fas fa-search" style="font-size: 3rem; margin-bottom: 20px;"></i>
+                    <h3>Ничего не найдено</h3>
                 </div>
             <% } %>
-        <% }); %>
-
-        <% if (Object.values(categories).flat().length === 0) { %>
-            <div style="text-align: center; color: #666; padding: 50px;">
-                <i class="fas fa-search" style="font-size: 3rem; margin-bottom: 20px;"></i>
-                <h3>Ничего не найдено</h3>
-            </div>
-        <% } %>
-
-    </div>
+        </div>
+    </main>
 
     <%- include('partials/footer') %>
+
+    <script nonce="<%= nonce %>">
+        const loadAnalytics = () => {
+            if (window.analyticsLoaded) return;
+            window.analyticsLoaded = true;
+
+            const gtmScript = document.createElement('script');
+            gtmScript.async = true;
+            gtmScript.src = 'https://www.googletagmanager.com/gtag/js?id=AW-17815408362'; 
+            document.head.appendChild(gtmScript);
+
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'AW-17815408362');
+
+            (function(c,l,a,r,i,t,y){
+                c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+                t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+                y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+            })(window, document, "clarity", "script", "um1b962jsc");
+        };
+
+        window.addEventListener('scroll', loadAnalytics, { once: true });
+        window.addEventListener('mousemove', loadAnalytics, { once: true });
+        window.addEventListener('touchstart', loadAnalytics, { once: true });
+        setTimeout(loadAnalytics, 3500);
+    </script>
 </body>
 </html>

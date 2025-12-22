@@ -7,6 +7,7 @@ import BanAppeal from '../src/models/BanAppeal.js';
 import Notification from '../src/models/Notification.js';
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { checkWikiAccess } from '../middleware/checkWikiAccess.js';
+import Nomination from '../src/models/Nomination.js';
 import AdminLog from '../src/models/AdminLog.js';
 import multer from 'multer';
 import fs from 'fs';
@@ -23,23 +24,17 @@ const router = express.Router();
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
-// ==========================================
-// 0. ВСПОМОГАТЕЛЬНАЯ ФУНКЦИЯ УВЕДОМЛЕНИЙ
-// ==========================================
 async function sendNotification(req, userId, type, message, link = null) {
     try {
-        // 1. Сохраняем в базу (чтобы видно было после перезагрузки)
         const newNotif = await Notification.create({
             userId,
-            type, // 'SUCCESS', 'INFO', 'WARNING', 'ERROR'
+            type, 
             message,
             link
         });
 
-        // 2. Отправляем в Socket.io (для мгновенного появления)
         const io = req.app.get('io');
         if (io) {
-            // Принудительно приводим ID к строке
             io.to(String(userId)).emit('new_notification', {
                 _id: newNotif._id,
                 type: newNotif.type,
@@ -54,9 +49,6 @@ async function sendNotification(req, userId, type, message, link = null) {
     }
 }
 
-// ==========================================
-// 1. НАСТРОЙКА IMAGEKIT (ОБЛАКО)
-// ==========================================
 const imagekit = new ImageKit({
     publicKey: process.env.IMAGEKIT_PUBLIC_KEY,
     privateKey: process.env.IMAGEKIT_PRIVATE_KEY,
@@ -83,9 +75,6 @@ async function uploadToCloud(fileBuffer, fileName, folder = '/wiki') {
     });
 }
 
-// ==========================================
-// 2. НАСТРОЙКА ЛОКАЛЬНОЙ ЗАГРУЗКИ (ЧАТ)
-// ==========================================
 const chatUploadDir = path.join(__dirname, '../public/uploads/chat');
 if (!fs.existsSync(chatUploadDir)) {
     fs.mkdirSync(chatUploadDir, { recursive: true });
@@ -113,17 +102,12 @@ const uploadChat = multer({
     }
 });
 
-// ==========================================
-// PROXY ФУНКЦИЯ ДЛЯ БОТА
-// ==========================================
 const BOT_API_URL = process.env.BOT_API_URL || 'http://154.43.62.60:9818/api/v1'; 
 const JWT_SECRET = process.env.JWT_SECRET || 'secret'; 
 
 async function proxyToBot(endpoint, method, body, userId) {
     const token = jwt.sign({ userId }, JWT_SECRET, { expiresIn: '1m' });
     const url = `${BOT_API_URL}${endpoint}`;
-
-    // console.log(`[Proxy] Sending ${method} to ${url}`);
 
     try {
         const response = await fetch(url, {
@@ -154,11 +138,6 @@ async function proxyToBot(endpoint, method, body, userId) {
     }
 }
 
-// ==========================================
-// РОУТЫ (ТОРГОВЛЯ, МАГАЗИН И Т.Д.)
-// ==========================================
-
-// 1. ТОРГОВЛЯ (Акции)
 router.post('/trade', checkAuth, [
     body('ticker').isString().isLength({ min: 2, max: 5 }).trim().escape(),
     body('amount').isInt({ min: 1 }).withMessage('Количество > 0'),
@@ -176,7 +155,6 @@ router.post('/trade', checkAuth, [
     res.json(result);
 });
 
-// 2. МАГАЗИН
 router.post('/shop/buy', checkAuth, async (req, res) => {
     const { itemId, quantity } = req.body;
     const result = await proxyToBot('/shop/buy', 'POST', { itemId, quantity }, req.user.id);
@@ -184,7 +162,6 @@ router.post('/shop/buy', checkAuth, async (req, res) => {
     res.json(result);
 });
 
-// 3. ИСПОЛЬЗОВАНИЕ ПРЕДМЕТА
 router.post('/inventory/use', checkAuth, async (req, res) => {
     const { itemId, quantity } = req.body;
     const result = await proxyToBot('/items/use', 'POST', { itemId, quantity }, req.user.id);
@@ -196,8 +173,6 @@ router.post('/daily/claim', checkAuth, async (req, res) => {
     const result = await proxyToBot('/rewards/daily', 'POST', {}, req.user.id);
     
     if (result.success) {
-        // ✅ ВАЖНО: Записываем в базу сайта, что игрок забрал награду сегодня.
-        // Это нужно, чтобы Cron НЕ присылал ему напоминание вечером.
         await UserProfile.findOneAndUpdate(
             { userId: req.user.id },
             { lastDailyReward: new Date() }
@@ -216,7 +191,6 @@ router.post('/deposit/create', checkAuth, async (req, res) => {
     res.json(result);
 });
 
-// 6. БАНК (Действие)
 router.post('/deposit/action', checkAuth, async (req, res) => {
     const { depositId, action } = req.body;
     const result = await proxyToBot('/deposit/action', 'POST', { depositId, action }, req.user.id);
@@ -242,16 +216,11 @@ router.get('/giveaways/:id/participants', checkAuth, async (req, res) => {
     res.json(result);
 });
 
-// Смена титула
 router.post('/user/update', checkAuth, async (req, res) => {
     const { activeTitle } = req.body;
     const result = await proxyToBot('/user/update', 'POST', { activeTitle }, req.user.id);
     res.json(result);
 });
-
-// ==========================================
-// СООБЩЕНИЯ (ЧАТ)
-// ==========================================
 
 router.get('/messages/conversations', checkAuth, async (req, res) => {
     const myId = req.user.id;
@@ -385,18 +354,14 @@ router.post('/messages/send', checkAuth, (req, res) => {
                 senderAvatar: req.user.avatar
             };
 
-            // 1. Отправляем в живой чат (Socket.io room)
             req.io.to(receiverId).emit('new_message', eventData);
             req.io.to(myId).emit('message_sent', eventData);
-            
-            // 2. 🔥 ОТПРАВЛЯЕМ УВЕДОМЛЕНИЕ В КОЛОКОЛЬЧИК 🔥
-            // Чтобы не спамить, можно проверять последнее уведомление, но пока сделаем для каждого сообщения
             sendNotification(
                 req, 
                 receiverId, 
-                'INFO', // Синий цвет (информация)
+                'INFO',
                 `Новое сообщение от ${req.user.username} ✉️`, 
-                `/messages` // Ссылка на раздел сообщений
+                `/messages` 
             );
             
             res.json({ success: true, message: msg });
@@ -448,7 +413,6 @@ router.post('/profile/comment', checkAuth, async (req, res) => {
         await targetProfile.save();
 
         if (targetUserId !== req.user.id) {
-            // 🔥 УВЕДОМЛЕНИЕ О КОММЕНТАРИИ (через функцию)
             sendNotification(
                 req, 
                 targetUserId, 
@@ -491,32 +455,23 @@ router.get('/profile/comments/:userId', async (req, res) => {
     }
 });
 
-// ==========================================
-// WIKI РОУТЫ
-// ==========================================
-
 router.post('/admin/wiki/ai-polish', checkAuth, async (req, res) => {
     try {
-        // --- ПРОВЕРКА ПРАВ (как мы делали раньше) ---
         const userProfile = await UserProfile.findOne({ userId: req.user.id });
         const ADMIN_IDS = ['438744415734071297'];
-        
-        // Проверяем: это Админ ИЛИ у юзера есть галочка isWikiEditor
+
         const isEditor = userProfile && userProfile.isWikiEditor === true;
         const isAdmin = ADMIN_IDS.includes(req.user.id);
 
         if (!isAdmin && !isEditor) {
              return res.status(403).json({ error: 'Только редакторы могут использовать AI' });
         }
-        // ---------------------
-
         const { text, context } = req.body;
         
         if (!text || text.length < 5) {
             return res.status(400).json({ error: 'Текст слишком короткий' });
         }
 
-        // 🔥 ОБНОВЛЕННЫЙ МОЩНЫЙ ПРОМПТ 🔥
         const prompt = `
         Ты — профессиональный редактор и веб-дизайнер игровой Вики по Bee Swarm Simulator (сервер "Дача Зейна").
         
@@ -546,7 +501,6 @@ router.post('/admin/wiki/ai-polish', checkAuth, async (req, res) => {
         const result = await model.generateContent(prompt);
         const response = await result.response;
         
-        // Чистим ответ на случай, если ИИ всё-таки добавил markdown
         let cleanHtml = response.text()
             .replace(/```html/g, '')
             .replace(/```/g, '')
@@ -582,7 +536,6 @@ router.post('/admin/set-editor', checkAuth, async (req, res) => {
 
 router.post('/admin/wiki/delete', checkAuth, async (req, res) => {
     try {
-        // --- ПРОВЕРКА ПРАВ ---
         const userProfile = await UserProfile.findOne({ userId: req.user.id });
         const ADMIN_IDS = ['438744415734071297'];
         const isEditor = userProfile && userProfile.isWikiEditor === true;
@@ -590,7 +543,6 @@ router.post('/admin/wiki/delete', checkAuth, async (req, res) => {
         if (!ADMIN_IDS.includes(req.user.id) && !isEditor) {
              return res.status(403).json({ error: 'Нет прав на удаление' });
         }
-        // ---------------------
 
         const article = await Article.findById(req.body.id);
         if (!article) return res.status(404).json({ error: 'Статья не найдена' });
@@ -621,10 +573,8 @@ router.post('/admin/wiki', checkAuth, uploadCloud.fields([
     try {
         const userProfile = await UserProfile.findOne({ userId: req.user.id });
         
-        // 2. Список главных админов (Твой ID)
         const ADMIN_IDS = ['438744415734071297'];
 
-        // 3. Проверяем: Или это Админ, ИЛИ у юзера стоит галочка isWikiEditor
         const isEditor = userProfile && userProfile.isWikiEditor === true;
         const isAdmin = ADMIN_IDS.includes(req.user.id);
 
@@ -719,10 +669,6 @@ router.post('/admin/wiki', checkAuth, uploadCloud.fields([
     }
 });
 
-// ==========================================
-// WEBHOOKS (BOT -> SITE)
-// ==========================================
-
 router.post('/market/webhook', async (req, res) => {
     try {
         const token = req.headers['x-internal-token'];
@@ -756,10 +702,6 @@ router.post('/webhook/user', async (req, res) => {
     }
 });
 
-// ==========================================
-// АПЕЛЛЯЦИИ
-// ==========================================
-
 router.post('/appeal', checkAuth, async (req, res) => {
     try {
         const { text } = req.body;
@@ -783,7 +725,6 @@ router.post('/appeal', checkAuth, async (req, res) => {
     }
 });
 
-// 2. Решение по апелляции (Только Админ)
 router.post('/admin/appeal/decide', checkAuth, async (req, res) => {
     const ADMIN_IDS = ['438744415734071297'];
     if (!ADMIN_IDS.includes(req.user.id)) return res.status(403).json({ error: 'Нет доступа' });
@@ -804,11 +745,9 @@ router.post('/admin/appeal/decide', checkAuth, async (req, res) => {
                 isBanned: false, 
                 banReason: null 
             });
-            // 🔥 УВЕДОМЛЕНИЕ О РАЗБАНЕ
             sendNotification(req, appeal.userId, 'SUCCESS', 'Ваша апелляция одобрена! Вы разбанены 🎉', '/');
         } else {
             appeal.status = 'REJECTED';
-            // 🔥 УВЕДОМЛЕНИЕ ОБ ОТКАЗЕ
             sendNotification(req, appeal.userId, 'ERROR', 'Ваша апелляция на разбан отклонена', '/banned');
         }
 
@@ -820,10 +759,6 @@ router.post('/admin/appeal/decide', checkAuth, async (req, res) => {
         res.status(500).json({ error: 'Ошибка обработки' });
     }
 });
-
-// ==========================================
-// УВЕДОМЛЕНИЯ (GET/READ)
-// ==========================================
 
 router.get('/notifications', checkAuth, async (req, res) => {
     try {
@@ -854,6 +789,108 @@ router.post('/notifications/read', checkAuth, async (req, res) => {
     } catch (e) {
         console.error("Ошибка чтения уведомлений:", e);
         res.status(500).json({ success: false, error: e.message });
+    }
+});
+
+router.post('/nominations/vote', checkAuth, async (req, res) => {
+    const { nominationId, candidateId } = req.body;
+    const voterId = req.user.id;
+
+    try {
+        const nom = await Nomination.findById(nominationId);
+        if (!nom || !nom.isActive) return res.status(400).json({ error: 'Голосование закрыто' });
+
+        const alreadyVoted = nom.votes.some(v => v.voterId === voterId);
+        if (alreadyVoted) return res.status(400).json({ error: 'Вы уже проголосовали в этой номинации' });
+
+        nom.votes.push({ voterId, candidateId });
+        await nom.save();
+
+        res.json({ success: true });
+    } catch (e) {
+        res.status(500).json({ error: 'Ошибка сервера' });
+    }
+});
+
+router.get('/nominations/seed-test', checkAuth, async (req, res) => {
+    const MY_ID = '438744415734071297'; 
+
+    if (req.user.id !== MY_ID) {
+        return res.status(403).send('Доступ запрещен. Твой ID: ' + req.user.id);
+    }
+
+    try {
+        await Nomination.deleteMany({ title: "Легенда года" });
+
+        await Nomination.create({
+            title: "Легенда года",
+            description: "Самый активный участник сообщества",
+            category: "Legendary",
+            isActive: true,
+            candidates: [
+                { 
+                    userId: req.user.id, 
+                    username: req.user.username, 
+                    avatar: req.user.avatar, 
+                    description: "это я" 
+                },
+                { 
+                   userId: req.user.id, 
+                    username: req.user.username, 
+                    avatar: req.user.avatar, 
+                    description: "это я" 
+                }
+            ]
+        });
+        res.send('✅ Тестовая номинация создана! Теперь иди на /nominations');
+    } catch (e) {
+        console.error(e);
+        res.status(500).send('Ошибка при создании: ' + e.message);
+    }
+});
+
+router.post('/auth/telegram/bot-callback', async (req, res) => {
+    const { nonce, telegram_id, username, photo_id } = req.body; 
+    const internalToken = req.headers['x-internal-token'];
+
+    if (internalToken !== process.env.INTERNAL_API_TOKEN) {
+        console.error('⚠️ [AUTH] Попытка входа с неверным INTERNAL_TOKEN');
+        return res.status(403).json({ success: false, error: 'Forbidden' });
+    }
+
+    try {
+        const guildId = process.env.GUILD_ID;
+        let user = await UserProfile.findOne({ telegramId: telegram_id, guildId });
+
+        const userData = {
+            username: username || `User_${telegram_id}`,
+            avatar: photo_id ? `tg_${photo_id}` : null, 
+            telegramUsername: username
+        };
+
+        if (!user) {
+            user = await UserProfile.create({
+                userId: `tg_${telegram_id}`,
+                guildId,
+                telegramId: telegram_id,
+                ...userData,
+                stars: 100
+            });
+        } else {
+            await UserProfile.updateOne({ _id: user._id }, userData);
+        }
+
+        const io = req.app.get('io');
+        if (io) {
+            io.to(String(nonce)).emit('tg_auth_success', { 
+                tgId: telegram_id 
+            });
+        }
+
+        res.json({ success: true });
+    } catch (e) {
+        console.error('❌ Ошибка bot-callback:', e);
+        res.status(500).json({ success: false });
     }
 });
 

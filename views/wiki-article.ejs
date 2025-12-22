@@ -7,40 +7,32 @@
     <noscript><link rel="stylesheet" href="/css/wiki-article.css"></noscript>
 
     <style>
-        /* БАЗОВЫЕ СТИЛИ (CRITICAL) */
         :root { --bg: #050505; --text: #ddd; --primary: #5865F2; }
         body { background: var(--bg); color: var(--text); font-family: 'Montserrat', sans-serif; margin: 0; }
         .article-wrapper { max-width: 1000px; margin: 0 auto; padding: 120px 20px 100px; display: flow-root; }
-        
-        /* СЛАЙДЕР (ФИКС CLS) */
-        /* Задаем жесткие размеры сразу здесь */
         .art-slider-wrap {
             float: right;
             width: 380px; 
-            height: 280px; /* Фиксируем высоту */
+            height: 280px;
             max-width: 100%;
             margin: 5px 0 20px 30px;
             position: relative;
             border-radius: 12px;
             overflow: hidden;
-            background: rgba(255,255,255,0.02); /* Цвет-заглушка */
+            background: rgba(255,255,255,0.02);
             border: 1px solid rgba(255,255,255,0.1);
-            contain: layout paint; /* Сообщаем браузеру, что блок изолирован */
+            contain: layout paint; 
         }
 
-        /* Адаптив для слайдера (чтобы не ломался на мобильных) */
         @media (max-width: 1000px) {
             .art-slider-wrap {
                 float: none;
                 width: 100%;
-                /* Рассчитываем высоту для 16:9 на мобилках */
                 height: auto;
                 aspect-ratio: 16/9;
                 margin: 0 0 25px 0;
             }
         }
-
-        /* Остальные критические стили для заголовка, чтобы LCP был быстрым */
         .art-header { border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 25px; margin-bottom: 30px; }
         .art-h1 { font-size: 3rem; font-weight: 900; color: #fff; line-height: 1.1; margin: 10px 0 15px; }
         .content { min-height: 300px; }

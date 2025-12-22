@@ -1135,72 +1135,9 @@
     }
 }
 
-.nav-wrapped {
-    position: relative;
-    background: linear-gradient(135deg, #00c6ff 0%, #0072ff 100%);
-    padding: 8px 20px;
-    border-radius: 30px;
-    color: #fff !important;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    overflow: hidden;
-    border: 1px solid rgba(255,255,255,0.3);
-    box-shadow: 0 0 15px rgba(0, 198, 255, 0.4);
-    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    transition: all 0.3s ease;
-    z-index: 1;
-}
-
-.nav-wrapped i {
-    color: #FFD700;
-    transition: 0.4s;
-}
-
-.nav-wrapped::before {
-    content: '';
-    position: absolute;
-    top: -100%; left: 0;
-    width: 100%; height: 300%;
-    background-image: 
-        radial-gradient(2px 2px at 10% 10%, rgba(255,255,255,0.9) 50%, transparent),
-        radial-gradient(2px 2px at 20% 30%, rgba(255,255,255,0.7) 50%, transparent),
-        radial-gradient(2px 2px at 50% 40%, rgba(255,255,255,0.9) 50%, transparent),
-        radial-gradient(2px 2px at 80% 20%, rgba(255,255,255,0.7) 50%, transparent),
-        radial-gradient(1px 1px at 90% 60%, rgba(255,255,255,0.8) 50%, transparent);
-    background-size: 50% 50%;
-    opacity: 0.8;
-    pointer-events: none;
-    animation: btnSnow 3s linear infinite;
-    z-index: -1;
-}
-
 @keyframes btnSnow {
     0% { transform: translateY(0); }
     100% { transform: translateY(33.3%); }
-}
-
-.nav-wrapped:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 0 25px rgba(0, 198, 255, 0.8);
-    border-color: #fff;
-}
-
-.nav-wrapped:hover i {
-    transform: rotate(180deg) scale(1.2);
-}
-
-@media (max-width: 900px) {
-    .nav-wrapped {
-        width: 100%; 
-        justify-content: center;
-        height: 50px;
-        font-size: 1.1rem;
-        margin-bottom: 10px;
-    }
 }
 
 .logout-btn {
@@ -1216,8 +1153,6 @@
     transform: translateY(-2px);
     box-shadow: 0 5px 15px rgba(231, 76, 60, 0.2);
 }
-
-.highlight-gold { color: #FFD700 !important; text-shadow: 0 0 10px rgba(255, 215, 0, 0.3); font-weight: 700; }
 
 .trigger-name { font-weight: 700; color: #fff; font-size: 0.9rem; max-width: 100px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .trigger-arrow { font-size: 0.7rem; color: #888; transition: 0.3s; }

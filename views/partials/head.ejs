@@ -18,101 +18,65 @@
 <meta property="og:site_name" content="Дача Зейна">
 <meta property="og:url" content="https://dachazeyna.com<%= typeof currentPath !== 'undefined' ? currentPath : '' %>">
 <meta property="og:title" content="<%= typeof title !== 'undefined' ? title : 'Дача Зейна' %>">
-<meta property="og:description" content="<%= typeof description !== 'undefined' ? description : 'Официальный Discord «Дача Зейна» — крупное русскоязычное сообщество по Bee Swarm Simulator (Roblox): подробные гайды и тактики, торговля и обмен, экономика улья, организация рейдов, совместные ивенты и активный бот для трейдинга' %>">
+<meta property="og:description" content="<%= typeof description !== 'undefined' ? description : 'Официальный Discord «Дача Зейна» — крупное русскоязычное сообщество по Bee Swarm Simulator (Roblox).' %>">
 <meta property="og:image" content="<%= typeof image !== 'undefined' ? image : 'https://dachazeyna.com/assets/img/og-image.png' %>">
-<meta property="og:image:width" content="1200">
-<meta property="og:image:height" content="630">
 <meta property="og:locale" content="ru_RU">
-
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="<%= typeof title !== 'undefined' ? title : 'Дача Зейна' %>">
-<meta name="twitter:description" content="<%= typeof description !== 'undefined' ? description : 'Присоединяйся к Даче Зейна — дискорд-сообществу для игроков Bee Swarm Simulator: гайды, торговля, стратегии рейдов, помощь новичкам, совместные события и бот для экономики и трейдинга' %>">
-<meta name="twitter:image" content="<%= typeof image !== 'undefined' ? image : 'https://dachazeyna.com/assets/img/og-image.png' %>">
 
 <link rel="icon" type="image/png" href="/assets/img/favicons/favicon-96x96.png" sizes="96x96" />
 <link rel="icon" type="image/svg+xml" href="/assets/img/favicons/favicon.svg" />
 <link rel="shortcut icon" href="/assets/img/favicons/favicon.ico" />
 <link rel="apple-touch-icon" sizes="180x180" href="/assets/img/favicons/apple-touch-icon.png" />
 <meta name="apple-mobile-web-app-title" content="Дача Зейна" />
-<link rel="manifest" href="/assets/img/favicons/site.webmanifest" fetchpriority="low" />
+<link rel="manifest" href="/assets/img/favicons/site.webmanifest" />
+
+<link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+
+<link rel="preload" href="/assets/fonts/web/montserrat-v31-cyrillic_latin-regular.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/assets/fonts/web/montserrat-v31-cyrillic_latin-500.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/assets/fonts/web/montserrat-v31-cyrillic_latin-700.woff2" as="font" type="font/woff2" crossorigin>
 
 <style>
     @font-face { font-family: 'Montserrat'; font-style: normal; font-weight: 400; font-display: swap; src: url('/assets/fonts/web/montserrat-v31-cyrillic_latin-regular.woff2') format('woff2'); }
     @font-face { font-family: 'Montserrat'; font-style: normal; font-weight: 500; font-display: swap; src: url('/assets/fonts/web/montserrat-v31-cyrillic_latin-500.woff2') format('woff2'); }
     @font-face { font-family: 'Montserrat'; font-style: normal; font-weight: 700; font-display: swap; src: url('/assets/fonts/web/montserrat-v31-cyrillic_latin-700.woff2') format('woff2'); }
     @font-face { font-family: 'Montserrat'; font-style: normal; font-weight: 900; font-display: swap; src: url('/assets/fonts/web/montserrat-v31-cyrillic_latin-900.woff2') format('woff2'); }
-    @font-face { font-family: 'JetBrains Mono'; font-style: normal; font-weight: 700; font-display: swap; src: url('/assets/fonts/web/jetbrains-mono-v24-cyrillic_latin-700.woff2') format('woff2'); }
-
+    
     .modal-overlay { display: none; opacity: 0; pointer-events: none; }
     .modal-overlay.active { display: flex; opacity: 1; pointer-events: all; }
 </style>
 
-<link rel="preload" href="/css/common.css" as="style">
 <link rel="stylesheet" href="/css/common.css">
-<link rel="preload" href="/css/style.css" as="style">
-<link rel="stylesheet" href="/css/style.css">
-<link rel="preload" href="/css/modals.css" as="style">
-<link rel="stylesheet" href="/css/modals.css" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="/css/modals.css"></noscript>
+<link rel="stylesheet" href="/css/modals.css">
+<link rel="stylesheet" href="/libs/aos.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
-<link rel="preload" href="/assets/fonts/web/montserrat-v31-cyrillic_latin-regular.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="/assets/fonts/web/montserrat-v31-cyrillic_latin-500.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="/assets/fonts/web/montserrat-v31-cyrillic_latin-700.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="/assets/fonts/web/montserrat-v31-cyrillic_latin-900.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="/assets/fonts/web/jetbrains-mono-v24-cyrillic_latin-700.woff2" as="font" type="font/woff2" crossorigin>
-
-<link rel="stylesheet" href="/libs/aos.css" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="/libs/aos.css"></noscript>
-<link rel="stylesheet" href="/libs/fontawesome.css" media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="/libs/fontawesome.css"></noscript>
-
-<% if (typeof jsonLD !== 'undefined' && jsonLD) { %>
-<script type="application/ld+json" nonce="<%= nonce %>">
-    <%- JSON.stringify(jsonLD) %>
-</script>
-<% } %>
-
-<% if (typeof gaId !== 'undefined' && gaId) { %>
-    <script nonce="<%= nonce %>">
-        let analyticsLoaded = false;
-        const gaId = '<%= gaId %>'; 
-        const adsId = 'AW-17815408362';
-
-        function loadAnalytics() {
-            if (analyticsLoaded) return;
-            analyticsLoaded = true;
-            const script = document.createElement('script');
-            script.async = true;
-            script.src = `https://www.googletagmanager.com/gtag/js?id=${adsId}`;
-            document.head.appendChild(script);
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', gaId, { 'page_path': window.location.pathname });
-            gtag('config', adsId);
-        }
-        ['click', 'scroll', 'mousemove', 'touchstart'].forEach(evt => 
-            window.addEventListener(evt, loadAnalytics, { once: true, passive: true })
-        );
-        setTimeout(loadAnalytics, 4000);
-    </script>
-<% } else { %>
-    <script async src="https://www.googletagmanager.com/gtag/js?id=AW-17815408362"></script>
-    <script>
+<% if (typeof currentPath === 'undefined' || (currentPath !== '/' && !currentPath.startsWith('/wiki'))) { %>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=AW-17815408362" nonce="<%= locals.nonce %>"></script>
+    <script nonce="<%= locals.nonce %>">
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
       gtag('config', 'AW-17815408362');
+      <% if (typeof gaId !== 'undefined' && gaId) { %>
+          gtag('config', '<%= gaId %>');
+      <% } %>
+    </script>
+
+    <script type="text/javascript" nonce="<%= locals.nonce %>">
+        (function(c,l,a,r,i,t,y){
+            c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+            t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+            y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+        })(window, document, "clarity", "script", "um1b962jsc");
     </script>
 <% } %>
 
-<script type="text/javascript" nonce="<%= typeof nonce !== 'undefined' ? nonce : '' %>">
-    (function(c,l,a,r,i,t,y){
-        c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
-        t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
-        y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
-    })(window, document, "clarity", "script", "um1b962jsc");
+<% if (typeof jsonLD !== 'undefined' && jsonLD) { %>
+<script type="application/ld+json" nonce="<%= locals.nonce %>">
+    <%- JSON.stringify(jsonLD) %>
 </script>
+<% } %>
 
 <script src="/libs/aos.js" defer></script> 
 <script src="/js/modals.js" defer></script>

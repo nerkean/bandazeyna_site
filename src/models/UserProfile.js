@@ -38,9 +38,11 @@ const activeQuestSchema = new mongoose.Schema({
 }, { _id: false });
 
 const userProfileSchema = new mongoose.Schema({
-  userId: { type: String, required: true },
+  userId: { type: String, required: true, unique: true },
   guildId: { type: String, required: true },
   username: { type: String, required: true, default: 'Unknown' },
+  telegramId: { type: String, unique: true, sparse: true },
+    telegramUsername: { type: String },
   avatar: { type: String, default: null },
   joinedAt: { type: Date },
   stars: { type: Number, default: 0 },

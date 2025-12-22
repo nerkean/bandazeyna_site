@@ -30,9 +30,14 @@ router.post('/create', checkAuth, async (req, res) => {
     try {
         await TeammateRequest.findOneAndDelete({ userId: req.user.id });
 
-        const avatarUrl = req.user.avatar 
-            ? `https://cdn.discordapp.com/avatars/${req.user.id}/${req.user.avatar}.png` 
-            : '/assets/img/default.png';
+        let avatarUrl = '/assets/img/avatars/default_avatar.png';
+        if (req.user.avatar) {
+            if (req.user.id.startsWith('tg_')) {
+                avatarUrl = req.user.avatar; 
+            } else {
+                avatarUrl = `https://cdn.discordapp.com/avatars/${req.user.id}/${req.user.avatar}.png`;
+            }
+        }
 
         await TeammateRequest.create({
             userId: req.user.id,
@@ -45,7 +50,7 @@ router.post('/create', checkAuth, async (req, res) => {
 
         res.json({ success: true });
     } catch (err) {
-        console.error(err);
+        console.error('Ошибка при создании заявки LFG:', err);
         res.json({ success: false, error: err.message });
     }
 });

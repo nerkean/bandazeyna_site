@@ -8,43 +8,40 @@
     </div>
     
     <div class="nav-menu" id="navMenu">
-        
-<div class="nav-links">
-    <a href="/wrapped" class="nav-item nav-wrapped"><i class="fas fa-star"></i> ИТОГИ 2025</a>
-    <a href="/market" class="nav-item"><i class="fas fa-chart-line"></i> Биржа</a>
-    <a href="/giveaways" class="nav-item highlight-gold"><i class="fas fa-gift"></i> Халява</a>
-    <a href="/messages" class="nav-item">
-            <i class="fas fa-comments"></i> Сообщения
-        </a>
+        <div class="nav-links">
+            <a href="/nominations" class="nav-item highlight-gold glow-effect">
+                <i class="fas fa-trophy"></i> НОМИНАЦИИ
+            </a>
 
-<div class="nav-item-dropdown">
-    <div class="nav-item dropdown-trigger">
-        <i class="fas fa-th-large"></i>
-        Меню
-        <i class="fas fa-chevron-down" style="font-size: 0.7em;"></i>
-    </div>
-        
-        <div class="nav-dropdown-menu">
-            <a href="/wiki" class="dd-link">
-                <i class="fas fa-book"></i> Вики
-            </a>
-            <a href="/teammates" class="dd-link">
-                <i class="fas fa-users"></i> Поиск Пати
-            </a>
-            <a href="/leaderboard" class="dd-link">
-                <i class="fas fa-trophy"></i> Топ Игроков
-            </a>
-            <a href="/shop" class="dd-link">
-                <i class="fas fa-store"></i> Магазин
-            </a>
+            <% if (typeof user === 'undefined' || !user || !user.id.startsWith('tg_')) { %>
+                <a href="/market" class="nav-item"><i class="fas fa-chart-line"></i> Биржа</a>
+                <a href="/giveaways" class="nav-item"><i class="fas fa-gift"></i> Халява</a>
+            <% } %>
+
+            <a href="/messages" class="nav-item"><i class="fas fa-comments"></i> Сообщения</a>
+
+            <div class="nav-item-dropdown">
+                <div class="nav-item dropdown-trigger">
+                    <i class="fas fa-th-large"></i> Меню
+                    <i class="fas fa-chevron-down" style="font-size: 0.7em;"></i>
+                </div>
+                
+                <div class="nav-dropdown-menu">
+                    <a href="/wiki" class="dd-link"><i class="fas fa-book"></i> Вики</a>
+                    <a href="/teammates" class="dd-link"><i class="fas fa-users"></i> Поиск Пати</a>
+                    
+                    <% if (typeof user === 'undefined' || !user || !user.id.startsWith('tg_')) { %>
+                        <a href="/leaderboard" class="dd-link"><i class="fas fa-trophy"></i> Топ Игроков</a>
+                        <a href="/shop" class="dd-link"><i class="fas fa-store"></i> Магазин</a>
+                    <% } %>
+                </div>
+            </div>
         </div>
-    </div>
-</div>
 
         <div class="auth">
             <% if (typeof user !== 'undefined' && user) { %>
                 
-                <% if (typeof profile !== 'undefined' && profile) { %>
+                <% if (typeof profile !== 'undefined' && profile && !user.id.startsWith('tg_')) { %>
                     <div class="nav-balance-group">
                         <div class="nav-balance stars" title="Звезды">
                             <span class="nb-icon">⭐</span>
@@ -70,25 +67,17 @@
                             <h4>Уведомления</h4>
                             <button class="notif-read-all" id="markAllReadBtn">Прочитать все</button>
                         </div>
-
                         <ul class="notif-list" id="notifItems">
                             <% if (locals.notifications && notifications.length > 0) { %>
                                 <% notifications.forEach(n => { %>
                                     <div class="notif-item <%= n.read ? '' : 'unread' %>" 
-     onclick="readOne('<%= n._id %>', '<%= n.link %>', this)">
-                                        
+                                         onclick="readOne('<%= n._id %>', '<%= n.link %>', this)">
                                         <div class="notif-icon">
-                                            <% if (n.type === 'SUCCESS') { %> 
-                                                <i class="fas fa-check" style="color: #2ecc71"></i> 
-                                            <% } else if (n.type === 'INFO') { %> 
-                                                <i class="fas fa-info" style="color: #3498db"></i> 
-                                            <% } else if (n.type === 'WARNING') { %> 
-                                                <i class="fas fa-exclamation" style="color: #f1c40f"></i> 
-                                            <% } else { %> 
-                                                <i class="fas fa-bell" style="color: #aaa"></i> 
-                                            <% } %>
+                                            <% if (n.type === 'SUCCESS') { %><i class="fas fa-check" style="color: #2ecc71"></i> 
+                                            <% } else if (n.type === 'INFO') { %><i class="fas fa-info" style="color: #3498db"></i> 
+                                            <% } else if (n.type === 'WARNING') { %><i class="fas fa-exclamation" style="color: #f1c40f"></i> 
+                                            <% } else { %><i class="fas fa-bell" style="color: #aaa"></i><% } %>
                                         </div>
-                                        
                                         <div class="notif-content">
                                             <span class="notif-text"><%= n.message %></span>
                                             <span class="notif-time"><%= new Date(n.createdAt).toLocaleDateString() %></span>
@@ -96,10 +85,7 @@
                                     </div>
                                 <% }) %>
                             <% } else { %>
-                                <div class="notif-empty" style="padding: 20px; text-align: center; color: #666;">
-                                    <i class="far fa-bell-slash" style="font-size: 1.5rem; margin-bottom: 10px;"></i>
-                                    <div>Пусто</div>
-                                </div>
+                                <div class="notif-empty">Пусто</div>
                             <% } %>
                         </ul>
                     </div>
@@ -108,7 +94,11 @@
                 <div class="profile-dropdown-wrapper">
                     <div class="profile-trigger" id="profileTrigger">
                         <% if (user.avatar) { %>
-                            <img src="/img/proxy/avatar/<%= user.id %>/<%= user.avatar %>" alt="Ava">
+                            <% if (user.avatar.startsWith('tg_')) { %>
+                                <img src="/img/tg-proxy/<%= user.avatar.replace('tg_', '') %>" alt="Ava">
+                            <% } else { %>
+                                <img src="/img/proxy/avatar/<%= user.id %>/<%= user.avatar %>" alt="Ava">
+                            <% } %>
                         <% } else { %>
                             <img src="/assets/img/avatars/default_avatar.png" alt="Ava">
                         <% } %>
@@ -117,27 +107,41 @@
                     </div>
 
                     <div class="profile-dropdown" id="profileDropdown">
-                        <div class="dropdown-header">
-                            <span class="role-badge">Игрок</span>
-                        </div>
+                        <div class="dropdown-header"><span class="role-badge">Игрок</span></div>
                         <div class="dropdown-grid">
                             <a href="/profile/<%= user.id %>" class="dd-item"><i class="fas fa-user-circle"></i> Профиль</a>
-                            <a href="/inventory" class="dd-item"><i class="fas fa-briefcase"></i> Инвентарь</a>
-                            <a href="/deposit" class="dd-item"><i class="fas fa-university"></i> Банк</a>
-                            <a href="/daily" class="dd-item"><i class="fas fa-calendar-check"></i> Дейли</a>
+                            <% if (!user.id.startsWith('tg_')) { %>
+                                <a href="/inventory" class="dd-item"><i class="fas fa-briefcase"></i> Инвентарь</a>
+                                <a href="/deposit" class="dd-item"><i class="fas fa-university"></i> Банк</a>
+                                <a href="/daily" class="dd-item"><i class="fas fa-calendar-check"></i> Дейли</a>
+                            <% } %>
                         </div>
                         <div class="dropdown-footer">
-                            <a href="/auth/logout" class="dd-logout" id="logoutBtn">
-                                <i class="fas fa-sign-out-alt"></i> Выйти
-                            </a>
+                            <a href="/auth/logout" class="dd-logout" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Выйти</a>
                         </div>
                     </div>
                 </div>
 
             <% } else { %>
-                <a href="/auth/discord" class="btn-discord">
-                    <i class="fab fa-discord"></i> Войти
-                </a>
+                <div class="login-dropdown-wrapper">
+                    <div class="login-trigger" id="loginTrigger">
+                        <i class="fas fa-sign-in-alt"></i> 
+                        <span>Войти</span>
+                        <i class="fas fa-chevron-down trigger-arrow"></i>
+                    </div>
+
+                    <div class="login-dropdown" id="loginDropdown">
+                        <div class="ld-header">Выберите платформу</div>
+                        <a href="/auth/discord" class="ld-item discord">
+                            <div class="ld-icon"><i class="fab fa-discord"></i></div>
+                            <div class="ld-text"><strong>Discord</strong><span>Полный функционал</span></div>
+                        </a>
+                        <a href="https://t.me/dachazeyna_bot?start=login_<%= locals.nonce %>" target="_blank" class="ld-item telegram">
+                            <div class="ld-icon"><i class="fab fa-telegram"></i></div>
+                            <div class="ld-text"><strong>Telegram Бот</strong><span>Поиск пати и уведомления</span></div>
+                        </a>
+                    </div>
+                </div>
             <% } %>
         </div>
     </div>
@@ -146,269 +150,166 @@
 <div id="navOverlay"></div>
 
 <audio id="audioNotification" src="/assets/sounds/notify.mp3" preload="auto"></audio>
-
-<div id="soundToast" class="sound-toast">
-    <i class="fas fa-volume-mute"></i>
-    <span>Нажми, чтобы включить звук уведомлений</span>
-</div>
+<div id="soundToast" class="sound-toast"><i class="fas fa-volume-mute"></i><span>Нажми, чтобы включить звук</span></div>
 
 <script src="https://cdn.jsdelivr.net/npm/socket.io-client@4.7.5/dist/socket.io.min.js" integrity="sha384-2huaZvOR9iDzHqslqwpR87isEmrfxqyWOF7hr7BY6KG0+hVKLoEXMPUJw3ynWuhO" crossorigin="anonymous" defer></script>
 
-<script nonce="<%= nonce %>">
+<script nonce="<%= locals.nonce %>">
     document.addEventListener('DOMContentLoaded', () => {
-        // --- 1. UI КОД (Меню, Профиль, Аудио) ---
-        // (Оставляем твой существующий код UI без изменений)
         const mobileBtn = document.getElementById('mobileMenuBtn');
         const navMenu = document.getElementById('navMenu');
         const overlay = document.getElementById('navOverlay');
         const navbar = document.querySelector('.navbar');
+        
+        const loginTrigger = document.getElementById('loginTrigger');
+        const loginDropdown = document.getElementById('loginDropdown');
         const profileTrigger = document.getElementById('profileTrigger');
         const profileDropdown = document.getElementById('profileDropdown');
-        const triggerArrow = document.querySelector('.trigger-arrow');
-        const logoutBtn = document.getElementById('logoutBtn');
         const notifBtn = document.getElementById('notifBtn');
         const notifDropdown = document.getElementById('notifDropdown');
-        const notifItems = document.getElementById('notifItems'); 
         const notifBadge = document.getElementById('notifBadge');
         const markAllReadBtn = document.getElementById('markAllReadBtn');
-        const bellIcon = notifBtn ? notifBtn.querySelector('i') : null;
-        const audioElement = document.getElementById('audioNotification');
-        const soundToast = document.getElementById('soundToast');
-        let soundEnabled = false;
-        let notifOpen = false;
 
-        const showSoundPrompt = () => { if (soundToast && !soundEnabled) soundToast.classList.add('show'); };
-        const hideSoundPrompt = () => { if (soundToast) soundToast.classList.remove('show'); };
-        const unlockSound = () => {
-            if (soundEnabled || !audioElement) return;
-            audioElement.play().then(() => {
-                audioElement.pause();
-                audioElement.currentTime = 0;
-                soundEnabled = true;
-                hideSoundPrompt();
-                document.removeEventListener('click', unlockSound);
-            }).catch(() => {});
-        };
-        document.addEventListener('click', unlockSound);
-        if (soundToast) soundToast.addEventListener('click', (e) => { e.stopPropagation(); unlockSound(); });
-
-        const playNotificationSound = () => {
-            if (!audioElement) return;
-            audioElement.currentTime = 0;
-            audioElement.play().catch(() => showSoundPrompt());
-        };
-
-        const closeAllDropdowns = () => {
+        const closeAll = () => {
             if (navMenu) navMenu.classList.remove('active');
             if (mobileBtn) mobileBtn.classList.remove('open');
+            if (overlay) overlay.classList.remove('active');
+            if (loginDropdown) loginDropdown.classList.remove('active');
             if (profileDropdown) profileDropdown.classList.remove('active');
-            if (triggerArrow) triggerArrow.classList.remove('rotate');
-            if (overlay) { overlay.classList.remove('active'); overlay.classList.remove('active-desktop'); }
-            if (notifDropdown) { notifDropdown.classList.remove('active'); notifOpen = false; }
+            if (notifDropdown) notifDropdown.classList.remove('active');
         };
 
-        if (overlay) overlay.addEventListener('click', closeAllDropdowns);
-        window.addEventListener('scroll', () => {
-            if (window.scrollY > 50) navbar.classList.add('scrolled');
-            else navbar.classList.remove('scrolled');
-        });
+        window.readOne = async (id, link, element) => {
+            let currentCount = parseInt(notifBadge?.innerText) || 0;
+            if (currentCount > 0) updateBadge(currentCount - 1);
+
+            if (element) {
+                element.style.opacity = '0';
+                element.style.transform = 'translateX(20px)';
+                setTimeout(() => element.remove(), 300);
+            }
+
+            try {
+                await fetch('/api/notifications/read', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id })
+                });
+            } catch (e) { console.error('Ошибка чтения:', e); }
+
+            if (link && link !== '#' && link !== 'undefined') {
+                window.location.href = link;
+            }
+        };
+
+        if (markAllReadBtn) {
+            markAllReadBtn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                updateBadge(0);
+                const items = document.getElementById('notifItems');
+                if (items) items.innerHTML = '<div class="notif-empty">Пусто</div>';
+                
+                try {
+                    await fetch('/api/notifications/read', { 
+                        method: 'POST', 
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({}) 
+                    });
+                } catch (e) { console.error(e); }
+            });
+        }
+
+        const updateBadge = (count) => {
+            if (!notifBadge) return;
+            notifBadge.style.display = count > 0 ? 'flex' : 'none';
+            notifBadge.innerText = count > 9 ? '9+' : count;
+        };
+
         if (mobileBtn) {
             mobileBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 navMenu.classList.toggle('active');
                 mobileBtn.classList.toggle('open');
                 overlay.classList.toggle('active');
-                if (profileDropdown) profileDropdown.classList.remove('active');
-                if (notifDropdown) notifDropdown.classList.remove('active');
             });
-        }
-        if (profileTrigger) {
-            profileTrigger.addEventListener('click', (e) => {
-                e.stopPropagation();
-                profileDropdown.classList.toggle('active');
-                if (triggerArrow) triggerArrow.classList.toggle('rotate');
-                if (overlay) overlay.classList.toggle('active-desktop');
-                if (notifDropdown) { notifDropdown.classList.remove('active'); notifOpen = false; }
-            });
-        }
-        if (logoutBtn) {
-            logoutBtn.addEventListener('click', async (e) => {
-                e.preventDefault();
-                if (window.Modal && await window.Modal.confirm('Выход', 'Вы точно хотите выйти из аккаунта?', 'warning')) {
-                    window.location.href = '/auth/logout';
-                } else if (!window.Modal && confirm("Вы точно хотите выйти?")) {
-                    window.location.href = '/auth/logout';
-                }
-            });
-        }
-        if (notifBtn && notifDropdown) {
-            notifBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                notifOpen = !notifOpen;
-                if (notifOpen) {
-                    notifDropdown.classList.add('active');
-                    if (profileDropdown) profileDropdown.classList.remove('active');
-                    if (overlay) overlay.classList.remove('active-desktop');
-                } else {
-                    notifDropdown.classList.remove('active');
-                }
-            });
-            document.addEventListener('click', (e) => {
-                if (!notifDropdown.contains(e.target) && !notifBtn.contains(e.target) && !e.target.closest('.sound-toast')) {
-                    notifDropdown.classList.remove('active');
-                    notifOpen = false;
-                }
-            });
-            if (markAllReadBtn) {
-                markAllReadBtn.addEventListener('click', async (e) => {
-                    e.stopPropagation();
-                    updateBadge(0);
-                    if (notifItems) notifItems.innerHTML = '<div class="notif-empty">Пусто</div>';
-                    try {
-                        await fetch('/api/notifications/read', { 
-                            method: 'POST', 
-                            headers: { 'Content-Type': 'application/json' }, 
-                            body: JSON.stringify({}) 
-                        });
-                    } catch (e) { console.error(e); }
-                });
-            }
         }
 
-        window.readOne = async (id, link, element) => {
-            if (link && link !== '#' && link !== 'undefined') window.location.href = link;
-            if (element) {
-                element.style.transition = 'all 0.3s ease';
-                element.style.opacity = '0';
-                element.style.transform = 'translateX(20px)';
-                setTimeout(() => {
-                    element.remove();
-                    if (notifItems && notifItems.children.length === 0) notifItems.innerHTML = '<div class="notif-empty">Пусто</div>';
-                }, 300);
-            }
-            let currentCount = 0;
-            if (notifBadge && notifBadge.style.display !== 'none') currentCount = parseInt(notifBadge.innerText) || 0;
-            if (currentCount > 0) updateBadge(currentCount - 1);
-            try {
-                await fetch('/api/notifications/read', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ id })
-                });
-            } catch (e) {}
+        document.querySelectorAll('.nav-menu a').forEach(link => {
+            link.addEventListener('click', () => {
+                if (!link.classList.contains('dropdown-trigger')) setTimeout(closeAll, 150);
+            });
+        });
+
+        const toggleMenu = (trigger, menu) => {
+            if (!trigger || !menu) return;
+            trigger.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const isActive = menu.classList.contains('active');
+                if (window.innerWidth > 992) {
+                    if (loginDropdown && loginDropdown !== menu) loginDropdown.classList.remove('active');
+                    if (profileDropdown && profileDropdown !== menu) profileDropdown.classList.remove('active');
+                    if (notifDropdown && notifDropdown !== menu) notifDropdown.classList.remove('active');
+                }
+                menu.classList.toggle('active', !isActive);
+            });
         };
 
-        function updateBadge(count) {
-            if (!notifBadge) return;
-            if (count > 0) {
-                notifBadge.style.display = 'flex';
-                notifBadge.innerText = count > 9 ? '9+' : count;
-                notifBadge.style.transform = 'scale(1.2)';
-                setTimeout(() => notifBadge.style.transform = 'scale(1)', 200);
-            } else {
-                notifBadge.style.display = 'none';
-            }
-        }
+        toggleMenu(loginTrigger, loginDropdown);
+        toggleMenu(profileTrigger, profileDropdown);
+        toggleMenu(notifBtn, notifDropdown);
 
-        function getNotifIcon(type) {
-            if (type === 'SUCCESS') return '<i class="fas fa-check-circle" style="color: #2ecc71"></i>';
-            if (type === 'WARNING') return '<i class="fas fa-exclamation-circle" style="color: #f1c40f"></i>';
-            if (type === 'ERROR') return '<i class="fas fa-times-circle" style="color: #e74c3c"></i>';
-            return '<i class="fas fa-info-circle" style="color: #3498db"></i>';
-        }
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 50) navbar.classList.add('scrolled');
+            else navbar.classList.remove('scrolled');
+        });
 
-        // --- 2. ОПТИМИЗИРОВАННЫЙ SOCKET.IO ---
-        // Исправляем ошибку "восстановление из возвратного кеша"
-        
+        document.addEventListener('click', (e) => {
+            if (!navMenu.contains(e.target) && !mobileBtn?.contains(e.target)) closeAll();
+        });
+        if (overlay) overlay.addEventListener('click', closeAll);
+
         let socket;
-
         function connectSocket() {
             if (typeof io === 'undefined' || socket) return;
+            socket = io({ transports: ['websocket'], reconnection: true });
 
-            socket = io({
-                transports: ['websocket'], // Сразу используем вебсокеты (быстрее)
-                reconnection: true
+            socket.on('connect', () => {
+                const nonce = "<%= locals.nonce %>";
+                if (nonce) socket.emit('join_room', nonce);
+                <% if (typeof user !== 'undefined' && user) { %>
+                    socket.emit('join_room', '<%= user.id %>');
+                <% } %>
+            });
+
+            socket.on('tg_auth_success', (data) => {
+                window.location.href = `/auth/finalize?tgId=${data.tgId}`;
             });
 
             <% if (typeof user !== 'undefined' && user) { %>
-                socket.on('connect', () => {
-                    socket.emit('join_room', '<%= user.id %>');
-                });
-
-                socket.on('user_update', (data) => {
-                    if (typeof data.stars !== 'undefined') {
-                        document.querySelectorAll('.nav-balance.stars .nb-val').forEach(el => {
-                            el.innerText = Math.floor(data.stars).toLocaleString();
-                            el.style.color = '#2ecc71';
-                            setTimeout(() => el.style.color = '', 500);
-                        });
-                    }
-                    if (typeof data.shards !== 'undefined') {
-                        document.querySelectorAll('.nav-balance.shards .nb-val').forEach(el => {
-                            el.innerText = Math.floor(data.shards).toLocaleString();
-                            el.style.color = '#e67e22';
-                            setTimeout(() => el.style.color = '', 500);
-                        });
-                    }
-                });
-
                 socket.on('new_notification', (notif) => {
-                    if (bellIcon) {
-                        bellIcon.classList.remove('bell-shake');
-                        void bellIcon.offsetWidth; 
-                        bellIcon.classList.add('bell-shake');
-                        setTimeout(() => bellIcon.classList.remove('bell-shake'), 600);
-                    }
-                    playNotificationSound();
-                    
-                    let currentCount = 0;
-                    if (notifBadge && notifBadge.style.display !== 'none') currentCount = parseInt(notifBadge.innerText) || 0;
+                    const currentCount = parseInt(notifBadge?.innerText) || 0;
                     updateBadge(currentCount + 1);
-
-                    if (notifItems) {
-                        const emptyMsg = notifItems.querySelector('.notif-empty');
-                        if (emptyMsg) emptyMsg.remove();
+                    
+                    const items = document.getElementById('notifItems');
+                    if (items) {
+                        const empty = items.querySelector('.notif-empty');
+                        if (empty) empty.remove();
+                        
                         const html = `
                             <div class="notif-item unread" onclick="readOne('${notif._id}', '${notif.link || '#'}', this)">
-                                <div class="notif-icon">${getNotifIcon(notif.type)}</div>
+                                <div class="notif-icon"><i class="fas fa-info-circle" style="color: #3498db"></i></div>
                                 <div class="notif-content">
                                     <span class="notif-text">${notif.message}</span>
                                     <span class="notif-time">только что</span>
                                 </div>
                             </div>`;
-                        notifItems.insertAdjacentHTML('afterbegin', html);
+                        items.insertAdjacentHTML('afterbegin', html);
                     }
-                    // Если есть Toast-уведомления
-                    if (typeof window.showToast === 'function') {
-                        window.showToast('Новое уведомление', notif.message, 'info');
-                    }
+                    if (typeof window.showToast === 'function') window.showToast('Уведомление', notif.message, 'info');
                 });
             <% } %>
         }
 
-        function disconnectSocket() {
-            if (socket) {
-                socket.disconnect();
-                socket = null;
-            }
-        }
-
-        // Запускаем сокет
-        if (typeof io !== 'undefined') {
-            connectSocket();
-        }
-
-        // --- ИСПРАВЛЕНИЕ BFCACHE ---
-        // Отключаем сокет при уходе со страницы, чтобы браузер мог закешировать её
-        window.addEventListener('pagehide', () => {
-            disconnectSocket();
-        });
-
-        // Восстанавливаем при возвращении (кнопка "Назад")
-        window.addEventListener('pageshow', (event) => {
-            if (event.persisted) {
-                connectSocket();
-            }
-        });
+        if (typeof io !== 'undefined') connectSocket();
     });
 </script>
