@@ -1,4 +1,3 @@
-/* --- ГЛОБАЛЬНЫЙ СБРОС --- */
 .profile-wrapper * {
     box-sizing: border-box;
 }
@@ -18,43 +17,37 @@
     --radius-md: 16px;
 }
 
-/* Перенесено из profile.ejs */
 .profile-wrapper {
-    max-width: 1400px; /* Было 1200px, сделал чуть шире для десктопа */
+    max-width: 1400px;
     margin: 0 auto;
     padding: 150px 20px 60px;
     min-height: 100vh;
     font-family: 'Montserrat', sans-serif;
 }
 
-/* --- СЕТКА DASHBOARD (ДЕСКТОП) --- */
 .dashboard-grid {
     display: grid;
-    /* Три колонки: Фиксированная левая, Гибкий центр, Фиксированная правая */
     grid-template-columns: 280px 1fr 300px; 
     gap: 24px;
     align-items: start;
 }
 
-/* Колонки */
 .col-left, .col-center, .col-right {
     display: flex;
     flex-direction: column;
     gap: 24px;
-    min-width: 0; /* Важно для сжатия контента внутри Grid */
+    min-width: 0;
 }
 
-/* --- КАРТОЧКИ --- */
 .card {
     background: var(--bg-card);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
     padding: 24px;
     position: relative;
-    overflow: hidden; /* Обрезает графики, если они вылезают */
+    overflow: hidden; 
 }
 
-/* --- ШАПКА ПРОФИЛЯ --- */
 .profile-header {
     position: relative;
     background-color: var(--bg-card);
@@ -116,32 +109,26 @@
 .btn-edit { margin-left: auto; background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); color: var(--text-main); padding: 12px 24px; border-radius: 12px; cursor: pointer; font-weight: 600; transition: 0.2s; display: flex; align-items: center; gap: 8px; font-family: 'Montserrat', sans-serif; }
 .btn-edit:hover { background: var(--bg-hover); transform: translateY(-2px); }
 
-/* --- ЭЛЕМЕНТЫ ВНУТРИ КАРТОЧЕК --- */
 .card h3, .card h2 { font-size: 1.1rem; font-weight: 800; color: var(--text-main); margin: 0 0 20px 0; display: flex; align-items: center; gap: 10px; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.9; }
 .card h3 i, .card h2 i { color: var(--primary); font-size: 1.2rem; }
 .card h3 a { color: #FFD700; font-size: 1rem; margin-left: auto; transition: 0.3s; }
 .divider { height: 1px; background: var(--border-color); margin: 16px 0; }
 
-/* Статистика */
 .stat-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; font-size: 0.95rem; color: var(--text-muted); }
 .stat-row:last-child { margin-bottom: 0; }
 .stat-row .val { font-family: 'JetBrains Mono', monospace; font-weight: 600; color: var(--text-main); }
 .stat-row .val.gold { color: var(--accent); }
 .stat-row .val.shard { color: #38bdf8; }
 .stat-row.total .val { font-size: 1.1rem; color: var(--success); }
-
-/* Брак */
 .marriage-info { display: flex; align-items: center; gap: 16px; background: linear-gradient(135deg, rgba(255, 99, 132, 0.1), transparent); padding: 16px; border-radius: 12px; border: 1px solid rgba(255, 99, 132, 0.2); }
 .heart-icon { font-size: 2rem; color: #ff6384; animation: pulse 2s infinite; }
 .small-date { font-size: 0.8rem; opacity: 0.6; margin-top: 4px; display: block; }
 
-/* График */
 .chart-container {
-    height: 350px; /* Было min-height, меняем на height */
+    height: 350px; 
     width: 100%;
     margin: 20px 0 0 0;
     position: relative;
-    /* Добавляем фон-заглушку, пока график грузится */
     background: rgba(255,255,255,0.02); 
     border-radius: 12px;
 }
@@ -154,7 +141,6 @@
 
 .graph-card { overflow: hidden; }
 
-/* Таблица акций (адаптивная) */
 .card:has(.simple-table) { overflow-x: auto; }
 .simple-table { width: 100%; border-collapse: separate; border-spacing: 0 8px; }
 .simple-table th { text-align: left; color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; font-weight: 700; padding: 0 10px 8px; border-bottom: 1px solid var(--border-color); }
@@ -163,19 +149,16 @@
 .simple-table tr td:last-child { border-top-right-radius: 8px; border-bottom-right-radius: 8px; }
 .ticker-cell { font-family: 'JetBrains Mono', monospace; font-weight: 700; color: var(--primary); }
 
-/* Квесты */
 .quest-list { display: flex; flex-direction: column; gap: 12px; }
 .quest-item { background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); padding: 16px; border-radius: 12px; }
 .quest-header { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 0.9rem; font-weight: 600; }
 .progress-bar-bg { height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden; }
 .progress-bar-fill { height: 100%; background: var(--primary); border-radius: 4px; transition: width 0.5s ease; }
 
-/* Достижения */
 .achievements-list { display: flex; flex-wrap: wrap; gap: 8px; }
 .ach-tag { background: rgba(255, 215, 0, 0.08); border: 1px solid rgba(255, 215, 0, 0.2); color: var(--accent); padding: 6px 12px; border-radius: 8px; font-size: 0.8rem; font-weight: 600; cursor: default; transition: 0.2s; }
 .ach-tag:hover { background: rgba(255, 215, 0, 0.15); transform: translateY(-2px); }
 
-/* Зона долгов */
 .danger-zone { border-color: rgba(239, 68, 68, 0.3); background: linear-gradient(to bottom, rgba(239, 68, 68, 0.05), transparent); }
 .danger-zone h3 i { color: var(--danger); }
 .tax-alert { color: var(--danger); font-weight: 700; margin-top: 12px; font-size: 0.95rem; }
@@ -183,7 +166,6 @@
 .btn-secondary { display: flex; align-items: center; justify-content: center; gap: 8px; background: rgba(255,255,255,0.05); color: var(--text-muted); padding: 12px 20px; border-radius: 12px; text-decoration: none; font-size: 0.9rem; font-weight: 600; transition: 0.2s; border: 1px solid var(--border-color); width: 100%; margin-top: 15px; }
 .btn-secondary:hover { background: rgba(255,255,255,0.1); color: var(--text-main); border-color: rgba(255,255,255,0.2); }
 
-/* Инвентарь (Сетка) */
 .inventory-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr); 
@@ -199,12 +181,10 @@
 .inv-icon img { max-width: 100%; max-height: 100%; object-fit: contain; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.6)); }
 .inv-icon .inv-emoji { font-size: 1.8rem; }
 .inv-qty { position: absolute; top: 4px; right: 6px; font-size: 0.75rem; color: #fff; font-weight: 800; font-family: 'JetBrains Mono', monospace; text-shadow: 0 2px 4px rgba(0,0,0,0.9); pointer-events: none; }
-/* Тултипы */
 .inv-item::after { content: attr(data-tooltip); position: absolute; bottom: 115%; left: 50%; transform: translateX(-50%) scale(0.9); background: #0f1115; color: #fff; padding: 8px 14px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; white-space: nowrap; opacity: 0; pointer-events: none; transition: 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); border: 1px solid var(--border-color); box-shadow: 0 10px 30px rgba(0,0,0,0.5); visibility: hidden; z-index: 100; }
 .inv-item::before { content: ''; position: absolute; bottom: 105%; left: 50%; transform: translateX(-50%); border-width: 6px; border-style: solid; border-color: #0f1115 transparent transparent transparent; opacity: 0; visibility: hidden; transition: 0.2s; z-index: 100; }
 .inv-item:hover::after, .inv-item:hover::before { opacity: 1; visibility: visible; transform: translateX(-50%) scale(1); }
 
-/* Стена */
 .wall-input-box { display: flex; gap: 15px; margin-bottom: 25px; background: rgba(255,255,255,0.03); padding: 15px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.05); align-items: center; }
 .wall-input-ava { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid rgba(255,255,255,0.1); }
 .wall-input { flex: 1; background: transparent; border: none; color: #fff; font-family: inherit; font-size: 0.95rem; padding: 5px; outline: none; }
@@ -228,18 +208,12 @@
 @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
 @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-/* ========================================================================= */
-/* МОБИЛЬНАЯ ВЕРСИЯ (АДАПТИВ)                                                */
-/* Без !important, так как конфликт в EJS устранен                           */
-/* ========================================================================= */
 @media (max-width: 1200px) {
     .profile-wrapper {
         padding: 100px 15px 40px; 
         overflow-x: hidden;
     }
 
-    /* 1. Превращаем Grid в Flex-колонку */
-    /* Так как мы убрали inline-стиль "display: grid", этот flex сработает сам по себе */
     .dashboard-grid {
         display: flex;
         flex-direction: column;
@@ -247,13 +221,11 @@
         width: 100%;
     }
 
-    /* 2. Колонки растягиваем на 100% */
     .col-left, .col-center, .col-right {
         width: 100%;
         max-width: 100%;
     }
 
-    /* 3. Шапка */
     .profile-header {
         height: auto;
         min-height: auto;
@@ -271,7 +243,6 @@
     .badges { justify-content: center; margin-top: 10px; }
     .btn-edit { margin-top: 20px; width: 100%; justify-content: center; }
 
-    /* 4. Инвентарь */
     .inventory-grid {
         grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
         gap: 8px;

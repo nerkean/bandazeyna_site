@@ -396,7 +396,6 @@
 
             const initAOS = () => {
                 if (typeof AOS !== 'undefined') {
-                    // НА ДЕСКТОПЕ: Инициализируем полную библиотеку
                     if (!isMobile) {
                         AOS.init({ 
                             once: true, 
@@ -404,16 +403,12 @@
                             duration: 800 
                         });
                     } 
-                    // НА МОБИЛЬНОМ: НЕ инициализируем AOS вообще.
-                    // Стили из style.css (@media) сами сделают нужные элементы видимыми,
-                    // а Hero-блок анимируется через CSS keyframes.
                 } else {
                     setTimeout(initAOS, 100); 
                 }
             };
             initAOS();
 
-            // FAQ Логика (легкая, не тормозит)
             const faqCards = document.querySelectorAll('.faq-card');
             faqCards.forEach(card => {
                 card.addEventListener('click', () => {

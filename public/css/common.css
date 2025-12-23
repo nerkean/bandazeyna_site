@@ -319,14 +319,12 @@ ul { list-style: none; }
 .dd-logout { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px; color: #ef4444; text-decoration: none; font-size: 0.9rem; font-weight: 700; transition: 0.2s; }
 .dd-logout:hover { background: rgba(239, 68, 68, 0.1); }
 
-/* --- МОБИЛЬНАЯ ВЕРСИЯ (ФИНАЛЬНАЯ КОМПОНОВКА) --- */
 @media (max-width: 900px) {
-    /* 1. Настройки шторки */
     .mobile-menu-btn { display: flex; }
     
     .nav-menu {
         position: fixed; top: 0; left: 0; width: 100%; height: 100dvh;
-        background: rgba(11, 12, 16, 0.92); /* Плотный темный фон */
+        background: rgba(11, 12, 16, 0.92);
         backdrop-filter: blur(20px);
         -webkit-backdrop-filter: blur(20px);
         display: flex; flex-direction: column; align-items: stretch;
@@ -334,12 +332,11 @@ ul { list-style: none; }
         transform: translateY(-100%); 
         transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease;
         opacity: 0; pointer-events: none; z-index: 999;
-        padding: 90px 20px 40px; /* Отступ сверху под шапку */
+        padding: 90px 20px 40px;
         overflow-y: auto; -webkit-overflow-scrolling: touch;
     }
     .nav-menu.active { transform: translateY(0); opacity: 1; pointer-events: all; }
 
-    /* 2. Основные ссылки (Биржа, Халява...) */
     .nav-links { 
         flex-direction: column; width: 100%; gap: 10px; margin: 0; 
     }
@@ -361,7 +358,6 @@ ul { list-style: none; }
 
     @keyframes slideInItem { to { opacity: 1; transform: translateY(0); } }
 
-    /* 3. ПЛИТКИ (ВИКИ, ПАТИ, ТОП, МАГАЗИН) */
     .dropdown-trigger { display: none !important; }
     .nav-item-dropdown { display: block !important; width: 100%; margin-top: 5px; height: auto !important; }
 
@@ -375,7 +371,7 @@ ul { list-style: none; }
         display: flex !important; flex-direction: column; align-items: center; justify-content: center;
         background: rgba(255, 255, 255, 0.04);
         border: 1px solid rgba(255, 255, 255, 0.08);
-        border-radius: 18px; /* Чуть более скругленные */
+        border-radius: 18px; 
         padding: 20px 10px; text-align: center; width: 100%; min-height: 110px;
         font-size: 0.9rem; font-weight: 700; color: #ddd;
         transition: transform 0.2s ease, background 0.2s;
@@ -384,37 +380,31 @@ ul { list-style: none; }
 
     .dd-link i { font-size: 2rem !important; margin: 0 0 12px 0 !important; color: var(--primary); filter: drop-shadow(0 0 12px rgba(88, 101, 242, 0.4)); }
     .dd-link:active { background: rgba(88, 101, 242, 0.15); border-color: var(--primary); transform: scale(0.96); }
-
-    /* ================================================== */
-    /* 4. НИЖНЯЯ СЕКЦИЯ (GRID LAYOUT: БАЛАНС + УВЕДОМЛЕНИЯ + ПРОФИЛЬ) */
-    /* ================================================== */
     
     .auth { 
         display: grid;
-        grid-template-columns: 60px 1fr; /* Колонка для колокольчика (60px) и остальное профиль */
+        grid-template-columns: 60px 1fr; 
         grid-template-areas: 
             "balance balance"
             "bell profile";
         gap: 12px;
         width: 100%;
         
-        /* ИЗМЕНЕНИЕ ЗДЕСЬ: */
-        margin-top: -30px; /* Было auto (прижимало к низу), стало 20px (сразу после кнопок) */
+        margin-top: -30px;
         
         padding-top: 25px; 
         border-top: 1px solid rgba(255,255,255,0.08);
         opacity: 0; animation: slideInItem 0.5s forwards 0.35s;
-        flex-shrink: 0; /* Чтобы не сжимался на маленьких экранах */
+        flex-shrink: 0; 
     }
     
-    /* Зона Баланса */
     .nav-balance-group { 
         grid-area: balance;
         display: flex; width: 100%; gap: 10px; margin-bottom: 5px;
     }
     .nav-balance { flex: 1; justify-content: center; height: 44px; border-radius: 12px; margin: 0; font-size: 1rem; }
     
-    /* Зона Колокольчика */
+
     .nav-item-wrap {
         grid-area: bell;
         position: relative;
@@ -423,7 +413,7 @@ ul { list-style: none; }
 
     .nav-notif-btn {
         margin: 0 !important; 
-        width: 100%; height: 56px; /* Высота совпадает с профилем */
+        width: 100%; height: 56px;
         border-radius: 16px;
         background: rgba(255,255,255,0.06);
         border: 1px solid rgba(255,255,255,0.1);
@@ -431,7 +421,6 @@ ul { list-style: none; }
     }
     .nav-notif-btn:active { background: rgba(255,255,255,0.15); transform: scale(0.95); }
 
-    /* Зона Профиля */
     .profile-dropdown-wrapper { 
         grid-area: profile;
         width: 100%; margin: 0; display: block;
@@ -445,7 +434,6 @@ ul { list-style: none; }
         border: 1px solid rgba(255,255,255,0.1);
     }
     
-    /* Выпадающее меню профиля */
     .profile-dropdown {
         position: static; width: 100%; display: none; flex-direction: column;
         background: rgba(0,0,0,0.3); margin-top: 10px;
@@ -465,7 +453,6 @@ ul { list-style: none; }
     .dropdown-header { display: none; }
     .dropdown-grid { display: flex; flex-direction: column; gap: 8px; width: 100%; }
     
-    /* Уведомления (список) */
     .notif-dropdown { 
         position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.95);
         width: 90%; max-width: 350px; max-height: 60vh;
@@ -474,14 +461,6 @@ ul { list-style: none; }
     }
     .notif-dropdown.active { opacity: 1; pointer-events: all; transform: translate(-50%, -50%) scale(1); }
 
-    /* ================================================== */
-    /* 5. ЛОГИН (КНОПКА ВОЙТИ) - ФИНАЛЬНЫЙ ФИКС */
-    /* ================================================== */
-
-    /* Используем :has(), чтобы найти родителя кнопки логина, 
-       даже если класс обертки называется иначе.
-       Растягиваем его на всю ширину сетки (обе колонки).
-    */
     .login-dropdown-wrapper,
     .auth > div:has(.login-trigger) {
         grid-column: 1 / -1 !important; 
@@ -490,7 +469,6 @@ ul { list-style: none; }
         margin-top: 5px;
     }
 
-    /* Сама кнопка "Войти" */
     .login-trigger {
         width: 100%; 
         height: 56px;
@@ -507,10 +485,9 @@ ul { list-style: none; }
     
     .login-trigger:active { transform: scale(0.98); }
 
-    /* Выпадающее меню */
     .login-dropdown {
-        position: static !important; /* Убираем вылет */
-        width: 100% !important;      /* Растягиваем на 100% */
+        position: static !important; 
+        width: 100% !important; 
         transform: none !important; opacity: 1 !important;
         
         background: rgba(0,0,0,0.3);
@@ -518,10 +495,10 @@ ul { list-style: none; }
         margin-top: 8px; 
         border-radius: 16px;
         box-shadow: none;
-        padding: 8px; /* Небольшой отступ внутри */
+        padding: 8px; 
         
         display: none;
-        box-sizing: border-box; /* Важно: чтобы padding не ломал ширину */
+        box-sizing: border-box; 
     }
     
     .login-dropdown.active { 
@@ -533,15 +510,14 @@ ul { list-style: none; }
         text-align: center; color: #888; font-size: 0.8rem; margin: 4px 0; 
     }
 
-    /* КНОПКИ ВНУТРИ МЕНЮ (Discord / Telegram) */
     .ld-item {
-        display: flex !important;       /* Флекс, чтобы растянуть контент */
-        width: 100% !important;         /* Ширина 100% */
+        display: flex !important; 
+        width: 100% !important;     
         align-items: center; justify-content: center;
         
         background: rgba(255,255,255,0.06);
         border-radius: 12px;
-        padding: 16px;                  /* Побольше высоты */
+        padding: 16px;       
         margin: 0;
         border: 1px solid transparent;
         

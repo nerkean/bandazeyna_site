@@ -35,7 +35,6 @@
 <link rel="preload" href="/assets/fonts/web/montserrat-v31-cyrillic_latin-700.woff2" as="font" type="font/woff2" crossorigin>
 
 <style>
-    /* Основной шрифт с font-display: swap (текст виден сразу) */
     @font-face { font-family: 'Montserrat'; font-style: normal; font-weight: 400; font-display: swap; src: url('/assets/fonts/web/montserrat-v31-cyrillic_latin-regular.woff2') format('woff2'); }
     @font-face { font-family: 'Montserrat'; font-style: normal; font-weight: 500; font-display: swap; src: url('/assets/fonts/web/montserrat-v31-cyrillic_latin-500.woff2') format('woff2'); }
     @font-face { font-family: 'Montserrat'; font-style: normal; font-weight: 700; font-display: swap; src: url('/assets/fonts/web/montserrat-v31-cyrillic_latin-700.woff2') format('woff2'); }
@@ -60,11 +59,8 @@
 
 <% if (typeof currentPath === 'undefined' || (currentPath !== '/' && !currentPath.startsWith('/wiki'))) { %>
     <script nonce="<%= locals.nonce %>">
-        // Ленивая загрузка аналитики (через 3.5 секунды после старта)
-        // Это освобождает процессор для отрисовки профиля
         window.addEventListener('load', () => {
             setTimeout(() => {
-                // Google Tag Manager / Analytics
                 const scriptGA = document.createElement('script');
                 scriptGA.async = true;
                 scriptGA.src = 'https://www.googletagmanager.com/gtag/js?id=AW-17815408362';
@@ -78,14 +74,13 @@
                     gtag('config', '<%= gaId %>');
                 <% } %>
 
-                // Clarity
                 (function(c,l,a,r,i,t,y){
                     c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
                     t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
                     y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
                 })(window, document, "clarity", "script", "um1b962jsc");
                 
-            }, 3500); // Задержка 3.5с
+            }, 3500); 
         });
     </script>
 <% } %>

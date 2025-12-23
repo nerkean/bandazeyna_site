@@ -456,15 +456,12 @@
     
     <script nonce="<%= nonce %>">
         const targetProfileId = "<%= targetUser.id %>"; 
-        // Данные для графика передаем сразу, чтобы не делать лишний запрос
         const historyData = <%- JSON.stringify(profile.dailyActivityHistory || []) %>;
         let currentWallPage = 1;
 
         document.addEventListener('DOMContentLoaded', () => {
-            // 1. Загружаем комментарии сразу (они нужны пользователю)
             loadComments(1);
             
-            // 2. Инициализируем поле ввода (Enter = отправить)
             const wallInput = document.getElementById('wallComment');
             if(wallInput) {
                 wallInput.addEventListener('keypress', function (e) {
@@ -472,18 +469,15 @@
                 });
             }
 
-            // 3. ОТЛОЖЕННАЯ ЗАГРУЗКА ГРАФИКА (Ключевое для TBT и LCP)
-            // Ждем, пока браузер полностью освободится, и только потом рисуем тяжелый график
             if (window.requestIdleCallback) {
                 window.requestIdleCallback(() => {
                     waitForApex();
                 });
             } else {
-                setTimeout(waitForApex, 1500); // Фоллбэк для старых браузеров
+                setTimeout(waitForApex, 1500); 
             }
         });
 
-        // Функция ожидания загрузки библиотеки ApexCharts
         function waitForApex() {
             const check = setInterval(() => {
                 if (typeof ApexCharts !== 'undefined') {
@@ -493,7 +487,6 @@
             }, 100);
         }
 
-        // Функция отрисовки графика (вынесена отдельно)
         function initChart() {
             const chartEl = document.querySelector("#activityChart");
             if (!chartEl) return;
@@ -517,12 +510,11 @@
                 series: [{ name: 'Сообщения', data: msgData }, { name: 'Войс (мин)', data: voiceData }],
                 chart: { 
                     type: 'area', 
-                    // Важно: height: '100%' берет размер от CSS контейнера, предотвращая сдвиг (CLS)
                     height: '100%', 
                     background: 'transparent', 
                     toolbar: { show: false }, 
                     fontFamily: 'Montserrat',
-                    animations: { enabled: false } // Отключаем анимацию появления для скорости
+                    animations: { enabled: false }
                 },
                 colors: ['#5865F2', '#ffd700'],
                 dataLabels: { enabled: false },
@@ -531,15 +523,13 @@
                 theme: { mode: 'dark' },
                 xaxis: { categories: days, labels: { style: { colors: '#888' } }, axisBorder: { show: false }, axisTicks: { show: false } },
                 yaxis: { show: false },
-                grid: { show: false, padding: { left: 0, right: 0 } }, // Убираем отступы
+                grid: { show: false, padding: { left: 0, right: 0 } }, 
                 legend: { show: false }
             };
             
             const chart = new ApexCharts(chartEl, options);
             chart.render();
         }
-
-        // --- Остальные функции (модалки, комментарии) оставляем без изменений ---
         
         function showItemDetails(name, description, image, rarity, emoji) {
             const rarityColors = {

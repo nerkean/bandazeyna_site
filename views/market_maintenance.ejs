@@ -23,21 +23,17 @@
             justify-content: center;
             text-align: center;
             padding: 20px;
-            
-            /* 👇 ГЛАВНОЕ ИСПРАВЛЕНИЕ 👇 */
-            /* Отступ сверху, чтобы контент не заезжал под шапку */
             padding-top: 120px; 
         }
 
         .icon-box {
-            font-size: 6rem; /* Сделал иконку покрупнее, как на скрине */
+            font-size: 6rem; 
             color: #e74c3c;
             margin-bottom: 20px;
             filter: drop-shadow(0 0 20px rgba(231, 76, 60, 0.4));
             animation: float 3s ease-in-out infinite;
         }
 
-        /* Бейдж "Техническое обслуживание" */
         .status-badge {
             display: inline-flex;
             align-items: center;
@@ -109,9 +105,8 @@
             100% { opacity: 1; }
         }
 
-        /* Адаптив для телефонов */
         @media (max-width: 768px) {
-            .maintenance-wrapper { padding-top: 100px; } /* Чуть меньше отступ на мобиле */
+            .maintenance-wrapper { padding-top: 100px; }
             h1 { font-size: 1.8rem; }
             .icon-box { font-size: 4rem; }
         }

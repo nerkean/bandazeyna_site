@@ -26,7 +26,7 @@
             box-shadow: 0 0 100px rgba(255, 0, 0, 0.15); 
             position: relative; 
             margin: 20px;
-            box-sizing: border-box; /* Чтобы padding не ломал ширину */
+            box-sizing: border-box; 
         }
 
         .ban-icon { 
@@ -61,10 +61,9 @@
             font-weight: 700; 
             margin-bottom: 30px; 
             font-family: monospace; 
-            word-break: break-word; /* Чтобы длинные слова не ломали верстку */
+            word-break: break-word; 
         }
 
-        /* СТИЛИ ДЛЯ ФОРМЫ */
         .appeal-form {
             text-align: left;
             margin-bottom: 30px;
@@ -161,7 +160,6 @@
 
         @keyframes pulse { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.1); opacity: 0.7; } 100% { transform: scale(1); opacity: 1; } }
 
-        /* --- МОБИЛЬНАЯ ВЕРСИЯ --- */
         @media (max-width: 600px) {
             .ban-container {
                 padding: 30px 20px;
@@ -182,11 +180,11 @@
             }
 
             .appeal-form {
-                padding: 15px; /* Чуть меньше отступы внутри формы */
+                padding: 15px; 
             }
 
             .form-input, .form-textarea {
-                font-size: 16px; /* Защита от зума на iPhone при вводе */
+                font-size: 16px;
             }
 
             .btn-logout {

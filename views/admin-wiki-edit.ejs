@@ -11,7 +11,6 @@
             align-items: start;
         }
 
-        /* --- ЛЕВАЯ КОЛОНКА (КОНТЕНТ) --- */
         .main-col { display: flex; flex-direction: column; gap: 20px; }
 
         .card {
@@ -27,7 +26,6 @@
         }
         .title-input::placeholder { color: #444; }
 
-        /* Toolbar */
         .toolbar {
             display: flex; gap: 8px; flex-wrap: wrap; padding-bottom: 15px;
             border-bottom: 1px solid var(--border); margin-bottom: 15px;
@@ -49,7 +47,6 @@
             line-height: 1.6; resize: vertical; outline: none;
         }
 
-        /* --- ПРАВАЯ КОЛОНКА (НАСТРОЙКИ) --- */
         .sidebar-col { display: flex; flex-direction: column; gap: 20px; }
 
         .form-group { margin-bottom: 15px; }
@@ -61,7 +58,6 @@
         }
         input:focus, select:focus { border-color: #5865F2; outline: none; }
 
-        /* File Upload Styles */
         .file-upload-box {
             border: 2px dashed var(--border); border-radius: 12px;
             padding: 20px; text-align: center; cursor: pointer;
@@ -71,7 +67,6 @@
         .upload-icon { font-size: 2rem; color: #555; margin-bottom: 10px; }
         .upload-text { font-size: 0.9rem; color: #888; }
         
-        /* Список выбранных файлов */
         .file-list { margin-top: 15px; display: flex; flex-direction: column; gap: 8px; }
         .file-item {
             background: rgba(255,255,255,0.05); padding: 10px; border-radius: 6px;
@@ -80,19 +75,16 @@
         .file-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 180px; }
         .file-remove { color: #e74c3c; cursor: pointer; }
 
-        /* Список УЖЕ загруженных файлов */
         .existing-file {
             border-left: 3px solid #2ecc71; background: rgba(46, 204, 113, 0.1);
         }
 
-        /* Картинка превью */
         .img-preview {
             width: 100%; height: 150px; object-fit: cover; border-radius: 8px;
             margin-top: 10px; display: none; border: 1px solid var(--border);
         }
         .img-preview.active { display: block; }
 
-        /* Кнопки действий */
         .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
         .btn-submit { 
             background: #5865F2; color: #fff; border: none; padding: 15px; 
@@ -111,7 +103,7 @@
 
         @media (max-width: 1000px) {
             .editor-container { grid-template-columns: 1fr; }
-            .sidebar-col { order: -1; } /* На мобилках настройки сверху */
+            .sidebar-col { order: -1; } 
         }
         
         @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }

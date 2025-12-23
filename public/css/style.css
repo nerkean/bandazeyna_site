@@ -1,8 +1,3 @@
-/* =========================================
-   STYLE.CSS - Main Stylesheet
-   ========================================= */
-
-/* --- GENERAL & HERO --- */
 .hero-section {
     min-height: 100vh; position: relative; display: flex; align-items: center;
     justify-content: space-between; padding: 0 10%;
@@ -31,7 +26,7 @@
 }
 .hero-content p {
     font-size: 1.25rem; color: var(--text-muted); margin-bottom: 45px;
-    font-weight: 400; /* ИЗМЕНЕНО с 500 на 400 */
+    font-weight: 400;
     max-width: 90%;
 }
 .hero-content p b { color: #fff; font-weight: 700; }
@@ -73,7 +68,6 @@
 
 .big { padding: 1.1rem 2.5rem; font-size: 1rem; }
 
-/* --- HERO VISUAL (3D Elements) --- */
 .hero-visual {
     position: relative; width: 600px; height: 600px;
     transform-style: preserve-3d; transform: rotateX(10deg) rotateY(-10deg);
@@ -161,7 +155,6 @@
 .circle { fill: none; stroke: var(--primary); stroke-width: 3; stroke-linecap: round; }
 .level-circle span { position: absolute; font-size: 0.85rem; font-weight: 800; color: #fff; font-family: 'Montserrat', sans-serif; }
 
-/* --- ANIMATIONS --- */
 @keyframes floatCenter { 0%, 100% { transform: translate(-50%, -50%) translateY(0px); } 50% { transform: translate(-50%, -50%) translateY(-12px); } }
 @keyframes orbitFloat { 0% { transform: translate(0, 0) rotate(0deg); } 25% { transform: translate(8px, 12px) rotate(1deg); } 50% { transform: translate(-4px, 20px) rotate(0deg); } 75% { transform: translate(-12px, 8px) rotate(-1deg); } 100% { transform: translate(0, 0) rotate(0deg); } }
 @keyframes floatVertical { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
@@ -184,13 +177,11 @@
 
 .hero-animate { animation: fadeInUpQuick 0.8s ease-out forwards; }
 
-/* --- TICKER --- */
 .ticker-wrap { background: #0b0c10; border-bottom: 1px solid rgba(255,255,255,0.05); padding: 12px 0; white-space: nowrap; overflow: hidden; }
 .ticker { display: inline-block; animation: ticker 30s linear infinite; }
 .ticker-item { display: inline-block; padding: 0 30px; font-family: 'Montserrat', sans-serif; font-weight: 600; font-size: 0.95rem; color: #9CA3AF; }
 .ticker-item b { color: #fff; font-weight: 800; }
 
-/* --- FEATURES --- */
 .features-section { 
     padding: 100px 10%; background: #0b0c10; position: relative;
     background-image: radial-gradient(#1a1a2e 15%, transparent 16%), radial-gradient(#1a1a2e 15%, transparent 16%);
@@ -227,7 +218,6 @@
 .f-event { --card-color: #bc13fe; --card-color-dim: rgba(188, 19, 254, 0.3); }
 .f-trade { --card-color: #2ecc71; --card-color-dim: rgba(46, 204, 113, 0.3); }
 
-/* --- STEPS --- */
 .steps-section { padding: 100px 10%; background: #0b0c10; position: relative; overflow: hidden; }
 .steps-grid { display: flex; justify-content: space-between; align-items: center; gap: 20px; position: relative; z-index: 2; }
 .step-card { flex: 1; min-width: 280px; display: flex; flex-direction: column; gap: 20px; transition: transform 0.3s ease; }
@@ -251,7 +241,6 @@
 .step-info code { background: rgba(255,255,255,0.1); padding: 2px 5px; border-radius: 4px; color: var(--gold); font-family: monospace; }
 .step-connector { font-size: 1.5rem; color: rgba(255,255,255,0.1); animation: pulse 2s infinite; }
 
-/* --- LIFE SECTION --- */
 .section-life { padding: 100px 10%; background: #08090c; position: relative; overflow: hidden; }
 .life-bg-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); pointer-events: none; z-index: 0; width: 100%; text-align: center; }
 .life-bg-text::after { content: 'ВАЙБ'; font-family: 'Montserrat', sans-serif; font-size: 15rem; font-weight: 900; color: rgba(255, 255, 255, 0.02); white-space: nowrap; }
@@ -279,7 +268,6 @@
 .card-fun .lc-image { background: linear-gradient(135deg, #f12711, #f5af19); }
 .lc-shapes { position: absolute; width: 100%; height: 100%; background: repeating-linear-gradient(45deg, rgba(255,255,255,0.1) 0, rgba(255,255,255,0.1) 10px, transparent 10px, transparent 20px); }
 
-/* --- FAQ --- */
 .section-faq { padding: 100px 10%; background: #050608; position: relative; }
 .faq-wrapper { max-width: 800px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
 .faq-card { background: #12141a; border-radius: 16px; overflow: hidden; position: relative; border: 1px solid rgba(255,255,255,0.05); transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1); cursor: pointer; }
@@ -307,7 +295,6 @@
 .faq-card.active .faq-inner { opacity: 1; transform: translateY(0); }
 .faq-inner code { background: rgba(88,101,242,0.1); color: #fff; padding: 2px 6px; border-radius: 4px; font-family: monospace; }
 
-/* --- CTA SECTION --- */
 .section-cta { position: relative; padding: 140px 10%; text-align: center; background: #020203; overflow: hidden; min-height: 500px; display: flex; align-items: center; justify-content: center; border-top: 1px solid rgba(255,255,255,0.05); }
 .cta-bg-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; }
 .stars-static { position: absolute; top: 0; left: 0; width: 100%; height: 80%; background-image: radial-gradient(2px 2px at 20px 30px, #fff, transparent), radial-gradient(2px 2px at 40px 70px, #fff, transparent), radial-gradient(2px 2px at 50px 160px, #fff, transparent), radial-gradient(2px 2px at 90px 40px, #fff, transparent), radial-gradient(1px 1px at 130px 80px, #fff, transparent); background-size: 200px 200px; opacity: 0.3; }
@@ -326,7 +313,6 @@
 .cs-stat i { color: var(--gold); font-size: 1.1rem; }
 .cs-divider { width: 1px; height: 20px; background: rgba(255,255,255,0.1); }
 
-/* --- PROFILE DROPDOWNS --- */
 .logout-btn { color: #e74c3c; border-color: rgba(231, 76, 60, 0.2); background: rgba(231, 76, 60, 0.05); }
 .logout-btn:hover { background: rgba(231, 76, 60, 0.15) !important; border-color: #e74c3c !important; color: #fff !important; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(231, 76, 60, 0.2); }
 .trigger-name { font-weight: 700; color: #fff; font-size: 0.9rem; max-width: 100px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -348,10 +334,6 @@
 #navOverlay.active { opacity: 1; pointer-events: all; }
 #navOverlay.active-desktop { pointer-events: all; background: transparent; backdrop-filter: none; }
 .mobile-only-links { display: none; }
-
-/* =========================================
-   MEDIA QUERIES (MOBILE OPTIMIZATION)
-   ========================================= */
 
 @media (max-width: 1024px) {
     .hero-section, .features-section, .steps-section, .section-life, .section-faq, .section-cta {
@@ -375,15 +357,12 @@
     .logout { color: #ef4444; }
 }
 
-/* --- МОБИЛЬНАЯ ОПТИМИЗАЦИЯ (ФИНАЛЬНАЯ) --- */
 @media (max-width: 768px) {
     body { font-size: 14px; }
 
-    /* 1. ГЛАВНЫЙ ЭКРАН - CSS АНИМАЦИЯ (GPU) */
-    /* Вместо JS мы используем нативные кейфреймы */
     .hero-animate {
         animation: fadeInUpMobile 0.8s ease-out forwards !important;
-        opacity: 0; /* Начинаем скрытым, анимация покажет */
+        opacity: 0;
     }
 
     @keyframes fadeInUpMobile {
@@ -391,8 +370,6 @@
         to { opacity: 1; transform: translateY(0); }
     }
 
-    /* 2. ОТКЛЮЧАЕМ ТЯЖЕЛЫЙ AOS JS (Убираем Forced Reflow) */
-    /* Остальные блоки показываем сразу, чтобы не дергалось при скролле */
     [data-aos]:not(.hero-animate) {
         opacity: 1 !important;
         transform: none !important;
@@ -401,7 +378,6 @@
         pointer-events: auto !important;
     }
 
-    /* 3. УПРОЩАЕМ ФОН И СТРУКТУРУ */
     .hero-section {
         background: #0b0d12 !important;
         background-image: linear-gradient(180deg, rgba(88,101,242,0.1) 0%, rgba(11,13,18,1) 100%) !important;
@@ -418,17 +394,14 @@
     .hero-section .hero-buttons a.btn-discord,
     .hero-section .hero-buttons a.btn-secondary { width: 100%; min-width: unset; height: 54px; font-size: 1rem; }
 
-    /* 4. СКРЫВАЕМ ТЯЖЕЛЫЕ ВИЗУАЛЫ */
     .hero-visual { display: none !important; }
     .visual-glow, .visual-orbit-ring, .glass-card, .glass-pill, .glass-toast { display: none !important; }
 
-    /* 5. УСКОРЕНИЕ НИЖНИХ СЕКЦИЙ */
     .features-section, .steps-section, .section-life, .section-faq, .section-cta {
         content-visibility: auto; contain-intrinsic-size: 1px 800px;
         padding-top: 50px; padding-bottom: 50px;
     }
     
-    /* СЕТКИ В КОЛОНКУ */
     .features-grid, .steps-grid, .life-gallery, .cta-stats-row {
         display: flex; flex-direction: column; gap: 20px;
     }
@@ -436,7 +409,6 @@
     
     .section-header h2 { font-size: 2rem; }
     
-    /* УБИРАЕМ ЛИШНЕЕ */
     .life-bg-text { display: none; }
     .step-connector, .cs-divider { display: none !important; }
     .life-card, .step-card { width: 100%; transform: none !important; }

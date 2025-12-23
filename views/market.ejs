@@ -7,7 +7,6 @@
     <link rel="stylesheet" href="/css/market.css">
     
     <style>
-        /* Скрытый заголовок для структуры (опционально) */
         .sr-only {
             position: absolute;
             width: 1px;
@@ -191,7 +190,6 @@
     <script nonce="<%= nonce %>" src="/socket.io/socket.io.js"></script>
 
     <script nonce="<%= nonce %>">
-        // ... (Твой JS код, который я не менял) ...
         const socket = io();
 
         socket.on('market_update', (data) => {

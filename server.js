@@ -12,11 +12,7 @@ import helmet from 'helmet';
 import crypto from 'crypto';
 import MongoStore from 'connect-mongo';
 import { Strategy as DiscordStrategy } from 'passport-discord';
-import cron from 'node-cron';
-
-// Модели и роуты
 import UserProfile from './src/models/UserProfile.js';
-import PixelBoard from './src/models/PixelBoard.js';
 import Notification from './src/models/Notification.js';
 import teammatesRoutes from './routes/teammates.js';
 import pagesRouter from './routes/pages.js';
@@ -64,14 +60,13 @@ app.use((req, res, next) => {
     next();
 });
 
-// Настройка Helmet БЕЗ принудительного nonce в CSP, чтобы работали onclick
 app.use(helmet({
     contentSecurityPolicy: {
         directives: {
             defaultSrc: ["'self'"],
             scriptSrc: [
                 "'self'",
-                "'unsafe-inline'", // Теперь это будет работать
+                "'unsafe-inline'",
                 "'unsafe-eval'", 
                 "https://cdn.jsdelivr.net",
                 "https://unpkg.com",
@@ -138,9 +133,7 @@ const sessionMiddleware = session({
     cookie: { 
         maxAge: 1000 * 60 * 60 * 24 * 30,
         httpOnly: true,
-        // ИСПРАВЛЕНИЕ: secure только в продакшене (на Render), на локалке - false
         secure: isProduction, 
-        // ИСПРАВЛЕНИЕ: 'none' требует secure: true. Для локалки ставим 'lax'
         sameSite: isProduction ? 'none' : 'lax'
     }
 });
@@ -154,7 +147,6 @@ io.use(wrap(sessionMiddleware));
 io.use(wrap(passport.initialize()));
 io.use(wrap(passport.session()));
 
-// Middleware для уведомлений и статуса
 app.use(async (req, res, next) => {
     res.locals.notifications = [];
     res.locals.unreadCount = 0;
