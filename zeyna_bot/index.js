@@ -65,6 +65,12 @@ export const initTelegramBot = () => {
         }
     });
 
-    bot.launch();
-    console.log('🚀 [BOT] Telegram бот запущен с поддержкой HTML-разметки!');
+    bot.launch().then(() => {
+        console.log('🚀 [BOT] Telegram бот запущен!');
+    }).catch((err) => {
+        console.error('🔴 [BOT] Ошибка запуска:', err.message);
+    });
+    
+    process.once('SIGINT', () => bot.stop('SIGINT'));
+    process.once('SIGTERM', () => bot.stop('SIGTERM'));
 };

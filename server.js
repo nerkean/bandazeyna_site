@@ -100,7 +100,19 @@ app.use(helmet({
 
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
-app.use(express.static(path.join(__dirname, 'public'), { maxAge: '30d', etag: false }));
+app.use(express.static('public', {
+    maxAge: '30d', 
+    immutable: true, 
+    etag: true, 
+    setHeaders: (res, path) => {
+        if (path.endsWith('.woff2') || path.endsWith('.webp') || path.endsWith('.png')) {
+            res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+        }
+        if (path.endsWith('.html')) {
+            res.setHeader('Cache-Control', 'no-cache');
+        }
+    }
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -173,7 +185,6 @@ app.use(async (req, res, next) => {
 app.get('/img/tg-proxy/:fileId', async (req, res) => {
     try {
         const fileId = req.params.fileId;
-        // ИСПРАВЛЕНО: Используем ту же переменную, что и для самого бота
         const botToken = process.env.BOT_TOKEN; 
 
         if (!botToken) {
@@ -181,7 +192,6 @@ app.get('/img/tg-proxy/:fileId', async (req, res) => {
             return res.status(500).end();
         }
 
-        // 1. Получаем путь к файлу у Telegram
         const getFileUrl = `https://api.telegram.org/bot${botToken}/getFile?file_id=${fileId}`;
         const fileData = await fetch(getFileUrl).then(r => r.json());
 
@@ -190,7 +200,6 @@ app.get('/img/tg-proxy/:fileId', async (req, res) => {
             return res.status(404).end();
         }
 
-        // 2. Стримим саму картинку
         const fileUrl = `https://api.telegram.org/file/bot${botToken}/${fileData.result.file_path}`;
         const response = await fetch(fileUrl);
         
@@ -267,5 +276,10 @@ app.use((err, req, res, next) => {
 const PORT = process.env.PORT || 3000;
 httpServer.listen(PORT, () => {
     console.log(`🚀 Сайт запущен: http://localhost:${PORT}`);
-    initTelegramBot();
+    
+    if (process.env.ENABLE_BOT === 'true') {
+        initTelegramBot();
+    } else {
+        console.log('ℹ️ [BOT] Запуск бота отключен через ENABLE_BOT в .env');
+    }
 });

@@ -392,19 +392,28 @@
 
 <script nonce="<%= nonce %>">
         document.addEventListener('DOMContentLoaded', () => {
+            const isMobile = window.innerWidth < 768;
+
             const initAOS = () => {
                 if (typeof AOS !== 'undefined') {
-                    AOS.init({ 
-                        once: true, 
-                        offset: 100,
-                        duration: 800 
-                    });
+                    // НА ДЕСКТОПЕ: Инициализируем полную библиотеку
+                    if (!isMobile) {
+                        AOS.init({ 
+                            once: true, 
+                            offset: 100, 
+                            duration: 800 
+                        });
+                    } 
+                    // НА МОБИЛЬНОМ: НЕ инициализируем AOS вообще.
+                    // Стили из style.css (@media) сами сделают нужные элементы видимыми,
+                    // а Hero-блок анимируется через CSS keyframes.
                 } else {
                     setTimeout(initAOS, 100); 
                 }
             };
             initAOS();
 
+            // FAQ Логика (легкая, не тормозит)
             const faqCards = document.querySelectorAll('.faq-card');
             faqCards.forEach(card => {
                 card.addEventListener('click', () => {
@@ -416,6 +425,5 @@
             });
         });
     </script>
-    
 </body>
 </html>

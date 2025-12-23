@@ -232,10 +232,11 @@
     <% } %>
 
     <script nonce="<%= nonce %>">
-        document.addEventListener('DOMContentLoaded', () => {
+        (() => {
             const ITEMS_PER_PAGE = 12;
             let currentPage = 1;
             let currentFilter = 'ALL';
+            
             const allCards = Array.from(document.querySelectorAll('.tm-card'));
             const paginationContainer = document.getElementById('paginationControls');
             const emptyState = document.getElementById('emptyState');
@@ -245,20 +246,23 @@
                     return currentFilter === 'ALL' || card.dataset.type === currentFilter;
                 });
                 const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
+                
                 if (currentPage > totalPages) currentPage = 1;
                 if (totalPages === 0) currentPage = 1;
+                
                 const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
                 const endIndex = startIndex + ITEMS_PER_PAGE;
 
                 allCards.forEach(card => card.style.display = 'none');
                 
                 if (filtered.length === 0) {
-                    emptyState.style.display = 'block';
+                    if(emptyState) emptyState.style.display = 'block';
                 } else {
-                    emptyState.style.display = 'none';
+                    if(emptyState) emptyState.style.display = 'none';
                     filtered.slice(startIndex, endIndex).forEach(card => {
                         card.style.display = 'flex';
-                        card.style.opacity = '0';
+                        card.style.animation = 'none';
+                        card.offsetHeight; 
                         card.style.animation = 'fadeIn 0.3s forwards';
                     });
                 }
@@ -266,8 +270,10 @@
             }
 
             function renderPagination(totalPages) {
+                if (!paginationContainer) return;
                 paginationContainer.innerHTML = '';
                 if (totalPages <= 1) return;
+                
                 const prevBtn = document.createElement('button');
                 prevBtn.className = 'page-btn';
                 prevBtn.innerHTML = '<i class="fas fa-chevron-left"></i>';
@@ -283,10 +289,12 @@
                         btn.onclick = () => { currentPage = i; render(); window.scrollTo({top: 0, behavior: 'smooth'}); };
                         paginationContainer.appendChild(btn);
                     } else if ((i === currentPage - 2 && currentPage > 3) || (i === currentPage + 2 && currentPage < totalPages - 2)) {
-                        const span = document.createElement('span'); span.innerText = '...'; span.style.color = '#666'; span.style.paddingTop = '10px';
+                        const span = document.createElement('span');
+                        span.innerText = '...'; span.style.color = '#666'; span.style.paddingTop = '10px';
                         paginationContainer.appendChild(span);
                     }
                 }
+                
                 const nextBtn = document.createElement('button');
                 nextBtn.className = 'page-btn';
                 nextBtn.innerHTML = '<i class="fas fa-chevron-right"></i>';
@@ -297,13 +305,14 @@
 
             window.setFilter = (type, btn) => {
                 document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
+                if(btn) btn.classList.add('active');
                 currentFilter = type;
                 currentPage = 1;
                 render();
             };
+
             render();
-        });
+        })();
 
         function openLfgModal() { document.getElementById('lfgModalOverlay')?.classList.add('active'); }
         function closeLfgModal() { document.getElementById('lfgModalOverlay')?.classList.remove('active'); }

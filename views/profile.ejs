@@ -63,9 +63,6 @@
     <link rel="preload" as="image" href="<%= headerBgUrl %>" fetchpriority="high">
     
     <style>
-        .profile-wrapper { max-width: 1200px; margin: 0 auto; padding-top: 80px; min-height: 100vh; }
-        .dashboard-grid { display: grid; gap: 20px; }
-
         .banned-badge {
             display: inline-flex; align-items: center; gap: 8px;
             background: rgba(231, 76, 60, 0.15); color: #e74c3c;
@@ -147,7 +144,9 @@
                     <% } %>
                     
                     <img src="<%= targetUser.avatar ? `/img/proxy/avatar/${targetUser.id}/${targetUser.avatar}` : '/assets/img/avatars/default_avatar.png' %>" 
-                         class="avatar-big" alt="Аватар <%= targetUser.username %>">
+     class="avatar-big" 
+     alt="Аватар <%= targetUser.username %>"
+     fetchpriority="high">
                 </div>
                 
                 <div class="profile-identity">
@@ -453,204 +452,237 @@
     <%- include('partials/footer') %>
     
     <% if (!profile.isBanned) { %>
-        <script src="https://cdn.jsdelivr.net/npm/apexcharts" defer></script>
+        <script src="/libs/apexcharts.js" defer></script>
+    
+    <script nonce="<%= nonce %>">
+        const targetProfileId = "<%= targetUser.id %>"; 
+        // Данные для графика передаем сразу, чтобы не делать лишний запрос
+        const historyData = <%- JSON.stringify(profile.dailyActivityHistory || []) %>;
+        let currentWallPage = 1;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // 1. Загружаем комментарии сразу (они нужны пользователю)
+            loadComments(1);
+            
+            // 2. Инициализируем поле ввода (Enter = отправить)
+            const wallInput = document.getElementById('wallComment');
+            if(wallInput) {
+                wallInput.addEventListener('keypress', function (e) {
+                    if (e.key === 'Enter') postComment();
+                });
+            }
+
+            // 3. ОТЛОЖЕННАЯ ЗАГРУЗКА ГРАФИКА (Ключевое для TBT и LCP)
+            // Ждем, пока браузер полностью освободится, и только потом рисуем тяжелый график
+            if (window.requestIdleCallback) {
+                window.requestIdleCallback(() => {
+                    waitForApex();
+                });
+            } else {
+                setTimeout(waitForApex, 1500); // Фоллбэк для старых браузеров
+            }
+        });
+
+        // Функция ожидания загрузки библиотеки ApexCharts
+        function waitForApex() {
+            const check = setInterval(() => {
+                if (typeof ApexCharts !== 'undefined') {
+                    clearInterval(check);
+                    initChart();
+                }
+            }, 100);
+        }
+
+        // Функция отрисовки графика (вынесена отдельно)
+        function initChart() {
+            const chartEl = document.querySelector("#activityChart");
+            if (!chartEl) return;
+            
+            const days = [], msgData = [], voiceData = [];
+            for (let i = 6; i >= 0; i--) {
+                const d = new Date();
+                d.setDate(d.getDate() - i);
+                days.push(d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' }));
+                
+                const found = historyData.find(h => {
+                    const hDate = new Date(h.date);
+                    return hDate.getDate() === d.getDate() && hDate.getMonth() === d.getMonth();
+                });
+                
+                msgData.push(found ? found.messages : 0);
+                voiceData.push(found ? (found.voiceSeconds / 60).toFixed(0) : 0);
+            }
+
+            const options = {
+                series: [{ name: 'Сообщения', data: msgData }, { name: 'Войс (мин)', data: voiceData }],
+                chart: { 
+                    type: 'area', 
+                    // Важно: height: '100%' берет размер от CSS контейнера, предотвращая сдвиг (CLS)
+                    height: '100%', 
+                    background: 'transparent', 
+                    toolbar: { show: false }, 
+                    fontFamily: 'Montserrat',
+                    animations: { enabled: false } // Отключаем анимацию появления для скорости
+                },
+                colors: ['#5865F2', '#ffd700'],
+                dataLabels: { enabled: false },
+                stroke: { curve: 'smooth', width: 2 },
+                fill: { type: 'gradient', gradient: { opacityFrom: 0.4, opacityTo: 0.05 } },
+                theme: { mode: 'dark' },
+                xaxis: { categories: days, labels: { style: { colors: '#888' } }, axisBorder: { show: false }, axisTicks: { show: false } },
+                yaxis: { show: false },
+                grid: { show: false, padding: { left: 0, right: 0 } }, // Убираем отступы
+                legend: { show: false }
+            };
+            
+            const chart = new ApexCharts(chartEl, options);
+            chart.render();
+        }
+
+        // --- Остальные функции (модалки, комментарии) оставляем без изменений ---
         
-        <script nonce="<%= nonce %>">
-            const targetProfileId = "<%= targetUser.id %>"; 
-            const historyData = <%- JSON.stringify(profile.dailyActivityHistory || []) %>;
-            let currentWallPage = 1;
+        function showItemDetails(name, description, image, rarity, emoji) {
+            const rarityColors = {
+                'COMMON': '#bdc3c7', 'RARE': '#3498db', 'EPIC': '#9b59b6',
+                'LEGENDARY': '#f1c40f', 'MYTHIC': '#e74c3c'
+            };
+            const color = rarityColors[rarity] || '#fff';
 
-            document.addEventListener('DOMContentLoaded', () => {
-                loadComments(1);
-                
-                setTimeout(initChart, 500);
+            let visualContent;
+            if (image) {
+                visualContent = `<img src="${image}" style="width: 80%; height: 80%; object-fit: contain;" alt="Иконка предмета">`;
+            } else {
+                visualContent = `<div style="font-size: 3.5rem;">${emoji}</div>`;
+            }
 
-                const wallInput = document.getElementById('wallComment');
-                if(wallInput) {
-                    wallInput.addEventListener('keypress', function (e) {
-                        if (e.key === 'Enter') postComment();
-                    });
-                }
-            });
-
-            function showItemDetails(name, description, image, rarity, emoji) {
-                const rarityColors = {
-                    'COMMON': '#bdc3c7', 'RARE': '#3498db', 'EPIC': '#9b59b6',
-                    'LEGENDARY': '#f1c40f', 'MYTHIC': '#e74c3c'
-                };
-                const color = rarityColors[rarity] || '#fff';
-
-                let visualContent;
-                if (image) {
-                    visualContent = `<img src="${image}" style="width: 80%; height: 80%; object-fit: contain;" alt="Иконка предмета">`;
-                } else {
-                    visualContent = `<div style="font-size: 3.5rem;">${emoji}</div>`;
-                }
-
-                const content = `
-                    <div style="text-align: center; display: flex; flex-direction: column; align-items: center; gap: 20px; padding: 10px 0;">
-                        <div style="width: 100px; height: 100px; background: rgba(255,255,255,0.05); border-radius: 20px; display: flex; align-items: center; justify-content: center; border: 2px solid ${color}; box-shadow: 0 0 25px ${color}30;">${visualContent}</div>
-                        <div style="font-size: 0.8rem; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; color: ${color}; background: ${color}15; padding: 6px 16px; border-radius: 50px; border: 1px solid ${color}30;">${rarity || 'ITEM'}</div>
-                        <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 12px; width: 100%; border: 1px solid rgba(255,255,255,0.05);">
-                            <p style="color: #ccc; margin: 0; font-size: 0.95rem; line-height: 1.6;">${description || 'Описание отсутствует.'}</p>
-                        </div>
+            const content = `
+                <div style="text-align: center; display: flex; flex-direction: column; align-items: center; gap: 20px; padding: 10px 0;">
+                    <div style="width: 100px; height: 100px; background: rgba(255,255,255,0.05); border-radius: 20px; display: flex; align-items: center; justify-content: center; border: 2px solid ${color}; box-shadow: 0 0 25px ${color}30;">${visualContent}</div>
+                    <div style="font-size: 0.8rem; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; color: ${color}; background: ${color}15; padding: 6px 16px; border-radius: 50px; border: 1px solid ${color}30;">${rarity || 'ITEM'}</div>
+                    <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 12px; width: 100%; border: 1px solid rgba(255,255,255,0.05);">
+                        <p style="color: #ccc; margin: 0; font-size: 0.95rem; line-height: 1.6;">${description || 'Описание отсутствует.'}</p>
                     </div>
-                `;
+                </div>
+            `;
 
-                if (window.Modal) {
-                    Modal.show(name, content, 'info', [{ text: 'Закрыть', handler: 'close' }]);
+            if (window.Modal) {
+                Modal.show(name, content, 'info', [{ text: 'Закрыть', handler: 'close' }]);
+            } else {
+                alert(`${name}\n\n${description}`);
+            }
+        }
+
+        function openEditModal() { const modal = document.getElementById('editModal'); if (modal) modal.classList.add('active'); }
+        function closeEditModal() { const modal = document.getElementById('editModal'); if (modal) modal.classList.remove('active'); }
+
+        async function saveTitle() {
+            const title = document.getElementById('editTitle').value;
+            if(!title.trim()) return alert("Введите текст титула!");
+            if (typeof Modal !== 'undefined') {
+                const ok = await Modal.confirm("Подтверждение", "Сменить титул? Это стоит 1 Жетон.");
+                if(!ok) return;
+            }
+            sendUpdate(title);
+        }
+
+        async function clearTitle() {
+            if (typeof Modal !== 'undefined') {
+                const ok = await Modal.confirm("Сброс", "Убрать титул? Это бесплатно.");
+                if(!ok) return;
+            }
+            sendUpdate("");
+        }
+
+        async function sendUpdate(title) {
+            try {
+                const res = await fetch('/api/user/update', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ activeTitle: title })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    if (typeof Modal !== 'undefined') await Modal.alert("Успешно", "Титул обновлен", "success");
+                    else alert("Успешно");
+                    location.reload();
                 } else {
-                    alert(`${name}\n\n${description}`);
+                    if (typeof Modal !== 'undefined') Modal.alert("Ошибка", data.error, "error");
+                    else alert(data.error);
                 }
-            }
+            } catch (e) { alert("Ошибка сети"); }
+        }
 
-            function openEditModal() { const modal = document.getElementById('editModal'); if (modal) modal.classList.add('active'); }
-            function closeEditModal() { const modal = document.getElementById('editModal'); if (modal) modal.classList.remove('active'); }
+        async function loadComments(page) {
+            const container = document.getElementById('commentsList');
+            try {
+                const res = await fetch(`/api/profile/comments/${targetProfileId}?page=${page}`);
+                const data = await res.json();
 
-            async function saveTitle() {
-                const title = document.getElementById('editTitle').value;
-                if(!title.trim()) return alert("Введите текст титула!");
-                if (typeof Modal !== 'undefined') {
-                    const ok = await Modal.confirm("Подтверждение", "Сменить титул? Это стоит 1 Жетон.");
-                    if(!ok) return;
-                }
-                sendUpdate(title);
-            }
-
-            async function clearTitle() {
-                if (typeof Modal !== 'undefined') {
-                    const ok = await Modal.confirm("Сброс", "Убрать титул? Это бесплатно.");
-                    if(!ok) return;
-                }
-                sendUpdate("");
-            }
-
-            async function sendUpdate(title) {
-                try {
-                    const res = await fetch('/api/user/update', {
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({ activeTitle: title })
-                    });
-                    const data = await res.json();
-                    if (data.success) {
-                        if (typeof Modal !== 'undefined') await Modal.alert("Успешно", "Титул обновлен", "success");
-                        else alert("Успешно");
-                        location.reload();
-                    } else {
-                        if (typeof Modal !== 'undefined') Modal.alert("Ошибка", data.error, "error");
-                        else alert(data.error);
-                    }
-                } catch (e) { alert("Ошибка сети"); }
-            }
-
-            function initChart() {
-                if (typeof ApexCharts === 'undefined') return;
-                
-                const days = [], msgData = [], voiceData = [];
-                for (let i = 6; i >= 0; i--) {
-                    const d = new Date();
-                    d.setDate(d.getDate() - i);
-                    days.push(d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' }));
-                    
-                    const found = historyData.find(h => {
-                        const hDate = new Date(h.date);
-                        return hDate.getDate() === d.getDate() && hDate.getMonth() === d.getMonth();
-                    });
-                    
-                    msgData.push(found ? found.messages : 0);
-                    voiceData.push(found ? (found.voiceSeconds / 60).toFixed(0) : 0);
-                }
-
-                const options = {
-                    series: [{ name: 'Сообщения', data: msgData }, { name: 'Войс (мин)', data: voiceData }],
-                    chart: { type: 'area', height: 220, background: 'transparent', toolbar: { show: false }, fontFamily: 'Montserrat' },
-                    colors: ['#5865F2', '#ffd700'],
-                    dataLabels: { enabled: false },
-                    stroke: { curve: 'smooth', width: 2 },
-                    fill: { type: 'gradient', gradient: { opacityFrom: 0.4, opacityTo: 0.05 } },
-                    theme: { mode: 'dark' },
-                    xaxis: { categories: days, labels: { style: { colors: '#888' } }, axisBorder: { show: false }, axisTicks: { show: false } },
-                    yaxis: { show: false },
-                    grid: { show: false },
-                    legend: { show: false }
-                };
-                
-                const chart = new ApexCharts(document.querySelector("#activityChart"), options);
-                chart.render();
-            }
-
-            async function loadComments(page) {
-                const container = document.getElementById('commentsList');
-                try {
-                    const res = await fetch(`/api/profile/comments/${targetProfileId}?page=${page}`);
-                    const data = await res.json();
-
-                    if (data.success) {
-                        currentWallPage = data.pagination.current;
-                        if (data.comments.length > 0) {
-                            container.innerHTML = data.comments.map(c => {
-                                const avaUrl = c.authorAvatar 
-                                    ? `/img/proxy/avatar/${c.authorId}/${c.authorAvatar}` 
-                                    : '/assets/img/avatars/default_avatar.png';
-                                const safeText = c.comment.replace(/&/g, "&amp;").replace(/</g, "&lt;");
-                                
-                                return `
-                                    <div class="wall-item">
-                                        <a href="/profile/${c.authorId}">
-                                            <img src="${avaUrl}" class="wall-ava" alt="Аватар ${c.authorUsername}" loading="lazy" onerror="this.src='/assets/img/avatars/default_avatar.png'">
-                                        </a>
-                                        <div class="wall-bubble">
-                                            <div class="wall-meta">
-                                                <a href="/profile/${c.authorId}" class="wall-author">${c.authorUsername}</a>
-                                                <span class="wall-date">${new Date(c.timestamp).toLocaleDateString()}</span>
-                                            </div>
-                                            <div class="wall-text">${safeText}</div>
+                if (data.success) {
+                    currentWallPage = data.pagination.current;
+                    if (data.comments.length > 0) {
+                        container.innerHTML = data.comments.map(c => {
+                            const avaUrl = c.authorAvatar 
+                                ? `/img/proxy/avatar/${c.authorId}/${c.authorAvatar}` 
+                                : '/assets/img/avatars/default_avatar.png';
+                            const safeText = c.comment.replace(/&/g, "&amp;").replace(/</g, "&lt;");
+                            
+                            return `
+                                <div class="wall-item">
+                                    <a href="/profile/${c.authorId}">
+                                        <img src="${avaUrl}" class="wall-ava" alt="Аватар ${c.authorUsername}" loading="lazy" onerror="this.src='/assets/img/avatars/default_avatar.png'">
+                                    </a>
+                                    <div class="wall-bubble">
+                                        <div class="wall-meta">
+                                            <a href="/profile/${c.authorId}" class="wall-author">${c.authorUsername}</a>
+                                            <span class="wall-date">${new Date(c.timestamp).toLocaleDateString()}</span>
                                         </div>
+                                        <div class="wall-text">${safeText}</div>
                                     </div>
-                                `;
-                            }).join('');
-                        } else {
-                            container.innerHTML = '<div class="wall-empty">Здесь пока тихо...</div>';
-                        }
-                        renderPagination(data.pagination.current, data.pagination.total);
-                    }
-                } catch (e) { container.innerHTML = 'Ошибка загрузки'; }
-            }
-
-            function renderPagination(current, total) {
-                const p = document.getElementById('wallPagination');
-                if(total <= 1) { p.style.display = 'none'; return; }
-                p.style.display = 'flex';
-                let html = `<button class="page-btn" onclick="loadComments(${current - 1})" ${current === 1 ? 'disabled' : ''}>&lt;</button>`;
-                html += `<span style="color:#888; font-weight:600;"> ${current} / ${total} </span>`;
-                html += `<button class="page-btn" onclick="loadComments(${current + 1})" ${current === total ? 'disabled' : ''}>&gt;</button>`;
-                p.innerHTML = html;
-            }
-
-            async function postComment() {
-                const input = document.getElementById('wallComment');
-                if (!input) return;
-                const text = input.value;
-                if (!text.trim()) return;
-
-                try {
-                    const res = await fetch('/api/profile/comment', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ targetUserId: targetProfileId, text: text })
-                    });
-                    const data = await res.json();
-                    if (data.success) {
-                        input.value = '';
-                        loadComments(1);
+                                </div>
+                            `;
+                        }).join('');
                     } else {
-                        if (typeof Modal !== 'undefined') Modal.alert("Ошибка", data.error, "error");
-                        else alert(data.error);
+                        container.innerHTML = '<div class="wall-empty">Здесь пока тихо...</div>';
                     }
-                } catch (e) { alert("Ошибка сети"); }
-            }
-        </script>
+                    renderPagination(data.pagination.current, data.pagination.total);
+                }
+            } catch (e) { container.innerHTML = 'Ошибка загрузки'; }
+        }
+
+        function renderPagination(current, total) {
+            const p = document.getElementById('wallPagination');
+            if(total <= 1) { p.style.display = 'none'; return; }
+            p.style.display = 'flex';
+            let html = `<button class="page-btn" onclick="loadComments(${current - 1})" ${current === 1 ? 'disabled' : ''}>&lt;</button>`;
+            html += `<span style="color:#888; font-weight:600;"> ${current} / ${total} </span>`;
+            html += `<button class="page-btn" onclick="loadComments(${current + 1})" ${current === total ? 'disabled' : ''}>&gt;</button>`;
+            p.innerHTML = html;
+        }
+
+        async function postComment() {
+            const input = document.getElementById('wallComment');
+            if (!input) return;
+            const text = input.value;
+            if (!text.trim()) return;
+
+            try {
+                const res = await fetch('/api/profile/comment', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ targetUserId: targetProfileId, text: text })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    input.value = '';
+                    loadComments(1);
+                } else {
+                    if (typeof Modal !== 'undefined') Modal.alert("Ошибка", data.error, "error");
+                    else alert(data.error);
+                }
+            } catch (e) { alert("Ошибка сети"); }
+        }
+    </script>
     <% } %>
 </body>
 </html>
