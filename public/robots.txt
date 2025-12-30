@@ -14,9 +14,6 @@ Disallow: /daily
 Disallow: /settings
 Disallow: /shop/buy      
 
-Disallow: /teammates/create
-Disallow: /teammates/delete
-
 Disallow: /img/proxy/
 
 Disallow: /*?sort=

@@ -31,8 +31,12 @@
 <link rel="manifest" href="/assets/img/favicons/site.webmanifest" />
 
 <link rel="preload" href="/assets/fonts/web/montserrat-v31-cyrillic_latin-regular.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/assets/fonts/web/montserrat-v31-cyrillic_latin-500.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/assets/fonts/web/montserrat-v31-cyrillic_latin-900.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/assets/fonts/web/montserrat-v31-cyrillic_latin-700.woff2" as="font" type="font/woff2" crossorigin>
+
+<link rel="preload" href="/webfonts/fa-solid-900.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/webfonts/fa-regular-400.woff2" as="font" type="font/woff2" crossorigin>
 
 <style>
     @font-face { font-family: 'Montserrat'; font-style: normal; font-weight: 400; font-display: swap; src: url('/assets/fonts/web/montserrat-v31-cyrillic_latin-regular.woff2') format('woff2'); }
@@ -55,7 +59,6 @@
 
 <link rel="stylesheet" href="/libs/fontawesome.css" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="/libs/fontawesome.css"></noscript>
-
 
 <% if (typeof currentPath === 'undefined' || (currentPath !== '/' && !currentPath.startsWith('/wiki'))) { %>
     <script nonce="<%= locals.nonce %>">

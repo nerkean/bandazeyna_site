@@ -16,6 +16,7 @@ import jwt from 'jsonwebtoken';
 import ImageKit from 'imagekit';
 import { fileURLToPath } from 'url';
 import { body, validationResult } from 'express-validator';
+import NomineeSlogan from '../src/models/NomineeSlogan.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -793,59 +794,55 @@ router.post('/notifications/read', checkAuth, async (req, res) => {
 });
 
 router.post('/nominations/vote', checkAuth, async (req, res) => {
-    const { nominationId, candidateId } = req.body;
-    const voterId = req.user.id;
-
     try {
-        const nom = await Nomination.findById(nominationId);
-        if (!nom || !nom.isActive) return res.status(400).json({ error: 'Голосование закрыто' });
+        const { nominationId, candidateId } = req.body;
+        const userId = req.user.id;
 
-        const alreadyVoted = nom.votes.some(v => v.voterId === voterId);
-        if (alreadyVoted) return res.status(400).json({ error: 'Вы уже проголосовали в этой номинации' });
+        const DEADLINE = new Date('2026-01-04T00:00:00+03:00');
+        if (new Date() >= DEADLINE) {
+            return res.status(400).json({ error: 'Голосование уже завершено!' });
+        }
 
-        nom.votes.push({ voterId, candidateId });
-        await nom.save();
+        if (userId === candidateId) {
+            return res.status(400).json({ error: 'Вы не можете голосовать за самого себя!' });
+        }
 
-        res.json({ success: true });
-    } catch (e) {
-        res.status(500).json({ error: 'Ошибка сервера' });
-    }
-});
+        const discordCreatedAt = new Date(Number(BigInt(userId) >> 22n) + 1420070400000);
+        const oneMonthAgo = new Date();
+        oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
 
-router.get('/nominations/seed-test', checkAuth, async (req, res) => {
-    const MY_ID = '438744415734071297'; 
+        if (discordCreatedAt > oneMonthAgo) {
+            return res.status(400).json({ 
+                error: 'Ваш аккаунт слишком новый. Голосовать можно только если аккаунту больше 1 месяца.' 
+            });
+        }
 
-    if (req.user.id !== MY_ID) {
-        return res.status(403).send('Доступ запрещен. Твой ID: ' + req.user.id);
-    }
+       const nomination = await Nomination.findById(nominationId);
+if (!nomination) return res.status(404).json({ error: 'Номинация не найдена' });
 
-    try {
-        await Nomination.deleteMany({ title: "Легенда года" });
+if (nomination.title === 'Монарх года' && (candidateId === '545152657174691849' || candidateId.includes('zeyn_w'))) {
+    return res.status(400).json({ error: 'Монарх вне конкурса! Его величие признано автоматически 👑' });
+}
 
-        await Nomination.create({
-            title: "Легенда года",
-            description: "Самый активный участник сообщества",
-            category: "Legendary",
-            isActive: true,
-            candidates: [
-                { 
-                    userId: req.user.id, 
-                    username: req.user.username, 
-                    avatar: req.user.avatar, 
-                    description: "это я" 
-                },
-                { 
-                   userId: req.user.id, 
-                    username: req.user.username, 
-                    avatar: req.user.avatar, 
-                    description: "это я" 
-                }
-            ]
-        });
-        res.send('✅ Тестовая номинация создана! Теперь иди на /nominations');
+        const alreadyVoted = nomination.votes.some(v => v.voterId === userId);
+        if (alreadyVoted) {
+            return res.status(400).json({ error: 'Вы уже отдали свой голос в этой категории!' });
+        }
+
+        nomination.votes.push({ voterId: userId, candidateId: candidateId });
+       await nomination.save();
+
+if (req.io) {
+    req.io.emit('new_vote_alert', { 
+        nominationTitle: nomination.title 
+    });
+}
+
+res.json({ success: true });
+
     } catch (e) {
         console.error(e);
-        res.status(500).send('Ошибка при создании: ' + e.message);
+        res.status(500).json({ error: 'Ошибка сервера при попытке проголосовать' });
     }
 });
 
@@ -890,6 +887,230 @@ router.post('/auth/telegram/bot-callback', async (req, res) => {
         res.json({ success: true });
     } catch (e) {
         console.error('❌ Ошибка bot-callback:', e);
+        res.status(500).json({ success: false });
+    }
+});
+
+router.post('/admin/nominations/create', checkAuth, async (req, res) => {
+    const ADMIN_IDS = ['438744415734071297'];
+    if (!ADMIN_IDS.includes(req.user.id)) return res.status(403).json({ error: 'Нет прав' });
+
+    try {
+        const { title, description, category, origin } = req.body;
+        await Nomination.create({
+            title,
+            description,
+            category,
+            origin: origin || 'staff',
+            candidates: [],
+            isActive: true
+        });
+        res.json({ success: true });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+router.post('/admin/nominations/delete', checkAuth, async (req, res) => {
+    const ADMIN_IDS = ['438744415734071297'];
+    if (!ADMIN_IDS.includes(req.user.id)) return res.status(403).json({ error: 'Нет прав' });
+
+    try {
+        await Nomination.findByIdAndDelete(req.body.id);
+        res.json({ success: true });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+router.post('/admin/nominations/add-candidate', checkAuth, async (req, res) => {
+    const ADMIN_IDS = ['438744415734071297'];
+    if (!ADMIN_IDS.includes(req.user.id)) return res.status(403).json({ error: 'Нет прав' });
+
+    try {
+        const { nominationId, targetUserId, customDesc } = req.body;
+        const input = targetUserId.trim();
+        
+        let candidateData;
+
+        const isDiscordId = /^\d{17,20}$/.test(input);
+
+        if (isDiscordId) {
+            const userProfile = await UserProfile.findOne({ userId: input });
+            
+            if (!userProfile) {
+                return res.status(404).json({ 
+                    error: 'Пользователь с таким ID не найден в базе сайта. Если вы хотите добавить по никнейму — введите имя буквами.' 
+                });
+            }
+
+            candidateData = {
+                userId: userProfile.userId,
+                username: userProfile.username,
+                avatar: userProfile.avatar,
+                description: customDesc || ''
+            };
+        } else {
+            candidateData = {
+                userId: `manual_${Date.now()}_${Math.floor(Math.random() * 1000)}`,
+                username: input,
+                avatar: null,
+                description: customDesc || ''
+            };
+        }
+
+        await Nomination.findByIdAndUpdate(nominationId, {
+            $push: { candidates: candidateData }
+        });
+
+        res.json({ success: true, candidate: candidateData });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+router.post('/admin/nominations/remove-candidate', checkAuth, async (req, res) => {
+    const ADMIN_IDS = ['438744415734071297'];
+    if (!ADMIN_IDS.includes(req.user.id)) return res.status(403).json({ error: 'Нет прав' });
+
+    try {
+        const { nominationId, candidateUserId } = req.body;
+        await Nomination.findByIdAndUpdate(nominationId, {
+            $pull: { candidates: { userId: candidateUserId } }
+        });
+        res.json({ success: true });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+router.post('/admin/nominations/update-info', checkAuth, async (req, res) => {
+    const ADMIN_IDS = ['438744415734071297'];
+    if (!ADMIN_IDS.includes(req.user.id)) return res.status(403).send('Forbidden');
+
+    try {
+        const { id, title, description, category, origin } = req.body;
+        await Nomination.findByIdAndUpdate(id, { title, description, category, origin });
+        res.json({ success: true });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+router.post('/admin/nominations/reorder', checkAuth, async (req, res) => {
+    const ADMIN_IDS = ['438744415734071297'];
+    if (!ADMIN_IDS.includes(req.user.id)) return res.status(403).send('Forbidden');
+
+    try {
+        const { ids } = req.body; 
+        const promises = ids.map((id, index) => 
+            Nomination.findByIdAndUpdate(id, { order: index })
+        );
+        await Promise.all(promises);
+        res.json({ success: true });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+router.post('/admin/nominations/update-candidate-desc', checkAuth, async (req, res) => {
+    const ADMIN_IDS = ['438744415734071297'];
+    if (!ADMIN_IDS.includes(req.user.id)) return res.status(403).send('Forbidden');
+
+    try {
+        const { nominationId, userId, description } = req.body;
+        
+        await Nomination.updateOne(
+            { _id: nominationId, "candidates.userId": userId },
+            { $set: { "candidates.$.description": description } }
+        );
+
+        res.json({ success: true });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+router.get('/proxy/avatar/:userId/:avatarHash', async (req, res) => {
+    try {
+        const { userId, avatarHash } = req.params;
+        
+        const size = req.query.size || 64;
+
+        const discordUrl = `https://cdn.discordapp.com/avatars/${userId}/${avatarHash}.png?size=${size}`;
+
+        const response = await fetch(discordUrl);
+        
+        if (!response.ok) throw new Error('Discord avatar not found');
+
+        const arrayBuffer = await response.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
+
+        res.setHeader('Content-Type', 'image/png');
+        res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+        
+        res.send(buffer);
+    } catch (e) {
+        res.redirect('/assets/img/avatars/default_avatar.png');
+    }
+});
+
+router.post('/admin/nominations/upload-candidate-avatar', checkAuth, uploadCloud.single('avatar'), async (req, res) => {
+    const ADMIN_IDS = ['438744415734071297'];
+    if (!ADMIN_IDS.includes(req.user.id)) return res.status(403).json({ error: 'Нет прав' });
+
+    try {
+        const { nominationId, candidateUserId } = req.body;
+        if (!req.file) return res.status(400).json({ error: 'Файл не выбран' });
+
+        const result = await uploadToCloud(req.file.buffer, `avatar_${candidateUserId}`, '/nominations/avatars');
+
+        await Nomination.updateOne(
+            { _id: nominationId, "candidates.userId": candidateUserId },
+            { $set: { "candidates.$.avatar": result.url } }
+        );
+
+        res.json({ success: true, url: result.url });
+    } catch (e) {
+        console.error(e);
+        res.status(500).json({ error: 'Ошибка загрузки: ' + e.message });
+    }
+});
+
+router.get('/nominations/stream-data/:id', checkAuth, async (req, res) => {
+    try {
+        const nomination = await Nomination.findById(req.params.id).lean();
+        if (!nomination) return res.status(404).json({ success: false });
+
+        let winnerId = null;
+        let maxVotes = -1;
+
+        for (let candidate of nomination.candidates) {
+            const count = nomination.votes.filter(v => v.candidateId === candidate.userId).length;
+            candidate.voteCount = count;
+
+            if (count > maxVotes) {
+                maxVotes = count;
+                winnerId = candidate.userId;
+            }
+
+            const userResponse = await NomineeSlogan.findOne({ userId: candidate.userId });
+            if (userResponse) {
+                const sloganObj = userResponse.responses.find(r => 
+                    r.nominationId.toString() === nomination._id.toString() || 
+                    r.nominationTitle === nomination.title
+                );
+                candidate.slogan = sloganObj ? sloganObj.slogan : 'Слоган не установлен';
+            }
+        }
+
+        res.json({ 
+            success: true, 
+            nomination, 
+            winnerId 
+        });
+    } catch (err) {
+        console.error(err);
         res.status(500).json({ success: false });
     }
 });

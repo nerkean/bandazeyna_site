@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <%- include('../partials/head', { title: 'Пульт управления Awards' }) %>
+    <script src="/socket.io/socket.io.js"></script>
+    <style>
+        .control-container { padding: 120px 5% 50px; max-width: 1000px; margin: 0 auto; }
+        .nom-card { 
+            background: #12141a; border: 1px solid rgba(255,255,255,0.1); 
+            padding: 20px; border-radius: 15px; margin-bottom: 20px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .nom-info h3 { margin: 0 0 5px 0; color: #fff; }
+        .nom-info p { margin: 0; color: #666; font-size: 0.9rem; }
+        
+        .actions { display: flex; gap: 10px; }
+        .btn-ctrl { 
+            padding: 10px 15px; border-radius: 8px; border: none; 
+            cursor: pointer; font-weight: 700; font-size: 0.8rem;
+            transition: 0.3s; text-transform: uppercase;
+        }
+        .btn-show { background: #5865F2; color: #fff; }
+        .btn-winner { background: #FFD700; color: #000; }
+        .btn-stats { background: #2ecc71; color: #fff; }
+        .btn-clear { background: #ef4444; color: #fff; margin-bottom: 30px; }
+        
+        .btn-ctrl:hover { transform: translateY(-2px); filter: brightness(1.2); }
+        .btn-ctrl:active { transform: translateY(0); }
+    </style>
+</head>
+<body>
+    <%- include('../partials/navbar') %>
+
+    <main class="control-container">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h1><i class="fas fa-broadcast-tower"></i> Управление стримом</h1>
+            <button class="btn-ctrl btn-clear" onclick="sendAction('clear')">Очистить экран в OBS</button>
+        </div>
+
+        <div class="noms-list">
+            <% nominations.forEach(nom => { %>
+                <div class="nom-card">
+                    <div class="nom-info">
+                        <h3><%= nom.title %></h3>
+                        <p><%= nom.candidates.length %> кандидатов</p>
+                    </div>
+                    <div class="actions">
+                        <button class="btn-ctrl btn-show" onclick="sendAction('show_nomination', '<%= nom._id %>')">1. Показать</button>
+                        <button class="btn-ctrl btn-winner" onclick="sendAction('reveal_winner', '<%= nom._id %>')">2. Победитель</button>
+                        <button class="btn-ctrl btn-stats" onclick="sendAction('show_stats', '<%= nom._id %>')">3. Голоса</button>
+                    </div>
+                </div>
+            <% }) %>
+        </div>
+    </main>
+
+    <script>
+        const socket = io();
+
+        async function sendAction(action, nomId = null) {
+            let data = { action };
+
+            if (nomId) {
+                const res = await fetch(`/api/nominations/stream-data/${nomId}`);
+                const result = await res.json();
+                
+                if (!result.success) return alert('Ошибка загрузки данных');
+                
+                data.nomination = result.nomination;
+                data.winnerId = result.winnerId;
+            }
+
+            socket.emit('admin_control', data);
+        }
+    </script>
+</body>
+</html>

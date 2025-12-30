@@ -22,7 +22,7 @@ const router = express.Router();
 
 const discordOnly = (req, res, next) => {
     if (req.user && req.user.id.startsWith('tg_')) {
-        return res.redirect('/teammates?error=discord_only');
+        return res.redirect('/?error=discord_only');
     }
     next();
 };
@@ -646,7 +646,6 @@ router.get('/sitemap.xml', async (req, res) => {
         const staticPages = [
             { url: '/', priority: 1.00 },
             { url: '/wiki', priority: 0.80 },
-            { url: '/teammates', priority: 0.80 },
             { url: '/leaderboard', priority: 0.80 },
             { url: '/bot', priority: 0.80 },
             { url: '/terms', priority: 0.50 },
@@ -690,24 +689,61 @@ router.get('/sitemap.xml', async (req, res) => {
 
 router.get('/nominations', checkAuth, async (req, res) => {
     try {
-        const nominations = await Nomination.find({ isActive: true });
+        const nominations = await Nomination.find().sort({ order: 1 }).lean();
         
-        // res.render('nominations', { 
-        //     user: req.user, 
-        //     profile: req.userProfile,
-        //     nominations,
-        //     currentPage: 'nominations'
-        // });
-
-        res.render('nominations_maintenance', {
-        user: req.user,
-        title: 'Подготовка к номинациям | Дача Зейна',
-        currentPath: '/nominations'
-    });
+        res.render('nominations', { 
+            user: req.user, 
+            profile: req.userProfile,
+            nominations,
+            currentPage: 'nominations'
+        });
     } catch (e) {
         console.error(e);
         res.status(500).send('Ошибка загрузки номинаций');
     }
+});
+
+router.get('/admin/nominations', checkAuth, async (req, res) => {
+    const ADMIN_IDS = ['438744415734071297']; 
+    if (!ADMIN_IDS.includes(req.user.id)) return res.redirect('/');
+
+    const nominations = await Nomination.find().sort({ order: 1 }).lean();
+    
+    nominations.forEach(nom => {
+        const counts = {};
+        nom.votes.forEach(v => {
+            counts[v.candidateId] = (counts[v.candidateId] || 0) + 1;
+        });
+
+        nom.candidates.forEach(can => {
+            can.voteCount = counts[can.userId] || 0;
+        });
+
+        nom.candidates.sort((a, b) => b.voteCount - a.voteCount);
+
+        nom.totalVotes = nom.votes.length;
+    });
+    
+    res.render('admin-nominations', { 
+        user: req.user, 
+        nominations,
+        title: 'Управление и Статистика',
+        noIndex: true
+    });
+});
+
+router.get('/redeem', (req, res) => {
+    res.render('redeem', { user: req.user });
+});
+
+router.get('/admin/stream-control', checkAuth, async (req, res) => {
+    if (req.user.id !== '438744415734071297') return res.redirect('/');
+    const nominations = await Nomination.find().sort({ order: 1 });
+    res.render('admin/stream_control', { nominations, user: req.user });
+});
+
+router.get('/awards-presentation', async (req, res) => {
+    res.render('presentation', { layout: false });
 });
 
 export default router;

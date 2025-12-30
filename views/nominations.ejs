@@ -2,157 +2,399 @@
 <html lang="ru">
 <head>
     <%- include('partials/head', { title: 'Dacha Awards 2025' }) %>
+
+            <link rel="preload" href="/css/nominations.css" as="style">
     <link rel="stylesheet" href="/css/nominations.css">
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+    /* Резервируем место под шапку, чтобы контент под ней не прыгал */
+    .nom-page-header {
+        min-height: 180px;
+    }
+    /* Резервируем место под таймер */
+    .countdown-wrapper {
+        min-height: 120px;
+    }
+    /* Предотвращаем прыжки при инициализации AOS */
+    [data-aos] {
+        opacity: 0;
+        transition-property: opacity, transform;
+    }
+    [data-aos].aos-animate {
+        opacity: 1;
+    }
+</style>
 </head>
 <body>
     <%- include('partials/navbar') %>
 
     <main class="nominations-page">
         <div class="cinematic-bg">
+            <div class="stars-layer">
+                <% for(let i=0; i<50; i++) { 
+                    const top = Math.random() * 100; const left = Math.random() * 100; const delay = Math.random() * 5;
+                %>
+                    <div class="star-point" style="top: <%= top %>%; left: <%= left %>%; animation-delay: <%= delay %>s;"></div>
+                <% } %>
+            </div>
             <div class="fog-layer one"></div>
             <div class="fog-layer two"></div>
-            <div class="fireflies">
-                <% for(let i=0; i<20; i++) { %><div class="firefly"></div><% } %>
-            </div>
+            <div class="fireflies"><% for(let i=0; i<20; i++) { %><div class="firefly"></div><% } %></div>
         </div>
 
         <div class="nominations-container">
-            
             <header class="nom-page-header" data-aos="zoom-out" data-aos-duration="1000">
                 <div class="nom-tag">Global Event</div>
                 <h1>Dacha <span>Awards</span></h1>
                 <p>Твой голос решает судьбу легенд сервера.</p>
             </header>
 
+            <div class="countdown-wrapper" data-aos="fade-up">
+                <div class="countdown-label">ДО КОНЦА ГОЛОСОВАНИЯ</div>
+                <div id="countdown" class="countdown-timer">
+                    <div class="cd-item"><span class="cd-val" id="cd-days">00</span><span class="cd-label">Дней</span></div>
+                    <div class="cd-sep">:</div>
+                    <div class="cd-item"><span class="cd-val" id="cd-hours">00</span><span class="cd-label">Часов</span></div>
+                    <div class="cd-sep">:</div>
+                    <div class="cd-item"><span class="cd-val" id="cd-minutes">00</span><span class="cd-label">Минут</span></div>
+                    <div class="cd-sep">:</div>
+                    <div class="cd-item"><span class="cd-val" id="cd-seconds">00</span><span class="cd-label">Секунд</span></div>
+                </div>
+                <div id="countdown-expired" class="countdown-finished" style="display: none;">ГОЛОСОВАНИЕ ЗАВЕРШЕНО</div>
+            </div>
+
             <section class="about-event" data-aos="fade-up">
                 <div class="info-card">
                     <div class="ic-icon"><i class="far fa-calendar-alt"></i></div>
                     <h4>Сроки</h4>
-                    <p>Голосование до 31.12.2025</p>
+                    <p>Голосование до 03.01.2026</p>
                 </div>
                 <div class="info-card center">
                     <div class="ic-icon"><i class="fas fa-trophy"></i></div>
                     <h4>Суть события</h4>
-                    <p>Ежегодная премия, где мы выбираем лучших участников, контент-мейкеров и трейдеров.</p>
+                    <p>Ежегодная премия, где мы выбираем лучших участников</p>
                 </div>
                 <div class="info-card">
                     <div class="ic-icon"><i class="fas fa-vote-yea"></i></div>
                     <h4>Правила</h4>
-                    <p>1 голос в каждой категории</p>
+                    <p>1 аккаунт = 1 голос в каждой категории. Голосовать за себя нельзя</p>
                 </div>
             </section>
 
+            <div class="nom-filters" data-aos="fade-down">
+                <button class="filter-btn active" data-filter="all">Все</button>
+                <button class="filter-btn" data-filter="special"><i class="fas fa-star"></i> Главные</button>
+                <button class="filter-btn" data-filter="staff"><i class="fas fa-shield-alt"></i> Выбор Стаффа</button>
+                <button class="filter-btn" data-filter="member"><i class="fas fa-users"></i> Выбор Игроков</button>
+            </div>
+
             <% if (nominations && nominations.length > 0) { %>
-                <% nominations.forEach((nom, index) => { %>
-                    <section class="nomination-block" data-aos="fade-up" data-aos-delay="<%= index * 100 %>">
+                <div class="nominations-grid">
+                    <% nominations.forEach((nom, index) => { 
+                        const hasVoted = nom.votes.some(v => v.voterId === user.id);
+                        const myVote = nom.votes.find(v => v.voterId === user.id);
                         
+                        let cardTypeClass = 'type-staff'; let badgeIcon = 'fas fa-shield-alt'; let badgeText = 'STAFF CHOICE';
+                        if (nom.category === 'Special') { cardTypeClass = 'type-special'; badgeIcon = 'fas fa-star'; badgeText = 'SPECIAL EVENT'; } 
+                        else if (nom.origin === 'member') { cardTypeClass = 'type-member'; badgeIcon = 'fas fa-users'; badgeText = 'MEMBER CHOICE'; }
+                    %>
+                    
+                    <div class="nomination-card <%= cardTypeClass %> <%= hasVoted ? 'voted' : '' %>"
+     data-tilt data-tilt-max="3" data-tilt-speed="400" data-tilt-glare data-tilt-max-glare="0.1">
+                        
+                        <% if (nom.category === 'Special') { %><div class="special-border-fx"></div><% } %>
+
                         <div class="nom-header-styled">
-                            <div class="nom-number">NOMINATION 0<%= index + 1 %></div>
+                            <div class="nom-meta">
+                                <div class="nom-number">NOMINATION 0<%= index + 1 %></div>
+                                <div class="origin-badge"><i class="<%= badgeIcon %>"></i> <%= badgeText %></div>
+                            </div>
                             <h2 class="nom-title"><%= nom.title %></h2>
-                            <div class="nom-subtitle"><%= nom.category %></div>
-                            <% if (nom.description) { %>
-                                <p class="nom-desc-text"><%= nom.description %></p>
-                            <% } %>
+                            <% if (nom.category === 'Special') { %><div class="nom-subtitle" style="color: #ff0055;">🔥 MAIN 🔥</div><% } %>
+                            <% if (nom.description) { %><p class="nom-desc-text"><%= nom.description %></p><% } %>
                         </div>
-                        
+
                         <div class="candidates-grid">
-                            <% nom.candidates.forEach(can => { %>
-                                <% 
-                                   const hasVoted = nom.votes.some(v => v.voterId === user.id);
-                                   const isHisChoice = nom.votes.some(v => v.voterId === user.id && v.candidateId === can.userId);
-                                %>
-                                <div class="candidate-card js-tilt-card <%= isHisChoice ? 'is-winner' : '' %> <%= hasVoted && !isHisChoice ? 'is-disabled' : '' %>">
-                                    <div class="can-visual">
-                                        <div class="img-ring"></div>
-                                        <% if (isHisChoice) { %>
-                                            <div class="winner-crown"><i class="fas fa-crown"></i></div>
-                                        <% } %>
-                                        <img src="/img/proxy/avatar/<%= can.userId %>/<%= can.avatar %>" 
-                                             alt="<%= can.username %>"
-                                             loading="lazy"
-                                             onerror="this.src='/assets/img/avatars/default_avatar.png'">
+                            <% nom.candidates.forEach(can => { 
+                                const isHisChoice = myVote && myVote.candidateId === can.userId;
+                                const isDisabled = hasVoted && !isHisChoice;
+                            %>
+                                <div class="candidate-card-wrapper <%= isHisChoice ? 'is-winner' : '' %> <%= isDisabled ? 'is-disabled' : '' %>">
+                                    <div class="can-header">
+                                        <div class="can-visual">
+<% 
+    let avatarSrc = '/assets/img/avatars/default_avatar.png'; 
+    if (can.avatar) {
+        if (can.avatar.startsWith('http')) {
+            avatarSrc = can.avatar;
+        } else {
+            avatarSrc = `/api/proxy/avatar/${can.userId}/${can.avatar}?size=64`;
+        }
+    }
+%>
+<img src="<%= avatarSrc %>" 
+     class="can-avatar" 
+     loading="lazy" 
+     width="47" 
+     height="47"
+     alt="Ava">
+                                            <% if (isHisChoice) { %> <div class="crown-badge"><i class="fas fa-crown"></i></div> <% } %>
+                                        </div>
                                     </div>
-                                    <div class="can-content">
-                                        <h3><%= can.username %></h3>
-                                        <% if (can.description) { %>
-                                            <p class="can-desc"><%= can.description %></p>
-                                        <% } %>
-                                    </div>
-                                    <div class="can-action">
-                                        <% if (isHisChoice) { %>
-                                            <button class="vote-btn voted" disabled><i class="fas fa-check"></i></button>
-                                        <% } else if (hasVoted) { %>
-                                            <button class="vote-btn disabled" disabled><i class="fas fa-lock"></i></button>
-                                        <% } else { %>
-                                            <button class="vote-btn active js-vote-btn" 
-        data-nom-id="<%= nom._id %>" 
-        data-can-id="<%= can.userId %>">
-    ГОЛОС
-</button>
-                                        <% } %>
-                                    </div>
+                                    <div class="can-info">
+    <div class="can-name"><%= can.username %></div>
+    <% if (can.description) { %>
+        <% 
+            let fontSizeClass = '';
+            if (can.description.length > 100) {
+                fontSizeClass = 'text-xsmall';
+            } else if (can.description.length > 60) {
+                fontSizeClass = 'text-small';
+            }
+        %>
+        <div class="can-bio <%= fontSizeClass %>">
+            <%= can.description %>
+        </div>
+    <% } else { %>
+        <div class="can-bio-empty">Кандидат</div>
+    <% } %>
+</div>
+   <div class="can-footer">
+    <% if (nom.title === 'МОНАРХ ГОДА' && can.username === 'zeyn_w') { %>
+        <button class="vote-action-btn" disabled 
+                style="background: linear-gradient(45deg, rgba(255, 215, 0, 0.1), rgba(255, 215, 0, 0.2)); 
+                       border: 1px solid #FFD700; color: #FFD700; cursor: help;"
+                title="Монарх вне конкурса — его величие не обсуждается!">
+            <i class="fas fa-crown"></i> 
+        </button>
+    <% } else if (isHisChoice) { %>
+        <button class="vote-action-btn selected" disabled><i class="fas fa-check"></i> ВЫБРАН</button>
+    <% } else if (hasVoted) { %>
+        <button class="vote-action-btn disabled" disabled><i class="fas fa-lock"></i></button>
+    <% } else if (user.id === can.userId) { %>
+        <button class="vote-action-btn disabled" disabled>СЕБЯ НЕЛЬЗЯ</button>
+    <% } else { %>
+        <button class="vote-action-btn active js-vote-btn" 
+                data-nom-id="<%= nom._id %>"
+                data-can-id="<%= can.userId %>"
+                data-username="<%= can.username %>">
+            ГОЛОСОВАТЬ
+        </button>
+    <% } %>
+</div>
                                 </div>
                             <% }) %>
                         </div>
-                    </section>
-                <% }) %>
+                        
+                        <% if (hasVoted) { %>
+                            <div style="text-align: center; margin-top: 15px; font-size: 0.8rem; color: #666; font-family: monospace;">
+                                <i class="fas fa-check-circle"></i> ВАШ ГОЛОС УЧТЕН
+                            </div>
+                        <% } %>
+                    </div>
+                    <% }) %>
+                </div>
             <% } else { %>
-                <div class="empty-nominations"><h2>Скоро...</h2></div>
+                <div class="empty-nominations"><h2>Скоро...</h2><p>Номинации еще не объявлены.</p></div>
             <% } %>
         </div>
     </main>
 
+    <div class="confirm-modal-overlay" id="confirmModal">
+        <div class="confirm-box">
+            <div class="confirm-icon"><i class="fas fa-vote-yea"></i></div>
+            <div class="confirm-title">Вы уверены?</div>
+            <p class="confirm-text">
+                Вы отдаете голос за <span class="confirm-highlight" id="confirmName">Имя</span>.
+                <br><br>
+                <span style="color: #ef4444; font-size: 0.85rem;">⚠️ Изменить выбор будет невозможно!</span>
+            </p>
+            <div class="confirm-actions">
+                <button class="c-btn cancel" id="cancelVoteBtn">Отмена</button>
+                <button class="c-btn confirm" id="confirmVoteBtn">Подтвердить</button>
+            </div>
+        </div>
+    </div>
+
     <%- include('partials/footer') %>
 
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js" defer></script>
+
+    <div id="vote-alerts-container"></div>
+
     <script nonce="<%= locals.nonce %>">
-    window.addEventListener('load', () => { 
+    document.addEventListener('DOMContentLoaded', () => {
         if (typeof AOS !== 'undefined') AOS.init({ duration: 800, once: true });
-    });
 
-    const cards = document.querySelectorAll(".js-tilt-card");
-    cards.forEach((card) => {
-        card.addEventListener("mousemove", (e) => {
-            const rect = card.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-            card.style.setProperty("--mouse-x", `${x}px`);
-            card.style.setProperty("--mouse-y", `${y}px`);
-        });
+        if (window.innerWidth < 1024) {
+    document.querySelectorAll('[data-tilt]').forEach(el => {
+        if (el.vanillaTilt) el.vanillaTilt.destroy();
     });
+}
 
-    document.querySelectorAll('.js-vote-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const nomId = this.getAttribute('data-nom-id');
-            const canId = this.getAttribute('data-can-id');
-            vote(this, nomId, canId);
-        });
-    });
+        (function() {
+            const targetDate = new Date("2026-01-04T00:00:00+03:00").getTime();
+            const dom = {
+                days: document.getElementById('cd-days'), hours: document.getElementById('cd-hours'),
+                minutes: document.getElementById('cd-minutes'), seconds: document.getElementById('cd-seconds'),
+                timerBox: document.getElementById('countdown'), expiredBox: document.getElementById('countdown-expired')
+            };
 
-    async function vote(btn, nomId, canId) {
-        const originalText = btn.innerHTML;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-        try {
-            const res = await fetch('/api/nominations/vote', {
-                method: 'POST', 
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ nominationId: nomId, candidateId: canId })
-            });
-            const data = await res.json();
-            if (data.success) {
-                if (typeof confetti !== 'undefined') {
-                    confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#FFD700', '#FFF'] });
+            function updateTimer() {
+                const now = new Date().getTime();
+                const distance = targetDate - now;
+                if (distance < 0) {
+                    clearInterval(timerInterval); finishVoting(); return;
                 }
-                setTimeout(() => location.reload(), 1000);
-            } else {
-                btn.innerHTML = originalText;
-                alert(data.error);
+                const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+                if(dom.days) dom.days.innerText = days < 10 ? '0' + days : days;
+                if(dom.hours) dom.hours.innerText = hours < 10 ? '0' + hours : hours;
+                if(dom.minutes) dom.minutes.innerText = minutes < 10 ? '0' + minutes : minutes;
+                if(dom.seconds) dom.seconds.innerText = seconds < 10 ? '0' + seconds : seconds;
             }
-        } catch (e) { 
-            console.error(e);
-            btn.innerHTML = originalText; 
+
+            function finishVoting() {
+                if(dom.timerBox) dom.timerBox.style.display = 'none';
+                if(dom.expiredBox) dom.expiredBox.style.display = 'inline-block';
+                document.querySelectorAll('.vote-action-btn').forEach(btn => {
+                    if (!btn.classList.contains('selected')) {
+                        btn.disabled = true; btn.classList.add('disabled'); btn.innerHTML = '<i class="fas fa-lock"></i>';
+                    }
+                });
+            }
+            const timerInterval = setInterval(updateTimer, 1000);
+            updateTimer();
+        })();
+
+const filterBtns = document.querySelectorAll('.filter-btn');
+const cards = document.querySelectorAll('.nomination-card');
+
+function handleFilter(btn) {
+    filterBtns.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+
+    const filter = btn.getAttribute('data-filter');
+
+    cards.forEach(card => {
+        if (filter === 'all' || card.classList.contains(`type-${filter}`)) {
+            card.classList.remove('hidden');
+            card.style.display = 'flex'; 
+        } else {
+            card.classList.add('hidden');
+            card.style.display = 'none';
         }
+    });
+}
+
+filterBtns.forEach(btn => {
+    btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        handleFilter(btn);
+    });
+
+    btn.addEventListener('touchend', (e) => {
+        if (!window.isScrollingFilters) {
+        }
+    });
+});
+
+const filterContainer = document.querySelector('.nom-filters');
+if (filterContainer) {
+    filterContainer.addEventListener('touchmove', () => { window.isScrollingFilters = true; });
+    filterContainer.addEventListener('touchstart', () => { window.isScrollingFilters = false; });
+}
+
+        let pendingVote = null;
+        const modal = document.getElementById('confirmModal');
+        const nameSpan = document.getElementById('confirmName');
+        const confirmBtn = document.getElementById('confirmVoteBtn');
+        const cancelBtn = document.getElementById('cancelVoteBtn');
+
+document.querySelectorAll('.js-vote-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        const nomId = this.getAttribute('data-nom-id');
+        const canId = this.getAttribute('data-can-id');
+        const username = this.getAttribute('data-username'); 
+        
+        pendingVote = { btn: this, nomId, canId, username }; 
+        
+        nameSpan.innerText = username;
+        modal.classList.add('active');
+    });
+});
+
+        cancelBtn.addEventListener('click', () => {
+            modal.classList.remove('active');
+            pendingVote = null;
+        });
+
+confirmBtn.addEventListener('click', async () => {
+            if (!pendingVote) return;
+            const { btn, nomId, canId, username } = pendingVote;
+            modal.classList.remove('active');
+            
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+            try {
+                const res = await fetch('/api/nominations/vote', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ nominationId: nomId, candidateId: canId })
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    const trollNames = ['kostyapaupau', 'daadak'];
+                    
+                    if (trollNames.includes(username)) {
+                        const promo = "AWARD-" + Math.random().toString(36).substring(2, 8).toUpperCase();
+                        
+                        document.body.insertAdjacentHTML('beforeend', `
+                            <div class="confirm-modal-overlay active" style="z-index: 10001;">
+                                <div class="confirm-box" style="border-color: #f1c40f; transform: scale(1.1);">
+                                    <div class="confirm-icon" style="color: #f1c40f;"><i class="fas fa-gift"></i></div>
+                                    <div class="confirm-title">БОНУС АКТИВИРОВАН!</div>
+                                    <p class="confirm-text">За поддержку этого кандидата вы получили 500 ⭐!<br>Скопируйте код и активируйте его на странице промокодов:</p>
+                                    <div style="background: #000; padding: 15px; border-radius: 10px; font-family: monospace; font-size: 1.2rem; border: 1px dashed #555; margin-bottom: 20px;">${promo}</div>
+                                    <button class="c-btn confirm" style="width: 100%;" onclick="window.location.href='/redeem?code=${promo}'">ПЕРЕЙТИ К АКТИВАЦИИ</button>
+                                </div>
+                            </div>
+                        `);
+                    } else {
+                        if (typeof confetti !== 'undefined') confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+                        setTimeout(() => location.reload(), 1000);
+                    }
+                } else {
+                    alert(data.error);
+                    btn.disabled = false;
+                    btn.innerHTML = 'ГОЛОСОВАТЬ';
+                }
+            } catch (e) {
+                alert('Ошибка сети');
+                btn.disabled = false;
+            }
+        });
+
+function initVoteAlerts() {
+        const socket = window.mainSocket;
+        if (!socket) return setTimeout(initVoteAlerts, 300); 
+
+        socket.on('new_vote_alert', (data) => {
+            const container = document.getElementById('vote-alerts-container');
+            if (!container) return;
+            const alert = document.createElement('div');
+            alert.className = 'vote-alert';
+            alert.innerHTML = `<i class="fas fa-bolt"></i><div>Кто-то проголосовал в <br><b>${data.nominationTitle}</b></div>`;
+            container.appendChild(alert);
+            setTimeout(() => { alert.classList.add('alert-fade-out'); setTimeout(() => alert.remove(), 500); }, 4000);
+        });
     }
-</script>
+    initVoteAlerts();
+    });
+    </script>
 </body>
 </html>

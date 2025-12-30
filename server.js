@@ -14,7 +14,6 @@ import MongoStore from 'connect-mongo';
 import { Strategy as DiscordStrategy } from 'passport-discord';
 import UserProfile from './src/models/UserProfile.js';
 import Notification from './src/models/Notification.js';
-import teammatesRoutes from './routes/teammates.js';
 import pagesRouter from './routes/pages.js';
 import apiRouter from './routes/api.js';
 import authRouter from './routes/auth.js';
@@ -68,6 +67,7 @@ app.use(helmet({
                 "'self'",
                 "'unsafe-inline'",
                 "'unsafe-eval'", 
+                "blob:",
                 "https://cdn.jsdelivr.net",
                 "https://unpkg.com",
                 "https://cdnjs.cloudflare.com",
@@ -80,6 +80,7 @@ app.use(helmet({
                 "https://*.clarity.ms",
                 "https://telegram.org"
             ],
+            workerSrc: ["'self'", "blob:"],
             scriptSrcAttr: ["'unsafe-inline'"],
             styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://unpkg.com", "https://cdnjs.cloudflare.com"],
             imgSrc: ["'self'", "data:", "blob:", "https://cdn.discordapp.com", "https://media.discordapp.net", "https://dachazeyna.com", "https://i.ibb.co", "https://ik.imagekit.io", "https://www.google-analytics.com", "https://www.googletagmanager.com", "https://*.clarity.ms", "https://c.bing.com", ...googleDomains],
@@ -96,15 +97,12 @@ app.use(helmet({
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 app.use(express.static('public', {
-    maxAge: '30d', 
+    maxAge: '1y',
     immutable: true, 
     etag: true, 
     setHeaders: (res, path) => {
-        if (path.endsWith('.woff2') || path.endsWith('.webp') || path.endsWith('.png')) {
+        if (path.endsWith('.woff2') || path.match(/\.(webp|png|jpg|jpeg|svg)$/)) {
             res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
-        }
-        if (path.endsWith('.html')) {
-            res.setHeader('Cache-Control', 'no-cache');
         }
     }
 }));
@@ -209,10 +207,12 @@ app.get('/img/tg-proxy/:fileId', async (req, res) => {
 app.use('/auth', authRouter); 
 app.use('/api', apiRouter);   
 app.use('/', pagesRouter);
-app.use('/teammates', teammatesRoutes);
 
 io.on('connection', (socket) => {
     socket.on('join_room', (roomId) => socket.join(String(roomId)));
+    socket.on('admin_control', (data) => {
+        io.emit('stream_update', data);
+    });
     const user = socket.request.user;
     if (user) socket.join(String(user.id));
 });

@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <%- include('partials/head', { title: 'Dacha Awards 2025 | LIVE' }) %>
+    <link rel="stylesheet" href="/css/nominations.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+
+    <style>
+        body, html {
+            overflow: hidden;
+            background: #050505;
+            height: 100vh;
+            width: 100vw;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .nominations-page {
+            width: 100%;
+            height: 100%;
+            padding: 0 !important;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        #presentation-stage {
+            width: 95%;
+            max-width: 1800px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+        }
+
+        /* Заголовок: уменьшили, чтобы не вытеснял карточки */
+        .nom-page-header {
+            margin-bottom: 40px !important;
+            text-align: center;
+        }
+        .nom-page-header h1 {
+            font-size: 4.5rem !important; /* Было 6, стало 4.5 для баланса */
+            margin: 10px 0 !important;
+        }
+        .nom-desc-text {
+            font-size: 1.2rem !important;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        /* Сетка: теперь она гибкая и центрированная */
+        .candidates-grid {
+            display: flex !important;
+            justify-content: center !important;
+            align-items: stretch;
+            gap: 20px !important;
+            width: 100%;
+            flex-wrap: wrap !important; /* Если очень много — перенесутся, но мы постараемся впихнуть */
+        }
+
+        /* Карточка: убрали фиксированную ширину 320px */
+        .candidate-card-wrapper {
+            flex: 1 1 200px; /* Гибкость: будет сжиматься до 200px */
+            max-width: 300px; /* Но не больше 300px */
+            min-width: 180px;
+            padding: 30px 20px !important;
+            background: rgba(255, 255, 255, 0.03) !important;
+            border-radius: 25px !important;
+            opacity: 0; /* Скрыты до начала анимации */
+            transform: translateY(30px);
+            transition: all 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
+        }
+
+        .can-visual {
+            width: 100px !important;
+            height: 100px !important;
+            margin-bottom: 20px !important;
+        }
+
+        .can-name {
+            font-size: 1.4rem !important;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .can-bio {
+            font-size: 0.95rem !important;
+            min-height: 60px !important;
+            line-height: 1.3 !important;
+        }
+
+        /* Эффект победителя */
+        .candidate-card-wrapper.winner-highlight {
+            transform: scale(1.15) translateY(-20px) !important;
+            border-color: var(--gold) !important;
+            background: rgba(255, 215, 0, 0.08) !important;
+            box-shadow: 0 0 60px rgba(255, 215, 0, 0.25) !important;
+            z-index: 100;
+            opacity: 1 !important;
+        }
+
+        .candidate-card-wrapper.not-winner .can-visual,
+        .candidate-card-wrapper.not-winner .can-name,
+        .candidate-card-wrapper.not-winner .can-bio {
+            opacity: 0.2;
+            filter: grayscale(1) blur(6px); /* Блюр теперь только на контенте */
+            transition: all 0.8s ease;
+        }
+
+        .candidate-card-wrapper.not-winner {
+            border-color: rgba(255, 255, 255, 0.02) !important;
+            background: transparent !important;
+            transform: scale(0.9);
+        }
+
+        /* Гарантируем, что плашка голосов всегда четкая */
+        .vote-presentation-badge {
+            display: none;
+            margin-top: 25px;
+            padding: 12px 25px;
+            background: rgba(0, 0, 0, 0.8) !important; /* Более плотный фон для читаемости */
+            border: 2px solid var(--theme-color) !important;
+            border-radius: 50px;
+            color: #ffffff !important; 
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 900;
+            font-size: 1.5rem;
+            text-shadow: 0 0 10px var(--theme-color);
+            
+            filter: none !important; 
+            opacity: 1 !important; 
+            z-index: 100;
+            position: relative;
+        }
+
+        .winner-highlight .vote-presentation-badge {
+            border-color: var(--gold) !important;
+            text-shadow: 0 0 20px var(--gold);
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.4);
+            transform: scale(1.1);
+        }
+
+        .card-appear {
+            opacity: 1 !important;
+            transform: translateY(0) !important;
+        }
+    </style>
+</head>
+<body class="nominations-page">
+    
+    <div class="cinematic-bg">
+        <div class="stars-layer">
+            <% for(let i=0; i<50; i++) { 
+                const top = Math.random() * 100; const left = Math.random() * 100; const delay = Math.random() * 5;
+            %>
+                <div class="star-point" style="top: <%= top %>%; left: <%= left %>%; animation-delay: <%= delay %>s;"></div>
+            <% } %>
+        </div>
+        <div class="fog-layer one"></div>
+        <div class="fog-layer two"></div>
+        <div class="fireflies"><% for(let i=0; i<20; i++) { %><div class="firefly"></div><% } %></div>
+    </div>
+
+    <div id="presentation-stage">
+        <div style="text-align: center; opacity: 0.2;">
+            <h1 class="nom-title" style="font-size: 3rem;">DACHA AWARDS</h1>
+            <p>ОЖИДАНИЕ ТРАНСЛЯЦИИ...</p>
+        </div>
+    </div>
+
+    <script>
+        const socket = io();
+        const stage = document.getElementById('presentation-stage');
+
+        socket.on('stream_update', (data) => {
+            if (data.action === 'show_nomination') {
+                renderNomination(data.nomination);
+            } else if (data.action === 'reveal_winner') {
+                revealWinner(data.winnerId);
+            } else if (data.action === 'show_stats') {
+                document.querySelectorAll('.vote-presentation-badge').forEach(b => b.style.display = 'block');
+            } else if (data.action === 'clear') {
+                location.reload();
+            }
+        });
+
+        function renderNomination(nom) {
+            let themeClass = 'type-staff';
+            if (nom.category === 'Special') themeClass = 'type-special';
+            else if (nom.origin === 'member') themeClass = 'type-member';
+
+            const candidatesHtml = nom.candidates.map((can, i) => {
+                let avatarSrc = can.avatar ? 
+                    (can.avatar.startsWith('http') ? can.avatar : `/api/proxy/avatar/${can.userId}/${can.avatar}?size=256`) : 
+                    '/assets/img/avatars/default_avatar.png';
+
+                return `
+                    <div class="candidate-card-wrapper ${themeClass}" id="can-${can.userId}">
+                        <div class="can-header">
+                            <div class="can-visual">
+                                <img src="${avatarSrc}" class="can-avatar">
+                                <div class="crown-badge" style="display:none;" id="crown-${can.userId}">
+                                    <i class="fas fa-crown"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="can-info">
+                            <div class="can-name">${can.username}</div>
+                            <div class="can-bio">${can.slogan || 'Претендент'}</div>
+                            <div class="vote-presentation-badge animate__animated animate__zoomIn">
+                                ${can.voteCount} ГОЛОСОВ
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            stage.innerHTML = `
+                <header class="nom-page-header animate__animated animate__fadeIn">
+                    <div class="nom-tag">AWARDS 2025</div>
+                    <h1 class="nom-title">${nom.title}</h1>
+                    <p class="nom-desc-text">${nom.description || ''}</p>
+                </header>
+                <div class="candidates-grid">
+                    ${candidatesHtml}
+                </div>
+            `;
+
+            const cards = document.querySelectorAll('.candidate-card-wrapper');
+            cards.forEach((card, index) => {
+                setTimeout(() => {
+                    card.classList.add('card-appear');
+                }, 500 + (index * 800)); 
+            });
+        }
+
+        function revealWinner(winnerId) {
+            const cards = document.querySelectorAll('.candidate-card-wrapper');
+            cards.forEach(card => {
+                if (card.id === `can-${winnerId}`) {
+                    card.classList.add('winner-highlight');
+                    const crown = document.getElementById(`crown-${winnerId}`);
+                    if(crown) crown.style.display = 'flex';
+                } else {
+                    card.classList.add('not-winner');
+                }
+            });
+
+            confetti({
+                particleCount: 200, spread: 80, origin: { y: 0.7 },
+                colors: ['#FFD700', '#ffffff', '#5865F2']
+            });
+        }
+    </script>
+</body>
+</html>

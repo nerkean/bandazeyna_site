@@ -1,21 +1,28 @@
 import mongoose from 'mongoose';
 
 const nominationSchema = new mongoose.Schema({
-    title: { type: String, required: true }, // Название: "Лучший трейдер", "Душа компании"
-    description: { type: String },           // Описание номинации
-    category: { type: String, default: 'Common' }, // Для стилизации (например, 'Gold', 'Special')
+    title: { type: String, required: true },
+    description: { type: String },
+    category: { type: String, default: 'Common' },
+    origin: { 
+        type: String, 
+        enum: ['staff', 'member'], 
+        default: 'staff',
+        required: true 
+    },
     candidates: [{
-        userId: String,     // Discord ID
+        userId: String,
         username: String,
         avatar: String,
-        description: String // Почему именно он? (опционально)
+        description: String
     }],
     votes: [{
-        voterId: String,    // Кто проголосовал
-        candidateId: String // За кого (userId)
+        voterId: String,
+        candidateId: String
     }],
+    order: { type: Number, default: 0 },
     isActive: { type: Boolean, default: true },
-    endDate: { type: Date } // Когда закончится голосование
+    endDate: { type: Date }
 });
 
 export default mongoose.model('Nomination', nominationSchema);
