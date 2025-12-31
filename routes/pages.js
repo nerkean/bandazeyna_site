@@ -17,6 +17,7 @@ import AdminLog from '../src/models/AdminLog.js';
 import { checkWikiAccess } from '../middleware/checkWikiAccess.js';
 import Giveaway from '../src/models/Giveaway.js'
 import cache from '../src/utils/cache.js';
+import AwardSettings from '../src/models/AwardSettings.js';
 
 const router = express.Router();
 
@@ -49,7 +50,28 @@ router.get('/', async (req, res) => {
                     "target": "https://dachazeyna.com/leaderboard?q={search_term_string}",
                     "query-input": "required name=search_term_string"
                 }
-            }
+            },
+            {
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Что такое Дача Зейна?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Это крупнейшее русскоязычное сообщество по игре Bee Swarm Simulator в Roblox с уникальной экономикой и ботом."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Как работает экономика сервера?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Экономика основана на Звездах, которые можно получать за активность и тратить в магазине или на бирже акций."
+      }
+    }
+  ]
+}
         ]
     };
 
@@ -77,8 +99,8 @@ router.get('/', async (req, res) => {
         res.render('index', { 
             user: req.user, 
             stats, 
-            title: 'Главная | Дача Зейна', 
-            description: 'Добро пожаловать на Дачу Зейна! Крупнейшее сообщество по Bee Swarm Simulator с уникальной экономикой, биржей, ивентами и гайдами.',
+            title: 'Дача Зейна | Сообщество Bee Swarm Simulator в Roblox',
+            description: 'Дача Зейна — крупнейшее русскоязычное сообщество по BSS. Уникальный бот, биржа акций, гайды по пчелам и регулярные розыгрыши Robux.',
             heroStock: topStock || { ticker: 'INDEX', lastChange: 0, currentPrice: 100 },
             myProfile, 
             currentPath: '/', 
@@ -111,15 +133,34 @@ router.get('/wiki', async (req, res) => {
         const categories = { 'guides': [], 'bees': [], 'items': [], 'mechanics': [], 'server': [] };
         articles.forEach(art => { if (categories[art.category]) categories[art.category].push(art); });
 
-        const jsonLD = {
-            "@context": "https://schema.org",
-            "@graph": [{
+      const jsonLD = {
+           "@context": "https://schema.org",
+        "@graph": [
+            {
                 "@type": "BreadcrumbList",
-                "itemListElement": [{ "@type": "ListItem", "position": 1, "name": "Главная", "item": "https://dachazeyna.com" }, { "@type": "ListItem", "position": 2, "name": "Вики", "item": "https://dachazeyna.com/wiki" }]
-            }]
+                "itemListElement": [
+                    { "@type": "ListItem", "position": 1, "name": "Главная", "item": "https://dachazeyna.com" },
+                    { "@type": "ListItem", "position": 2, "name": "Вики", "item": "https://dachazeyna.com/wiki" }
+                ]
+            },
+            {
+                "@type": "CollectionPage",
+                "name": "Вики сообщества Дача Зейна",
+                "description": "Справочник по игре Bee Swarm Simulator, правила Discord сообщества и руководства по экосистеме сайта.",
+                "url": "https://dachazeyna.com/wiki"
+            }
+        ]
         };
 
-        res.render('wiki', { user: req.user, title: 'База Знаний | Дача Зейна', description: 'Полная база знаний по Bee Swarm Simulator: гайды по пчелам, крафты предметов, механики игры и секреты сервера.', categories, searchQuery, currentPath: '/wiki', jsonLD });
+        res.render('wiki', { 
+            user: req.user, 
+            title: 'Вики Дача Зейна | Гайды по BSS и инфо о сервере', 
+            description: 'Официальная база знаний проекта Дача Зейна. Все о Bee Swarm Simulator, настройки Discord сервера, гайды по экономике и возможности сайта.',
+            categories, 
+            searchQuery, 
+            currentPath: '/wiki', 
+            jsonLD 
+        });
     } catch (e) { res.status(500).render('404', { user: req.user }); }
 });
 
@@ -179,15 +220,47 @@ router.get('/wiki/:slug', async (req, res) => {
             }
         }
 
-res.render('wiki-article', { 
+const jsonLD = {
+            "@context": "https://schema.org",
+            "@graph": [
+                {
+                    "@type": "BreadcrumbList",
+                    "itemListElement": [
+                        { "@type": "ListItem", "position": 1, "name": "Главная", "item": "https://dachazeyna.com" },
+                        { "@type": "ListItem", "position": 2, "name": "Вики", "item": "https://dachazeyna.com/wiki" },
+                        { "@type": "ListItem", "position": 3, "name": article.title, "item": `https://dachazeyna.com/wiki/${article.slug}` }
+                    ]
+                },
+                {
+                    "@type": "Article",
+                    "headline": article.title,
+                    "description": article.description,
+                    "image": article.image ? (article.image.startsWith('http') ? article.image : `https://dachazeyna.com${article.image}`) : "https://dachazeyna.com/assets/img/og-image.png",
+                    "author": {
+                        "@type": "Person",
+                        "name": article.author || "Команда Дачи Зейна"
+                    },
+                    "datePublished": article.createdAt,
+                    "dateModified": article.updatedAt || article.createdAt,
+                    "publisher": {
+                        "@type": "Organization",
+                        "name": "Дача Зейна",
+                        "logo": { "@type": "ImageObject", "url": "https://dachazeyna.com/assets/img/logo.png" }
+                    }
+                }
+            ]
+        };
+
+        res.render('wiki-article', { 
             user: req.user, 
             article, 
             related, 
-            title: `${article.title} | Вики`,
+            title: `${article.title} | Вики Дача Зейна`,
             description: article.description,
             image: ogImage,
             currentPath: `/wiki/${article.slug}`,
-            ogType: 'article'
+            ogType: 'article',
+            jsonLD
         });
 
     } catch (e) {
@@ -691,14 +764,21 @@ router.get('/nominations', checkAuth, async (req, res) => {
     try {
         const nominations = await Nomination.find().sort({ order: 1 }).lean();
         
+        const setting = await AwardSettings.findOne({ userId: req.user.id }).lean();
+        
+        const userWithSettings = {
+            ...req.user,
+            isPublicVote: setting ? setting.isPublicVote : false
+        };
+
         res.render('nominations', { 
-            user: req.user, 
+            user: userWithSettings,
             profile: req.userProfile,
             nominations,
             currentPage: 'nominations'
         });
     } catch (e) {
-        console.error(e);
+        console.error('Ошибка в роуте номинаций:', e);
         res.status(500).send('Ошибка загрузки номинаций');
     }
 });
@@ -708,10 +788,33 @@ router.get('/admin/nominations', checkAuth, async (req, res) => {
     if (!ADMIN_IDS.includes(req.user.id)) return res.redirect('/');
 
     const nominations = await Nomination.find().sort({ order: 1 }).lean();
+    const allVoterIds = [...new Set(nominations.flatMap(n => n.votes.map(v => v.voterId)))];
     
+    const users = await UserProfile.find({ userId: { $in: allVoterIds } }).lean();
+    const privacySettings = await AwardSettings.find({ userId: { $in: allVoterIds } }).lean();
+
+    const privacyMap = privacySettings.reduce((acc, s) => {
+        acc[s.userId] = s.isPublicVote;
+        return acc;
+    }, {});
+
+    const userMap = users.reduce((acc, u) => {
+        acc[u.userId] = {
+            username: u.username,
+            joinedAt: u.joinedAt,
+            isPublic: privacyMap[u.userId] || false
+        };
+        return acc;
+    }, {});
+
     nominations.forEach(nom => {
         const counts = {};
         nom.votes.forEach(v => {
+            const userData = userMap[v.voterId] || { username: 'Unknown', joinedAt: null, isPublic: false };
+            v.voterUsername = userData.username;
+            v.voterJoinedAt = userData.joinedAt;
+            v.isPublic = userData.isPublic;
+            
             counts[v.candidateId] = (counts[v.candidateId] || 0) + 1;
         });
 
@@ -720,7 +823,6 @@ router.get('/admin/nominations', checkAuth, async (req, res) => {
         });
 
         nom.candidates.sort((a, b) => b.voteCount - a.voteCount);
-
         nom.totalVotes = nom.votes.length;
     });
     

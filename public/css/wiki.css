@@ -4,7 +4,7 @@
     --primary: #5865F2;
     --text-main: #ffffff;
     --text-muted: #b0b3b8;
-    --text-meta: #9ca3af; 
+    --text-meta: #9ca3af;
 }
 
 body {
@@ -67,7 +67,7 @@ body {
     cursor: pointer;
     transition: 0.3s;
     font-size: 1rem;
-    display: flex; 
+    display: flex;
     align-items: center;
     justify-content: center;
 }
@@ -147,10 +147,10 @@ body {
 
 .art-desc {
     font-size: 0.9rem;
-    color: var(--text-muted);
+    color: var(--text-muted); 
     margin-bottom: 20px;
     line-height: 1.6;
-    flex-grow: 1; 
+    flex-grow: 1;
     display: -webkit-box;
     -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
@@ -161,7 +161,7 @@ body {
     display: flex;
     justify-content: space-between;
     font-size: 0.8rem;
-    color: var(--text-meta); 
+    color: var(--text-meta);
     border-top: 1px solid rgba(255,255,255,0.05);
     padding-top: 15px;
 }

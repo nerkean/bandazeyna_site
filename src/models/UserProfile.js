@@ -133,6 +133,7 @@ const userProfileSchema = new mongoose.Schema({
   isTaxDelinquent: { type: Boolean, default: false, index: true },
   maxReactionsOnMessage: { type: Number, default: 0 },
   isWikiEditor: { type: Boolean, default: false },
+  isPublicVote: { type: Boolean, default: false },
 }, { timestamps: true });
 
 userProfileSchema.index({ userId: 1, guildId: 1 }, { unique: true });

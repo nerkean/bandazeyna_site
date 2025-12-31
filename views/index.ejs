@@ -11,14 +11,15 @@
 
     <main>
         <section class="hero-section">
-            <div class="hero-content hero-animate">
-                <div class="hero-tag">Roblox • BSS RU Community #1</div>
-                <h1><span class="highlight">Дача Зейна</span> - не просто сервер</h1>
-                <p>
-                    Крупнейшее сообщество по <b>Bee Swarm Simulator</b>. 
-                    Тысячи игроков, актуальные гайды, поиск тиммейтов
-                    и уникальная экономика сервера.
-                </p>
+           <div class="hero-content hero-animate">
+    <div class="hero-tag">Roblox • BSS RU Community #1</div>
+    <h1>
+        <span class="highlight">Дача Зейна</span> — крупнейшее сообщество Bee Swarm Simulator
+    </h1>
+    <p>
+        Присоединяйся к фан-сообществу <b>Bee Swarm Simulator</b> в Roblox. 
+        Актуальные гайды, поиск тиммейтов для макро и уникальная экономика.
+    </p>
                 <div class="hero-buttons">
                     <a href="https://discord.gg/bandazeyna" target="_blank" class="btn-discord big" aria-label="Вступить в Discord сервер">
                         <i class="fab fa-discord"></i> Вступить в Улей
@@ -67,8 +68,8 @@
                 </a>
                 <div class="glass-pill pill-float">
                     <div class="avatar-stack">
-                        <img src="assets/img/avatars/1.png" alt="" loading="lazy">
-                        <img src="assets/img/avatars/2.png" alt="" loading="lazy">
+                        <img src="assets/img/avatars/1.png" alt="Участник сообщества Дача Зейна" loading="lazy">
+                        <img src="assets/img/avatars/2.png" alt="Участник сообщества Дача Зейна" loading="lazy">
                         <span class="online-dot"></span>
                     </div>
                     <span><%= stats.users %> Online</span>
@@ -99,58 +100,37 @@
             </div>
             
             <div class="features-grid">
-                <div class="feature-box f-wiki" 
-                     onclick="window.location.href='/wiki'" 
-                     style="cursor: pointer;"
-                     data-tilt data-tilt-glare data-tilt-max-glare="0.2" 
-                     data-aos="zoom-in" 
-                     data-aos-delay="100">
-                    <div class="fb-bg"></div>
-                    <div class="fb-icon"><i class="fas fa-book-open"></i></div>
-                    <h3>База Знаний</h3>
-                    <p>Гайды, билды и советы от профи. Узнай, как сделать той или иной улей</p>
-                    <div style="margin-top: 15px; color: var(--primary); font-weight: 700; font-size: 0.9rem;">
-                        Читать <i class="fas fa-arrow-right"></i>
-                    </div>
-                </div>
+    <a href="/wiki" class="feature-box f-wiki" data-aos="zoom-in" data-aos-delay="100">
+        <div class="fb-bg"></div>
+        <div class="fb-icon"><i class="fas fa-book-open"></i></div>
+        <h3>База Знаний</h3>
+        <p>Гайды, билды и советы от профи. Узнай, как сделать тот или иной улей</p>
+        <div class="fb-link">Читать <i class="fas fa-arrow-right"></i></div>
+    </a>
 
-                <div class="feature-box f-team" 
-                     onclick="window.location.href='/teammates'"
-                     style="cursor: pointer;"
-                     data-tilt data-tilt-glare data-tilt-max-glare="0.2" 
-                     data-aos="zoom-in" 
-                     data-aos-delay="200">
-                    <div class="fb-bg"></div>
-                    <div class="fb-icon"><i class="fas fa-users"></i></div>
-                    <h3>Поиск Тиммейтов</h3>
-                    <p>Найди напарника для макро, фарма мёда или стикеров за пару минут.</p>
-                    <div style="margin-top: 15px; color: var(--primary); font-weight: 700; font-size: 0.9rem;">
-                        Найти сейчас <i class="fas fa-arrow-right"></i>
-                    </div>
-                </div>
+    <a href="/teammates" class="feature-box f-team" data-aos="zoom-in" data-aos-delay="200">
+        <div class="fb-bg"></div>
+        <div class="fb-icon"><i class="fas fa-users"></i></div>
+        <h3>Поиск Тиммейтов</h3>
+        <p>Найди напарника для макро, фарма мёда или стикеров за пару минут.</p>
+        <div class="fb-link">Найти сейчас <i class="fas fa-arrow-right"></i></div>
+    </a>
 
-                <div class="feature-box f-event" 
-                     onclick="window.location.href='/giveaways'" 
-                     style="cursor: pointer;" 
-                     data-tilt data-tilt-glare data-tilt-max-glare="0.2" 
-                     data-aos="zoom-in" 
-                     data-aos-delay="300">
-                    <div class="fb-bg"></div>
-                    <div class="fb-icon"><i class="fas fa-gift"></i></div>
-                    <h3>Ивенты & Розыгрыши</h3>
-                    <p>Регулярные раздачи Robux, ваучеров и редких предметов. Халява — это святое.</p>
-                    <div style="margin-top: 15px; font-size: 0.85rem; color: var(--primary); font-weight: 700;">
-                        Перейти к раздачам <i class="fas fa-arrow-right"></i>
-                    </div>
-                </div>
-
-                <div class="feature-box f-trade" data-tilt data-tilt-glare data-tilt-max-glare="0.2" data-aos="zoom-in" data-aos-delay="400">
-                    <div class="fb-bg"></div>
-                    <div class="fb-icon"><i class="fas fa-shield-alt"></i></div>
-                    <h3>Модерация</h3>
-                    <p>Состав, который задаст вопрос и сам его же решит</p>
-                </div>
-            </div>
+    <a href="/giveaways" class="feature-box f-event" data-aos="zoom-in" data-aos-delay="300">
+        <div class="fb-bg"></div>
+        <div class="fb-icon"><i class="fas fa-gift"></i></div>
+        <h3>Ивенты & Розыгрыши</h3>
+        <p>Регулярные раздачи Robux, ваучеров и редких предметов.</p>
+        <div class="fb-link">К раздачам <i class="fas fa-arrow-right"></i></div>
+    </a>
+    
+    <div class="feature-box f-trade" data-aos="zoom-in" data-aos-delay="400">
+        <div class="fb-bg"></div>
+        <div class="fb-icon"><i class="fas fa-shield-alt"></i></div>
+        <h3>Модерация</h3>
+        <p>Состав, который задаст вопрос и сам его же решит</p>
+    </div>
+</div>
         </section>
 
         <section class="steps-section">

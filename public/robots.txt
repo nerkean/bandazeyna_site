@@ -4,8 +4,6 @@ Disallow: /admin/
 Disallow: /api/
 Disallow: /auth/
 Disallow: /libs/  
-Disallow: /css/
-Disallow: /js/
 
 Disallow: /inventory
 Disallow: /deposit

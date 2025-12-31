@@ -42,9 +42,13 @@
     <%- include('partials/navbar') %>
 
     <div class="article-wrapper">
-        <div class="crumbs">
-            <a href="/">Главная</a> / <a href="/wiki">Вики</a> / <%= article.category %>
-        </div>
+        <nav class="crumbs" aria-label="Хлебные крошки">
+    <a href="/">Главная</a> 
+    <span class="sep">/</span> 
+    <a href="/wiki">Вики</a> 
+    <span class="sep">/</span> 
+    <span class="current"><%= article.category %></span>
+</nav>
 
         <header class="art-header">
             <div class="art-tag"><%= article.category.toUpperCase() %></div>
@@ -53,10 +57,12 @@
             
             <div class="art-meta">
                 <div class="meta-item">
-                    <i class="far fa-user-circle"></i> <%= article.author %>
+                    <i class="far fa-user-circle"></i>
+                    <span itemprop="author"><%= article.author %></span>
                 </div>
                 <div class="meta-item">
-                    <i class="far fa-calendar-alt"></i> <%= new Date(article.createdAt).toLocaleDateString() %>
+                    <i class="far fa-calendar-alt"></i>
+                    <time datetime="<%= article.createdAt %>"><%= new Date(article.createdAt).toLocaleDateString() %></time>
                 </div>
                 <div class="meta-item">
                     <i class="far fa-eye"></i> <%= article.views %>

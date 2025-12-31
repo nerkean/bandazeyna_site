@@ -16,7 +16,12 @@
 }
 
 .hero-content h1 {
-    font-size: 4.5rem; line-height: 1.05; margin-bottom: 30px; color: #fff;
+    font-size: clamp(1rem, 3.5vw, 3.2rem); 
+    line-height: 1.1; 
+    margin-bottom: 25px; 
+    color: #fff;
+    font-weight: 900;
+    letter-spacing: -0.02em; 
 }
 .hero-content .highlight {
     color: var(--primary);
@@ -192,7 +197,7 @@
 .section-header p { font-size: 1.2rem; color: var(--text-muted); }
 .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 30px; }
 .feature-box {
-    position: relative; background: rgba(20, 22, 28, 0.8); backdrop-filter: blur(10px);
+    text-decoration: none; color: inherit; position: relative; background: rgba(20, 22, 28, 0.8); backdrop-filter: blur(10px);
     padding: 40px 30px; border-radius: 24px; border: 1px solid rgba(255,255,255,0.05); 
     overflow: hidden; transform-style: preserve-3d; display: flex; flex-direction: column;
     align-items: center; text-align: center; transition: border-color 0.3s, box-shadow 0.3s;
@@ -203,7 +208,17 @@
     opacity: 0; transition: opacity 0.4s ease; z-index: 0; pointer-events: none;
 }
 .feature-box:hover .fb-bg { opacity: 0.15; }
-.feature-box:hover { border-color: var(--card-color); box-shadow: 0 10px 40px -10px var(--card-color-dim); transform: translateY(-5px); }
+.feature-box:hover {
+    color: #fff; 
+}
+
+.fb-link {
+    margin-top: 15px; 
+    color: var(--primary); 
+    font-weight: 700; 
+    font-size: 0.9rem;
+    z-index: 2;
+}
 .fb-icon {
     position: relative; z-index: 2; width: 70px; height: 70px; 
     background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1);
@@ -387,7 +402,12 @@
     }
     
     .hero-content { max-width: 100%; margin: 0 auto; padding: 0 15px; text-align: center; z-index: 5; }
-    .hero-content h1 { font-size: 2.2rem; line-height: 1.2; margin-bottom: 20px; }
+    .hero-content h1 {
+    font-size: 3.2rem; 
+    line-height: 1.1; 
+    margin-bottom: 30px; 
+    color: #fff;
+}
     .hero-content p { font-size: 1rem; max-width: 100%; margin-bottom: 30px; }
     
     .hero-buttons { justify-content: center; flex-direction: column; gap: 12px; width: 100%; }
@@ -420,3 +440,10 @@
 @media (max-width: 380px) {
     .hero-content h1 { font-size: 2rem; }
 }   
+
+@media (max-width: 768px) {
+    .hero-content h1 {
+        font-size: 2rem !important;
+        line-height: 1.2;
+    }
+}

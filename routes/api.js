@@ -17,6 +17,8 @@ import ImageKit from 'imagekit';
 import { fileURLToPath } from 'url';
 import { body, validationResult } from 'express-validator';
 import NomineeSlogan from '../src/models/NomineeSlogan.js';
+import AwardSettings from '../src/models/AwardSettings.js';
+import ExcelJS from 'exceljs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -1112,6 +1114,108 @@ router.get('/nominations/stream-data/:id', checkAuth, async (req, res) => {
     } catch (err) {
         console.error(err);
         res.status(500).json({ success: false });
+    }
+});
+
+router.post('/user/settings/vote-privacy', checkAuth, async (req, res) => {
+    try {
+        const { isPublicVote } = req.body;
+        console.log(`[DEBUG] Юзер ${req.user.id} меняет приватность на: ${isPublicVote}`);
+
+        await AwardSettings.findOneAndUpdate(
+            { userId: req.user.id },
+            { isPublicVote: isPublicVote },
+            { upsert: true, new: true }
+        );
+        
+        res.json({ success: true });
+    } catch (err) {
+        console.error('[ERROR] Ошибка сохранения приватности:', err);
+        res.status(500).json({ error: 'Database error' });
+    }
+});
+
+router.get('/admin/nominations/export-excel', checkAuth, async (req, res) => {
+    const ADMIN_IDS = ['438744415734071297']; 
+    if (!ADMIN_IDS.includes(req.user.id)) return res.status(403).send('Нет доступа');
+
+    try {
+        const nominations = await Nomination.find().sort({ order: 1 }).lean();
+        const allVoterIds = [...new Set(nominations.flatMap(n => n.votes.map(v => v.voterId)))];
+        const users = await UserProfile.find({ userId: { $in: allVoterIds } }).lean();
+        const privacySettings = await AwardSettings.find({ userId: { $in: allVoterIds } }).lean();
+        
+        const privacyMap = privacySettings.reduce((acc, s) => { acc[s.userId] = s.isPublicVote; return acc; }, {});
+        const userMap = users.reduce((acc, u) => { acc[u.userId] = u; return acc; }, {});
+
+        const workbook = new ExcelJS.Workbook();
+        const worksheet = workbook.addWorksheet('Отчет Dacha Awards');
+
+        worksheet.columns = [
+            { header: 'СТАТУС', key: 'status', width: 15 },
+            { header: 'НОМИНАЦИЯ', key: 'nomTitle', width: 25 },
+            { header: 'НИКНЕЙМ', key: 'username', width: 20 },
+            { header: 'ID ПОЛЬЗОВАТЕЛЯ', key: 'userId', width: 25 },
+            { header: 'ЗА КОГО ГОЛОС', key: 'candidate', width: 20 },
+        ];
+
+        worksheet.getRow(1).eachCell((cell) => {
+            cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF5865F2' } };
+            cell.alignment = { vertical: 'middle', horizontal: 'center' };
+        });
+
+        nominations.forEach(nom => {
+            nom.votes.forEach(vote => {
+                const voter = userMap[vote.voterId] || {};
+                const candidate = nom.candidates.find(c => c.userId === vote.candidateId);
+                const isPublic = privacyMap[vote.voterId] || false;
+                
+                const discordTimestamp = Number((BigInt(vote.voterId) >> 22n) + 1420070400000n);
+                const discordCreatedAt = new Date(discordTimestamp);
+                
+                const isNew = (new Date() - discordCreatedAt) < (1000 * 60 * 60 * 24 * 60);
+
+                const row = worksheet.addRow({
+                    status: isPublic ? 'ПУБЛИЧНЫЙ' : 'АНОНИМ',
+                    nomTitle: nom.title,
+                    username: isPublic ? (voter.username || 'Unknown') : 'Аноним',
+                    userId: isPublic ? vote.voterId : `${vote.voterId.substring(0, 4)}...${vote.voterId.slice(-4)}`,
+                    candidate: candidate ? candidate.username : 'Удален',
+                    created: discordCreatedAt.toLocaleDateString('ru-RU'),
+                    trust: isNew ? '⚠️ НОВЫЙ (менее 60 дней)' : ''
+                });
+
+                if (isNew) {
+                    const trustCell = row.getCell('trust');
+                    trustCell.font = { bold: true, color: { argb: 'FFFF0000' } }; 
+                    
+                    row.eachCell((cell) => {
+                        cell.fill = {
+                            type: 'pattern',
+                            pattern: 'solid',
+                            fgColor: { argb: 'FFFFF0F0' } 
+                        };
+                    });
+                }
+
+                row.eachCell((cell) => {
+                    cell.alignment = { vertical: 'middle', horizontal: 'left' };
+                });
+            });
+
+            worksheet.addRow([]);
+        });
+
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        res.setHeader('Content-Disposition', 'attachment; filename=Dacha_Awards_Report.xlsx');
+
+        await workbook.xlsx.write(res);
+        res.end();
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Ошибка генерации');
     }
 });
 

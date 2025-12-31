@@ -22,6 +22,33 @@
     [data-aos].aos-animate {
         opacity: 1;
     }
+
+    .privacy-card {
+        background: rgba(88, 101, 242, 0.05);
+        border: 1px solid rgba(88, 101, 242, 0.2);
+        padding: 20px 25px;
+        border-radius: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 40px;
+        backdrop-filter: blur(10px);
+    }
+    .pc-info h4 { margin: 0 0 5px; font-size: 1rem; color: var(--primary); }
+    .pc-info p { margin: 0; font-size: 0.85rem; color: #888; max-width: 80%; }
+    
+    /* Стили для красивого переключателя (Switch) */
+    .switch { position: relative; display: inline-block; width: 50px; height: 26px; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #333; transition: .4s; border-radius: 34px; }
+    .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+    input:checked + .slider { background-color: var(--primary); }
+    input:checked + .slider:before { transform: translateX(24px); }
+
+    @media (max-width: 768px) {
+        .privacy-card { flex-direction: row; padding: 15px; }
+        .pc-info p { font-size: 0.75rem; max-width: 100%; }
+    }
 </style>
 </head>
 <body>
@@ -47,6 +74,21 @@
                 <h1>Dacha <span>Awards</span></h1>
                 <p>Твой голос решает судьбу легенд сервера.</p>
             </header>
+
+            <section class="privacy-settings" data-aos="fade-up">
+    <div class="privacy-card">
+        <div class="pc-info">
+            <h4><i class="fas fa-user-shield"></i> Публичность голоса</h4>
+            <p>4 января 2026 года, после завершения премии, списки всех голосов будут опубликованы в открытом доступе. Включите этот ползунок, если вы согласны на отображение вашего ника в итоговой таблице</p>
+        </div>
+        <div class="pc-action">
+            <label class="switch">
+                <input type="checkbox" id="privacyToggle" <%= user.isPublicVote ? 'checked' : '' %>>
+                <span class="slider round"></span>
+            </label>
+        </div>
+    </div>
+</section>
 
             <div class="countdown-wrapper" data-aos="fade-up">
                 <div class="countdown-label">ДО КОНЦА ГОЛОСОВАНИЯ</div>
@@ -395,6 +437,21 @@ function initVoteAlerts() {
     }
     initVoteAlerts();
     });
+
+    document.getElementById('privacyToggle').addEventListener('change', async function() {
+    const isPublic = this.checked;
+    
+    // Добавь /api в начало, если твои роуты апи лежат там
+    try {
+        const response = await fetch('/api/user/settings/vote-privacy', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ isPublicVote: isPublic })
+        });
+    } catch (e) {
+        console.error('Ошибка при отправке запроса:', e);
+    }
+});
     </script>
 </body>
 </html>

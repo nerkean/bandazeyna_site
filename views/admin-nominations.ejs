@@ -44,7 +44,6 @@
         .nom-title-preview { font-weight: 800; font-size: 1.1rem; }
         .nom-stats-pill { background: rgba(88, 101, 242, 0.1); color: var(--accent); padding: 4px 12px; border-radius: 50px; font-size: 0.75rem; font-weight: 800; }
         
-        /* Кнопки порядка */
         .order-controls { display: flex; flex-direction: column; gap: 4px; margin-right: 10px; }
         .btn-order { background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: #fff; cursor: pointer; padding: 4px 8px; border-radius: 6px; font-size: 0.6rem; transition: 0.2s; }
         .btn-order:hover { background: var(--accent); }
@@ -56,23 +55,54 @@
         .candidates-stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 12px; margin: 20px 0; }
         .stat-item { background: rgba(0, 0, 0, 0.2); border: 1px solid var(--border); padding: 12px; border-radius: 15px; display: flex; justify-content: space-between; align-items: center; }
         .stat-info { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; }
-        
         .stat-avatar-container { position: relative; width: 48px; height: 48px; flex-shrink: 0; }
-        .stat-avatar { width: 100%; height: 100%; border-radius: 50%; border: 2px solid rgba(255,255,255,0.1); object-fit: cover; display: block; }
-
-        .avatar-edit-btn {
-            position: absolute; bottom: -2px; right: -2px;
-            background: var(--accent); color: #fff; border: none;
-            width: 20px; height: 20px; border-radius: 50%;
-            font-size: 0.7rem; display: flex; align-items: center; justify-content: center;
-            cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.5); z-index: 2;
-        }
-
-        .stat-name { font-weight: 800; font-size: 0.9rem; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .stat-avatar { width: 100%; height: 100%; border-radius: 50%; border: 2px solid rgba(255,255,255,0.1); object-fit: cover; }
+        .avatar-edit-btn { position: absolute; bottom: -2px; right: -2px; background: var(--accent); color: #fff; border: none; width: 20px; height: 20px; border-radius: 50%; font-size: 0.7rem; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+        
+        .stat-name { font-weight: 800; font-size: 0.9rem; display: block; }
         .can-desc-input { background: transparent; border: none; border-bottom: 1px dashed #444; color: #888; font-size: 0.75rem; width: 100%; outline: none; margin-top: 4px; }
-        .stat-count-box { text-align: right; margin-left: 10px; flex-shrink: 0; }
+        
+        .stat-count-box { text-align: center; margin-left: 10px; flex-shrink: 0; min-width: 60px; }
         .stat-count { font-size: 1.2rem; font-weight: 900; color: var(--accent); line-height: 1; }
-        .stat-label { font-size: 0.6rem; text-transform: uppercase; color: #555; }
+        .stat-label { font-size: 0.6rem; text-transform: uppercase; color: #555; margin-bottom: 5px; }
+
+        .btn-view-voters {
+            background: rgba(88, 101, 242, 0.1); border: 1px solid rgba(88, 101, 242, 0.2);
+            color: var(--accent); cursor: pointer; padding: 4px 10px; border-radius: 8px;
+            font-size: 0.65rem; font-weight: 800; transition: 0.2s;
+        }
+        .btn-view-voters:hover { background: var(--accent); color: #fff; }
+
+        /* --- МОДАЛКА ПРОГОЛОСОВАВШИХ --- */
+        .voters-list-modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); backdrop-filter: blur(10px);
+            z-index: 10000; display: none; align-items: center; justify-content: center;
+        }
+        .voters-list-modal.active { display: flex; }
+        .voters-box {
+            background: #15151a; border: 1px solid var(--border);
+            width: 95%; max-width: 450px; border-radius: 24px;
+            padding: 30px; position: relative;
+        }
+        .voters-title { font-weight: 900; margin-bottom: 20px; font-size: 1.1rem; display: flex; align-items: center; gap: 10px; }
+        .voters-scroll { max-height: 400px; overflow-y: auto; padding-right: 10px; }
+        .voters-scroll::-webkit-scrollbar { width: 4px; }
+        .voters-scroll::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 10px; }
+
+        .voter-row {
+            padding: 12px; background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.05); border-radius: 12px;
+            margin-bottom: 8px; display: flex; flex-direction: column; gap: 6px;
+        }
+        .voter-main { display: flex; justify-content: space-between; align-items: center; }
+        .voter-name { font-weight: 800; font-size: 0.9rem; color: #fff; }
+        .voter-id { font-family: monospace; font-size: 0.65rem; color: #444; }
+        
+        .voter-details { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding-top: 8px; border-top: 1px dashed rgba(255,255,255,0.05); }
+        .detail-item { font-size: 0.65rem; color: #777; display: flex; flex-direction: column; }
+        .detail-item b { color: #aaa; font-size: 0.6rem; text-transform: uppercase; margin-bottom: 2px; }
+        .is-new-account { color: #ffab00 !important; font-weight: 800; }
 
         .btn { padding: 12px 20px; border-radius: 12px; border: none; cursor: pointer; font-weight: 800; font-size: 0.85rem; transition: 0.3s; display: inline-flex; align-items: center; gap: 8px; }
         .btn-primary { background: var(--accent); color: #fff; }
@@ -89,6 +119,12 @@
 
     <main class="admin-wrapper">
         <h1><i class="fas fa-tasks"></i> Номинации</h1>
+
+<div style="margin-bottom: 20px;">
+    <a href="/api/admin/nominations/export-excel" class="btn btn-save" style="text-decoration: none; background: #217346;">
+        <i class="fas fa-file-excel"></i> СКАЧАТЬ ТАБЛИЦУ EXCEL
+    </a>
+</div>
         
         <div class="create-card">
             <h3><i class="fas fa-plus-circle"></i> Новая номинация</h3>
@@ -179,7 +215,7 @@
 
                         <label class="form-label">Кандидаты</label>
                         <div class="candidates-stats-grid">
-                            <% nom.candidates.forEach((can, idx) => { %>
+                            <% nom.candidates.forEach((can) => { %>
                                 <div class="stat-item">
                                     <div class="stat-info">
                                         <div class="stat-avatar-container">
@@ -203,8 +239,11 @@
                                         </div>
                                     </div>
                                     <div class="stat-count-box">
-                                        <div class="stat-count"><%= can.voteCount %></div>
                                         <div class="stat-label">голосов</div>
+                                        <div class="stat-count"><%= can.voteCount %></div>
+                                        <button class="btn-view-voters" onclick="openVoters('<%= nom._id %>', '<%= can.userId %>', '<%= can.username %>')">
+                                            КТО?
+                                        </button>
                                     </div>
                                     <button class="btn-danger-icon" onclick="removeCandidate('<%= nom._id %>', '<%= can.userId %>')"><i class="fas fa-user-minus"></i></button>
                                 </div>
@@ -222,14 +261,84 @@
         </div>
     </main>
 
+    <div class="voters-list-modal" id="votersModal" onclick="closeVotersModal()">
+        <div class="voters-box" onclick="event.stopPropagation()">
+            <div class="voters-title">
+                <i class="fas fa-shield-alt" style="color:var(--accent)"></i>
+                <span>Голоса за: <span id="voterTargetName" style="color:var(--accent);">---</span></span>
+            </div>
+            <div class="voters-scroll" id="votersContainer">
+                </div>
+            <button class="btn btn-primary" style="width:100%; margin-top:20px;" onclick="closeVotersModal()">Закрыть</button>
+        </div>
+    </div>
+
     <%- include('partials/footer') %>
 
     <script>
+        const nomsData = <%- JSON.stringify(nominations) %>;
+
         function toggleNom(id) {
             document.getElementById(`nom-${id}`).classList.toggle('active');
         }
 
-        function moveUp(id) {
+        function openVoters(nomId, canId, canName) {
+            const nomination = nomsData.find(n => n._id === nomId);
+            if (!nomination) return;
+
+            const voters = nomination.votes.filter(v => v.candidateId === canId);
+            document.getElementById('voterTargetName').innerText = canName;
+            const container = document.getElementById('votersContainer');
+            
+            const getDiscordCreateDate = (id) => {
+                const timestamp = Number((BigInt(id) >> 22n) + 1420070400000n);
+                return new Date(timestamp);
+            };
+
+            const formatDate = (date) => {
+                if (!date) return 'Н/Д';
+                return new Date(date).toLocaleDateString('ru-RU');
+            };
+
+            if (voters.length === 0) {
+                container.innerHTML = '<div style="text-align:center; color:#444; padding:20px;">Голосов еще нет</div>';
+            } else {
+                container.innerHTML = voters.map(v => {
+                    const createDate = getDiscordCreateDate(v.voterId);
+                    const isNew = (new Date() - createDate) < (1000 * 60 * 60 * 24 * 60); // 60 дней
+                    const privacyIcon = v.isPublic 
+    ? '<i class="fas fa-eye" title="Публичный" style="color: #2ecc71; font-size: 0.7rem; margin-left: 5px;"></i>' 
+    : '<i class="fas fa-eye-slash" title="Аноним" style="color: #555; font-size: 0.7rem; margin-left: 5px;"></i>';
+
+                    return `
+                        <div class="voter-row">
+                            <div class="voter-main">
+            <span class="voter-name">${v.voterUsername} ${privacyIcon}</span>
+            <span class="voter-id">${v.voterId}</span>
+        </div>
+                            <div class="voter-details">
+                                <div class="detail-item">
+                                    <b>Создан (Discord)</b>
+                                    <span class="${isNew ? 'is-new-account' : ''}">${formatDate(createDate)}</span>
+                                </div>
+                                <div class="detail-item">
+                                    <b>Зашёл на сайт</b>
+                                    <span>${formatDate(v.voterJoinedAt)}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            document.getElementById('votersModal').classList.add('active');
+        }
+
+        function closeVotersModal() {
+            document.getElementById('votersModal').classList.remove('active');
+        }
+
+        async function moveUp(id) {
             const el = document.getElementById(`nom-${id}`);
             const prev = el.previousElementSibling;
             if (prev && prev.classList.contains('nom-item')) {
@@ -238,7 +347,7 @@
             }
         }
 
-        function moveDown(id) {
+        async function moveDown(id) {
             const el = document.getElementById(`nom-${id}`);
             const next = el.nextElementSibling;
             if (next && next.classList.contains('nom-item')) {

@@ -119,21 +119,31 @@
         }
 
         .lightbox-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.9);
-            z-index: 9999; 
-            display: flex; justify-content: center; align-items: center;
-            opacity: 0; pointer-events: none;
-            transition: 0.3s ease;
-            backdrop-filter: blur(5px);
-        }
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9); 
+    z-index: 9999;
+    display: none; 
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(8px); 
+    cursor: zoom-out;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
         .lightbox-overlay.active { opacity: 1; pointer-events: all; }
         
         .lightbox-content {
-            max-width: 90%; max-height: 90%;
-            position: relative;
-            animation: zoomIn 0.3s ease;
-        }
+    position: relative;
+    max-width: 90vw;
+    max-height: 90vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
         .lightbox-content img {
             max-width: 100%; max-height: 90vh;
             border-radius: 8px;
@@ -141,12 +151,31 @@
             display: block;
         }
         
-        .lightbox-close {
-            position: absolute; top: -40px; right: 0;
-            color: #fff; font-size: 2rem; cursor: pointer;
-            transition: 0.3s;
-        }
-        .lightbox-close:hover { color: var(--primary); transform: rotate(90deg); }
+        #lightboxImg {
+    max-width: 100%; 
+    max-height: 90vh; 
+    width: auto;   
+    height: auto;    
+    object-fit: contain;
+    border-radius: 12px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    cursor: default;
+}
+
+.lightbox-close {
+    position: absolute;
+    top: -40px;
+    right: 0;
+    color: #fff;
+    font-size: 35px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.lightbox-close:hover {
+    color: var(--primary);
+    transform: scale(1.1);
+}
 
         @keyframes zoomIn {
             from { transform: scale(0.9); opacity: 0; }
