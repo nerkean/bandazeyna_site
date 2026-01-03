@@ -840,7 +840,20 @@ router.get('/redeem', (req, res) => {
 
 router.get('/admin/stream-control', checkAuth, async (req, res) => {
     if (req.user.id !== '438744415734071297') return res.redirect('/');
-    const nominations = await Nomination.find().sort({ order: 1 });
+    
+    const nominations = await Nomination.find().sort({ order: 1 }).lean();
+    
+    nominations.forEach(nom => {
+        const counts = {};
+        nom.votes.forEach(v => {
+            counts[v.candidateId] = (counts[v.candidateId] || 0) + 1;
+        });
+        nom.candidates.forEach(can => {
+            can.voteCount = counts[can.userId] || 0;
+        });
+        nom.leader = [...nom.candidates].sort((a, b) => b.voteCount - a.voteCount)[0];
+    });
+
     res.render('admin/stream_control', { nominations, user: req.user });
 });
 

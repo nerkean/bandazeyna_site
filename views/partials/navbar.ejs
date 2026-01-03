@@ -16,9 +16,7 @@
             <% if (typeof user === 'undefined' || !user || !user.id.startsWith('tg_')) { %>
                 <a href="/market" class="nav-item"><i class="fas fa-chart-line"></i> Биржа</a>
                 <a href="/giveaways" class="nav-item"><i class="fas fa-gift"></i> Халява</a>
-                <a href="/redeem" class="nav-item" style="color: #f1c40f;">
-    <i class="fas fa-ticket-alt"></i> Промокоды
-</a>
+                <a href="/wiki" class="nav-item"><i class="fas fa-book"></i> Вики</a>
             <% } %>
 
             <div class="nav-item-dropdown">
@@ -28,7 +26,6 @@
                 </div>
                 
                 <div class="nav-dropdown-menu">
-                    <a href="/wiki" class="dd-link"><i class="fas fa-book"></i> Вики</a>
                     <% if (typeof user === 'undefined' || !user || !user.id.startsWith('tg_')) { %>
                          <a href="/messages" class="dd-link"><i class="fas fa-comments"></i> Сообщения</a>
                         <a href="/leaderboard" class="dd-link"><i class="fas fa-trophy"></i> Топ Игроков</a>

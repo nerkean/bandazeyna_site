@@ -6,15 +6,13 @@
             <link rel="preload" href="/css/nominations.css" as="style">
     <link rel="stylesheet" href="/css/nominations.css">
     <style>
-    /* Резервируем место под шапку, чтобы контент под ней не прыгал */
     .nom-page-header {
         min-height: 180px;
     }
-    /* Резервируем место под таймер */
     .countdown-wrapper {
         min-height: 120px;
     }
-    /* Предотвращаем прыжки при инициализации AOS */
+
     [data-aos] {
         opacity: 0;
         transition-property: opacity, transform;
@@ -37,7 +35,6 @@
     .pc-info h4 { margin: 0 0 5px; font-size: 1rem; color: var(--primary); }
     .pc-info p { margin: 0; font-size: 0.85rem; color: #888; max-width: 80%; }
     
-    /* Стили для красивого переключателя (Switch) */
     .switch { position: relative; display: inline-block; width: 50px; height: 26px; }
     .switch input { opacity: 0; width: 0; height: 0; }
     .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #333; transition: .4s; border-radius: 34px; }
@@ -48,6 +45,42 @@
     @media (max-width: 768px) {
         .privacy-card { flex-direction: row; padding: 15px; }
         .pc-info p { font-size: 0.75rem; max-width: 100%; }
+    }
+
+    .countdown-finished {
+        font-size: 2rem;
+        font-weight: 900;
+        color: #ef4444; 
+        text-transform: uppercase;
+        letter-spacing: 3px;
+        text-shadow: 0 0 20px rgba(239, 68, 68, 0.5);
+        padding: 20px 40px;
+        border: 2px solid rgba(239, 68, 68, 0.3);
+        border-radius: 20px;
+        background: rgba(239, 68, 68, 0.05);
+        backdrop-filter: blur(5px);
+        display: inline-block;
+        margin-top: 10px;
+        animation: pulseError 2s infinite alternate ease-in-out;
+    }
+
+    @keyframes pulseError {
+        from {
+            transform: scale(1);
+            box-shadow: 0 0 10px rgba(239, 68, 68, 0.2);
+        }
+        to {
+            transform: scale(1.02);
+            box-shadow: 0 0 30px rgba(239, 68, 68, 0.4);
+        }
+    }
+
+    @media (max-width: 768px) {
+        .countdown-finished {
+            font-size: 1.2rem;
+            padding: 15px 25px;
+            letter-spacing: 1px;
+        }
     }
 </style>
 </head>
@@ -441,7 +474,6 @@ function initVoteAlerts() {
     document.getElementById('privacyToggle').addEventListener('change', async function() {
     const isPublic = this.checked;
     
-    // Добавь /api в начало, если твои роуты апи лежат там
     try {
         const response = await fetch('/api/user/settings/vote-privacy', {
             method: 'POST',

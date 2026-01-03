@@ -2,259 +2,305 @@
 <html lang="ru">
 <head>
     <%- include('partials/head', { title: 'Dacha Awards 2025 | LIVE' }) %>
-    <link rel="stylesheet" href="/css/nominations.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <script src="/socket.io/socket.io.js"></script>
 
     <style>
-        body, html {
-            overflow: hidden;
-            background: #050505;
-            height: 100vh;
-            width: 100vw;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        :root {
+            --sp-1: #ff0055; --sp-2: #5865F2;
+            --gl-1: #FFD700; --gl-2: #FFA500;
+            --mb-1: #00f260; --mb-2: #0575E6;
+            --pure-gold: #ffd700;
         }
 
-        .nominations-page {
-            width: 100%;
-            height: 100%;
-            padding: 0 !important;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            position: relative;
+        *, *::before, *::after { box-sizing: border-box; }
+
+        html, body {
+            margin: 0; padding: 0;
+            width: 100vw; height: 100vh;
+            background: #000; overflow: hidden;
+            display: flex; align-items: center; justify-content: center;
+            font-family: 'Montserrat', sans-serif;
         }
 
-        #presentation-stage {
-            width: 95%;
-            max-width: 1800px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 10;
+        /* --- ПРЕМИАЛЬНЫЙ ЭКРАН ОЖИДАНИЯ --- */
+        #waiting-area {
+            position: fixed; inset: 0;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            z-index: 100; /* Выше фона презентации */
+            animation: premiumInvert 10s infinite ease-in-out;
+            transition: opacity 1.5s ease, visibility 1.5s;
         }
 
-        .nom-page-header {
-            margin-bottom: 40px !important;
-            text-align: center;
-        }
-        .nom-page-header h1 {
-            font-size: 4.5rem !important;
-            margin: 10px 0 !important;
-        }
-        .nom-desc-text {
-            font-size: 1.2rem !important;
-            max-width: 800px;
-            margin: 0 auto;
+        @keyframes premiumInvert {
+            0%, 10% { background-color: #000; color: var(--pure-gold); }
+            45%, 55% { background-color: var(--pure-gold); color: #000; }
+            90%, 100% { background-color: #000; color: var(--pure-gold); }
         }
 
-        .candidates-grid {
-            display: flex !important;
-            justify-content: center !important;
-            align-items: stretch;
-            gap: 20px !important;
-            width: 100%;
-            flex-wrap: wrap !important; 
+        .broom-container { animation: broomFloat 4s infinite ease-in-out; }
+        .broom-icon { font-size: 16rem; margin-bottom: 30px; filter: drop-shadow(0 0 30px currentColor); transition: color 2.5s cubic-bezier(0.4, 0, 0.2, 1); }
+        @keyframes broomFloat {
+            0%, 100% { transform: translateY(0) rotate(-5deg) scale(1); }
+            50% { transform: translateY(-30px) rotate(5deg) scale(1.05); }
         }
 
+        .waiting-text {
+            font-size: 8rem; font-weight: 900; text-transform: uppercase;
+            letter-spacing: 15px; margin: 0; transition: color 2.5s cubic-bezier(0.4, 0, 0.2, 1);
+            animation: textExpand 5s infinite alternate ease-in-out; text-align: center;
+        }
+        @keyframes textExpand { from { letter-spacing: 10px; opacity: 0.8; } to { letter-spacing: 20px; opacity: 1; } }
+
+        /* --- ЖИВОЙ ЗАДНИЙ ФОН ПРЕЗЕНТАЦИИ --- */
+        .bg-layer {
+            position: fixed; inset: 0; width: 100%; height: 100%;
+            z-index: 1; opacity: 0; transition: opacity 2s ease;
+        }
+        /* Проявляем фон, когда презентация активна */
+        .show-presentation .bg-layer { opacity: 1; }
+
+        .nebula {
+            position: absolute; width: 150%; height: 150%; top: -25%; left: -25%;
+            mix-blend-mode: screen; filter: blur(100px); opacity: 0.5;
+            animation: moveNebula 25s infinite alternate linear;
+        }
+        @keyframes moveNebula { 
+            0% { transform: translate(0, 0) rotate(0deg) scale(1); }
+            100% { transform: translate(-8%, -5%) rotate(8deg) scale(1.15); }
+        }
+
+        /* Цвета фона под типы номинаций */
+        .stage-special .bg-layer { background: radial-gradient(circle at center, #150a1a 0%, #000 85%); }
+        .stage-special .nebula { background: radial-gradient(circle at 20% 30%, var(--sp-1) 0%, transparent 45%), radial-gradient(circle at 80% 70%, var(--sp-2) 0%, transparent 45%); }
+        
+        .stage-staff .bg-layer { background: radial-gradient(circle at center, #1a1505 0%, #000 85%); }
+        .stage-staff .nebula { background: radial-gradient(circle at 30% 20%, var(--gl-2) 0%, transparent 40%), radial-gradient(circle at 70% 80%, #5c4a00 0%, transparent 45%); }
+        
+        .stage-member .bg-layer { background: radial-gradient(circle at center, #051a10 0%, #000 85%); }
+        .stage-member .nebula { background: radial-gradient(circle at 25% 75%, var(--mb-1) 0%, transparent 45%), radial-gradient(circle at 75% 25%, var(--mb-2) 0%, transparent 45%); }
+
+        /* --- ОСНОВНОЙ КОНТЕНТ --- */
+        #stage-scale {
+            width: 1920px; height: 1080px;
+            position: relative; z-index: 10;
+            transform-origin: center center; display: flex; flex-direction: column;
+        }
+
+        #presentation-stage { width: 100%; height: 100%; display: flex; flex-direction: column; padding: 60px 80px; }
+
+        .nom-header-container { width: 100%; text-align: center; margin-bottom: 40px; flex-shrink: 0; z-index: 20; }
+        .nom-title { font-size: 5.5rem !important; font-weight: 900; margin: 0; text-transform: uppercase; line-height: 1.1; letter-spacing: -1px; text-shadow: 0 10px 30px rgba(0,0,0,0.8); }
+        .nom-desc-text { font-size: 1.8rem !important; color: rgba(255,255,255,0.5); margin: 15px auto 0; max-width: 1500px; line-height: 1.3; font-weight: 600; }
+
+        #stage-arena { flex-grow: 1; display: flex; align-items: center; justify-content: center; width: 100%; position: relative; }
+        .candidates-grid { display: flex; justify-content: center; align-items: center; gap: 40px; transition: transform 0.4s ease-out; transform-origin: center center; }
+
+        /* --- КАРТОЧКА МОНОЛИТ --- */
         .candidate-card-wrapper {
-            flex: 1 1 200px; 
-            max-width: 300px;
-            min-width: 180px;
-            padding: 30px 20px !important;
-            background: rgba(255, 255, 255, 0.03) !important;
-            border-radius: 25px !important;
-            opacity: 0;
-            transform: translateY(30px);
-            transition: all 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
-        }
+    position: relative; 
+    flex: 0 0 450px !important; 
+    width: 450px !important; 
+    height: 620px !important;
+    background: rgba(255, 255, 255, 0.02); 
+    backdrop-filter: blur(35px);
+    border-radius: 60px !important; 
+    border: 2px solid transparent;
+    box-shadow: 0 30px 70px rgba(0,0,0,0.8) inset, 0 40px 100px rgba(0,0,0,0.7);
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    justify-content: center;
+    padding: 40px !important; 
+    overflow: hidden; 
+    /* Убираем старый transition, так как мы управляем им через JS для плавности */
+    will-change: transform, opacity, filter;
+}
 
-        .can-visual {
-            width: 100px !important;
-            height: 100px !important;
-            margin-bottom: 20px !important;
-        }
+.candidate-card-wrapper.card-appear::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 70%);
+    animation: landFlash 1s ease-out forwards;
+}
 
-        .can-name {
-            font-size: 1.4rem !important;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
+@keyframes landFlash {
+    0% { opacity: 1; transform: scale(0.5); }
+    100% { opacity: 0; transform: scale(1.5); }
+}
 
-        .can-bio {
-            font-size: 0.95rem !important;
-            min-height: 60px !important;
-            line-height: 1.3 !important;
-        }
+        .card-appear { opacity: 1; transform: translateY(0) scale(1); }
+        .candidate-card-wrapper::after { content: ''; position: absolute; inset: 0; border-radius: 60px; padding: 3px; background: var(--border-gradient); -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0); -webkit-mask-composite: xor; mask-composite: exclude; pointer-events: none; opacity: 0.6; transition: 0.5s; }
 
-        .candidate-card-wrapper.winner-highlight {
-            transform: scale(1.15) translateY(-20px) !important;
-            border-color: var(--gold) !important;
-            background: rgba(255, 215, 0, 0.08) !important;
-            box-shadow: 0 0 60px rgba(255, 215, 0, 0.25) !important;
-            z-index: 100;
-            opacity: 1 !important;
-        }
+        .can-avatar { width: 250px; height: 250px; border-radius: 50%; border: 8px solid rgba(255,255,255,0.05); object-fit: cover; margin-bottom: 30px; position: relative; z-index: 2; box-shadow: 0 0 40px rgba(0,0,0,0.5); }
+        .can-name { font-size: 3rem !important; font-weight: 900; color: #fff; text-align: center; line-height: 1; width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; position: relative; z-index: 2; }
+        .can-bio { font-size: 1.4rem !important; color: rgba(255,255,255,0.4); margin-top: 20px; line-height: 1.3; font-style: italic; text-align: center; width: 100%; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; position: relative; z-index: 2; }
 
-        .candidate-card-wrapper.not-winner .can-visual,
-        .candidate-card-wrapper.not-winner .can-name,
-        .candidate-card-wrapper.not-winner .can-bio {
-            opacity: 0.2;
-            filter: grayscale(1) blur(6px);
-            transition: all 0.8s ease;
-        }
+        /* Эффекты для типов номинаций */
+        .stage-special .nom-title { background: linear-gradient(90deg, var(--sp-1), var(--sp-2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 0 30px rgba(255, 0, 85, 0.6)); }
+        .stage-special .candidate-card-wrapper { --border-gradient: linear-gradient(135deg, var(--sp-1), var(--sp-2)); }
+        .stage-staff .nom-title { background: linear-gradient(90deg, #fffce3, var(--gl-1), var(--gl-2), #fffce3); background-size: 200%; animation: goldFlow 6s linear infinite; -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 0 25px rgba(255, 215, 0, 0.4)); }
+        @keyframes goldFlow { 0% { background-position: 0% center; } 100% { background-position: 200% center; } }
+        .stage-staff .candidate-card-wrapper { --border-gradient: linear-gradient(135deg, var(--gl-1), var(--gl-2)); }
+        .stage-member .nom-title { background: linear-gradient(90deg, var(--mb-1), var(--mb-2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 0 30px rgba(0, 242, 96, 0.4)); }
+        .stage-member .candidate-card-wrapper { --border-gradient: linear-gradient(135deg, var(--mb-1), var(--mb-2)); }
 
-        .candidate-card-wrapper.not-winner {
-            border-color: rgba(255, 255, 255, 0.02) !important;
-            background: transparent !important;
-            transform: scale(0.9);
-        }
+        /* Победитель / Тряска / Вспышка */
+        .winner-highlight { transform: scale(1.12) translateY(-30px) !important; z-index: 100 !important; opacity: 1 !important; background: rgba(255, 255, 255, 0.08) !important; box-shadow: 0 0 150px rgba(255,255,255,0.2), 0 0 80px rgba(255,255,255,0.05) inset !important; }
+        .not-winner { opacity: 0.02 !important; filter: blur(45px) grayscale(1); transform: scale(0.8); pointer-events: none; }
+        .is-suspense .candidates-grid { animation: subtleShake 0.15s infinite; }
+        @keyframes subtleShake { 0% { transform: translate(0.5px, 0.5px) rotate(0) scale(var(--current-scale, 1)); } 100% { transform: translate(-0.5px, -0.5px) rotate(0.1deg) scale(var(--current-scale, 1)); } }
+        .white-flash { position: fixed; inset: 0; background: #fff; z-index: 1000; opacity: 0; pointer-events: none; }
+        .do-flash { animation: flashAnim 0.8s ease-out; }
+        @keyframes flashAnim { 0% { opacity: 0; } 20% { opacity: 0.8; } 100% { opacity: 0; } }
 
-        .vote-presentation-badge {
-            display: none;
-            margin-top: 25px;
-            padding: 12px 25px;
-            background: rgba(0, 0, 0, 0.8) !important; 
-            border: 2px solid var(--theme-color) !important;
-            border-radius: 50px;
-            color: #ffffff !important; 
-            font-family: 'JetBrains Mono', monospace;
-            font-weight: 900;
-            font-size: 1.5rem;
-            text-shadow: 0 0 10px var(--theme-color);
-            
-            filter: none !important; 
-            opacity: 1 !important; 
-            z-index: 100;
-            position: relative;
-        }
-
-        .winner-highlight .vote-presentation-badge {
-            border-color: var(--gold) !important;
-            text-shadow: 0 0 20px var(--gold);
-            box-shadow: 0 0 30px rgba(255, 215, 0, 0.4);
-            transform: scale(1.1);
-        }
-
-        .card-appear {
-            opacity: 1 !important;
-            transform: translateY(0) !important;
-        }
+        .vote-presentation-badge { display: none; font-weight: 900; color: #000; margin-top: 35px; position: relative; z-index: 5; background: #fff; padding: 15px 60px; border-radius: 100px; font-size: 2.5rem; box-shadow: 0 10px 40px rgba(255,255,255,0.3); font-family: 'JetBrains Mono', monospace; }
     </style>
 </head>
-<body class="nominations-page">
-    
-    <div class="cinematic-bg">
-        <div class="stars-layer">
-            <% for(let i=0; i<50; i++) { 
-                const top = Math.random() * 100; const left = Math.random() * 100; const delay = Math.random() * 5;
-            %>
-                <div class="star-point" style="top: <%= top %>%; left: <%= left %>%; animation-delay: <%= delay %>s;"></div>
-            <% } %>
-        </div>
-        <div class="fog-layer one"></div>
-        <div class="fog-layer two"></div>
-        <div class="fireflies"><% for(let i=0; i<20; i++) { %><div class="firefly"></div><% } %></div>
+<body class="stage-idle">
+    <div class="bg-layer"><div class="nebula"></div></div>
+    <div class="white-flash"></div>
+
+    <div id="waiting-area">
+        <div class="broom-container"><i class="fas fa-broom broom-icon"></i></div>
+        <h1 class="waiting-text">Dacha Awards</h1>
     </div>
 
-    <div id="presentation-stage">
-        <div style="text-align: center; opacity: 0.2;">
-            <h1 class="nom-title" style="font-size: 3rem;">DACHA AWARDS</h1>
-            <p>ОЖИДАНИЕ ТРАНСЛЯЦИИ...</p>
-        </div>
+    <div id="stage-scale">
+        <div id="presentation-stage"></div>
     </div>
 
     <script>
         const socket = io();
-        const stage = document.getElementById('presentation-stage');
+        const mainStage = document.getElementById('presentation-stage');
+        const waitingArea = document.getElementById('waiting-area');
+        const body = document.body;
+        const flash = document.querySelector('.white-flash');
+        let currentBaseScale = 1;
 
-        socket.on('stream_update', (data) => {
+        const SoundManager = {
+            masterVolume: 0.8,
+            files: { appear: '/assets/sounds/appear.mp3', suspense: '/assets/sounds/suspense.mp3', winner: '/assets/sounds/winner.mp3', stats: '/assets/sounds/stats.mp3', applause: '/assets/sounds/applause.mp3' },
+            audioObjects: {},
+            init() { for (let key in this.files) { this.audioObjects[key] = new Audio(this.files[key]); this.audioObjects[key].load(); } },
+            play(key, overlap = true, volume = null) {
+                if (!this.audioObjects[key]) return;
+                let s = overlap ? this.audioObjects[key].cloneNode() : this.audioObjects[key];
+                if (!overlap) s.currentTime = 0;
+                s.volume = volume || this.masterVolume;
+                s.play().catch(e => {}); return s;
+            },
+            stop(key) { if (this.audioObjects[key]) { this.audioObjects[key].pause(); this.audioObjects[key].currentTime = 0; } }
+        };
+        SoundManager.init();
+
+        socket.on('stream_update', async (data) => {
             if (data.action === 'show_nomination') {
-                renderNomination(data.nomination);
-            } else if (data.action === 'reveal_winner') {
-                revealWinner(data.winnerId);
-            } else if (data.action === 'show_stats') {
-                document.querySelectorAll('.vote-presentation-badge').forEach(b => b.style.display = 'block');
-            } else if (data.action === 'clear') {
-                location.reload();
+                waitingArea.style.opacity = '0';
+                setTimeout(() => {
+                    waitingArea.style.display = 'none';
+                    body.classList.add('show-presentation');
+                    renderNomination(data.nomination);
+                }, 1500);
             }
+            if (data.action === 'reveal_winner') {
+                body.classList.add('is-suspense');
+                SoundManager.play('suspense', false, 1.0);
+                const grid = document.getElementById('grid-container');
+                if (grid) {
+                    grid.style.setProperty('--current-scale', currentBaseScale); 
+                    setTimeout(() => { grid.style.transform = `scale(${currentBaseScale * 1.1})`; }, 100);
+                }
+                setTimeout(() => {
+                    body.classList.remove('is-suspense');
+                    flash.classList.add('do-flash');
+                    setTimeout(() => flash.classList.remove('do-flash'), 800);
+                    SoundManager.stop('suspense');
+                    revealWinner(data.winnerId);
+                }, 3500); 
+            }
+            if (data.action === 'show_stats') {
+                SoundManager.play('stats', false, 0.7);
+                document.querySelectorAll('.candidate-card-wrapper').forEach(card => card.classList.remove('not-winner'));
+                document.querySelectorAll('.vote-presentation-badge').forEach(b => b.style.display = 'block');
+            }
+            if (data.action === 'clear') location.reload();
         });
 
-        function renderNomination(nom) {
-            let themeClass = 'type-staff';
-            if (nom.category === 'Special') themeClass = 'type-special';
-            else if (nom.origin === 'member') themeClass = 'type-member';
+        async function renderNomination(nom) {
+    const typeClass = nom.category === 'Special' ? 'stage-special' : (nom.origin === 'member' ? 'stage-member' : 'stage-staff');
+    
+    const candidatesHtml = nom.candidates.map(can => `
+        <div class="candidate-card-wrapper" id="can-${can.userId}" style="opacity: 0; transform: scale(1.5) translateY(100px); filter: blur(30px);">
+            <img src="${can.avatar ? (can.avatar.startsWith('http') ? can.avatar : '/api/proxy/avatar/'+can.userId+'/'+can.avatar+'?size=256') : '/assets/img/avatars/default_avatar.png'}" class="can-avatar">
+            <div class="can-name">${can.username}</div>
+            <div class="can-bio">${can.slogan || can.description || 'Номинант'}</div>
+            <div class="vote-presentation-badge animate__animated animate__bounceIn">${can.voteCount}</div>
+        </div>
+    `).join('');
 
-            const candidatesHtml = nom.candidates.map((can, i) => {
-                let avatarSrc = can.avatar ? 
-                    (can.avatar.startsWith('http') ? can.avatar : `/api/proxy/avatar/${can.userId}/${can.avatar}?size=256`) : 
-                    '/assets/img/avatars/default_avatar.png';
+    body.classList.remove('stage-special', 'stage-staff', 'stage-member');
+    body.classList.add(typeClass);
 
-                return `
-                    <div class="candidate-card-wrapper ${themeClass}" id="can-${can.userId}">
-                        <div class="can-header">
-                            <div class="can-visual">
-                                <img src="${avatarSrc}" class="can-avatar">
-                                <div class="crown-badge" style="display:none;" id="crown-${can.userId}">
-                                    <i class="fas fa-crown"></i>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="can-info">
-                            <div class="can-name">${can.username}</div>
-                            <div class="can-bio">${can.slogan || 'Претендент'}</div>
-                            <div class="vote-presentation-badge animate__animated animate__zoomIn">
-                                ${can.voteCount} ГОЛОСОВ
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }).join('');
+    mainStage.innerHTML = `
+        <div class="nom-header-container animate__animated animate__fadeInDown">
+            <h1 class="nom-title">${nom.title}</h1>
+            <p class="nom-desc-text">${nom.description || ''}</p>
+        </div>
+        <div id="stage-arena">
+            <div class="candidates-grid" id="grid-container">${candidatesHtml}</div>
+        </div>
+    `;
 
-            stage.innerHTML = `
-                <header class="nom-page-header animate__animated animate__fadeIn">
-                    <div class="nom-tag">AWARDS 2025</div>
-                    <h1 class="nom-title">${nom.title}</h1>
-                    <p class="nom-desc-text">${nom.description || ''}</p>
-                </header>
-                <div class="candidates-grid">
-                    ${candidatesHtml}
-                </div>
-            `;
+    const grid = document.getElementById('grid-container');
+    const arena = document.getElementById('stage-arena');
+    const count = nom.candidates.length;
+    currentBaseScale = Math.min(1, arena.offsetWidth / ((count * 450) + ((count - 1) * 40)), arena.offsetHeight / 620) * 0.95;
+    grid.style.transform = `scale(${currentBaseScale})`;
 
-            const cards = document.querySelectorAll('.candidate-card-wrapper');
-            cards.forEach((card, index) => {
-                setTimeout(() => {
-                    card.classList.add('card-appear');
-                }, 500 + (index * 800)); 
-            });
+    const cards = document.querySelectorAll('.candidate-card-wrapper');
+    
+    for (let i = 0; i < cards.length; i++) {
+        SoundManager.play('appear', true, 0.5);
+        
+        cards[i].style.transition = "all 1.2s cubic-bezier(0.19, 1, 0.22, 1)";
+        cards[i].style.opacity = "1";
+        cards[i].style.transform = "scale(1) translateY(0)";
+        cards[i].style.filter = "blur(0)";
+        cards[i].classList.add('card-appear');
+
+        if (i < cards.length - 1) {
+            await new Promise(resolve => setTimeout(resolve, 3000));
         }
+    }
+}
 
         function revealWinner(winnerId) {
-            const cards = document.querySelectorAll('.candidate-card-wrapper');
-            cards.forEach(card => {
+            SoundManager.play('winner', false, 1.0);
+            SoundManager.play('applause', false, 0.8);
+            const grid = document.getElementById('grid-container');
+            if (grid) grid.style.transform = `scale(${currentBaseScale})`;
+            document.querySelectorAll('.candidate-card-wrapper').forEach(card => {
                 if (card.id === `can-${winnerId}`) {
                     card.classList.add('winner-highlight');
-                    const crown = document.getElementById(`crown-${winnerId}`);
-                    if(crown) crown.style.display = 'flex';
-                } else {
-                    card.classList.add('not-winner');
-                }
+                    card.style.animation = 'pulse 1.5s infinite';
+                } else { card.classList.add('not-winner'); }
             });
-
-            confetti({
-                particleCount: 200, spread: 80, origin: { y: 0.7 },
-                colors: ['#FFD700', '#ffffff', '#5865F2']
-            });
+            const isStaff = body.classList.contains('stage-staff');
+            const colors = isStaff ? ['#FFD700', '#FFA500', '#ffffff'] : ['#ff0055', '#5865F2', '#ffffff', '#ffd700'];
+            confetti({ particleCount: 1000, spread: 250, origin: { y: 0.6 }, colors: colors, scalar: 1.4 });
         }
+
+        function scaleStage() {
+            const scale = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
+            document.getElementById('stage-scale').style.transform = `scale(${scale})`;
+        }
+        window.addEventListener('resize', scaleStage);
+        scaleStage();
     </script>
 </body>
 </html>

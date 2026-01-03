@@ -83,7 +83,22 @@ app.use(helmet({
             workerSrc: ["'self'", "blob:"],
             scriptSrcAttr: ["'unsafe-inline'"],
             styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://unpkg.com", "https://cdnjs.cloudflare.com"],
-            imgSrc: ["'self'", "data:", "blob:", "https://cdn.discordapp.com", "https://media.discordapp.net", "https://dachazeyna.com", "https://i.ibb.co", "https://ik.imagekit.io", "https://www.google-analytics.com", "https://www.googletagmanager.com", "https://*.clarity.ms", "https://c.bing.com", ...googleDomains],
+            imgSrc: [
+    "'self'", 
+    "data:", 
+    "blob:", 
+    "https://cdn.discordapp.com", 
+    "https://media.discordapp.net", 
+    "https://dachazeyna.com", 
+    "https://i.ibb.co", 
+    "https://ik.imagekit.io", 
+    "https://www.google-analytics.com", 
+    "https://www.googletagmanager.com", 
+    "https://*.clarity.ms", 
+    "https://c.bing.com",
+    "https://www.transparenttextures.com", // <--- ДОБАВЬ ЭТУ СТРОКУ
+    ...googleDomains
+],
             fontSrc: ["'self'", "https://fonts.gstatic.com", "https://cdnjs.cloudflare.com"],
             connectSrc: ["'self'", "https://dachazeyna.com", "https://cdn.jsdelivr.net", "ws:", "wss:", "https://discord.com", "https://www.google-analytics.com", "https://region1.google-analytics.com", "https://www.googletagmanager.com", "https://www.clarity.ms", "https://c.bing.com", "https://*.clarity.ms", ...googleDomains],
             frameSrc: ["'self'", "https://www.googletagmanager.com", "https://td.doubleclick.net", "https://oauth.telegram.org"],

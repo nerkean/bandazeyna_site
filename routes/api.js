@@ -1172,19 +1172,18 @@ router.get('/admin/nominations/export-excel', checkAuth, async (req, res) => {
                 const isPublic = privacyMap[vote.voterId] || false;
                 
                 const discordTimestamp = Number((BigInt(vote.voterId) >> 22n) + 1420070400000n);
-                const discordCreatedAt = new Date(discordTimestamp);
-                
-                const isNew = (new Date() - discordCreatedAt) < (1000 * 60 * 60 * 24 * 60);
+const discordCreatedAt = new Date(discordTimestamp);
+const isNew = (new Date() - discordCreatedAt) < (1000 * 60 * 60 * 24 * 60);
 
-                const row = worksheet.addRow({
-                    status: isPublic ? 'ПУБЛИЧНЫЙ' : 'АНОНИМ',
-                    nomTitle: nom.title,
-                    username: isPublic ? (voter.username || 'Unknown') : 'Аноним',
-                    userId: isPublic ? vote.voterId : `${vote.voterId.substring(0, 4)}...${vote.voterId.slice(-4)}`,
-                    candidate: candidate ? candidate.username : 'Удален',
-                    created: discordCreatedAt.toLocaleDateString('ru-RU'),
-                    trust: isNew ? '⚠️ НОВЫЙ (менее 60 дней)' : ''
-                });
+const row = worksheet.addRow({
+    status: isPublic ? 'ПУБЛИЧНЫЙ' : 'АНОНИМ',
+    nomTitle: nom.title,
+    username: isPublic ? (voter.username || 'Unknown') : 'Аноним',
+    userId: isPublic ? vote.voterId : `${vote.voterId.charAt(0)}...`,
+    candidate: candidate ? candidate.username : 'Удален',
+    created: discordCreatedAt.toLocaleDateString('ru-RU'),
+    trust: isNew ? '⚠️ НОВЫЙ (менее 60 дней)' : ''
+});
 
                 if (isNew) {
                     const trustCell = row.getCell('trust');
