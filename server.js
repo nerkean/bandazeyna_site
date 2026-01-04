@@ -18,6 +18,7 @@ import pagesRouter from './routes/pages.js';
 import apiRouter from './routes/api.js';
 import authRouter from './routes/auth.js';
 import { initTelegramBot } from './zeyna_bot/index.js';
+import { initTwitch } from './twitch_bridge.js'
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -96,11 +97,11 @@ app.use(helmet({
     "https://www.googletagmanager.com", 
     "https://*.clarity.ms", 
     "https://c.bing.com",
-    "https://www.transparenttextures.com", // <--- ДОБАВЬ ЭТУ СТРОКУ
+    "https://www.transparenttextures.com", 
     ...googleDomains
 ],
             fontSrc: ["'self'", "https://fonts.gstatic.com", "https://cdnjs.cloudflare.com"],
-            connectSrc: ["'self'", "https://dachazeyna.com", "https://cdn.jsdelivr.net", "ws:", "wss:", "https://discord.com", "https://www.google-analytics.com", "https://region1.google-analytics.com", "https://www.googletagmanager.com", "https://www.clarity.ms", "https://c.bing.com", "https://*.clarity.ms", ...googleDomains],
+            connectSrc: ["'self'", "https://dachazeyna.com", "https://cdn.jsdelivr.net", "ws:", "wss:", "https://discord.com", "https://www.google-analytics.com", "https://region1.google-analytics.com", "https://www.googletagmanager.com", "https://www.clarity.ms", "https://c.bing.com", "https://*.clarity.ms", "https://eventsub.wss.twitch.tv", ...googleDomains],
             frameSrc: ["'self'", "https://www.googletagmanager.com", "https://td.doubleclick.net", "https://oauth.telegram.org"],
             objectSrc: ["'none'"],
             upgradeInsecureRequests: [],
@@ -283,6 +284,7 @@ app.use((err, req, res, next) => {
 const PORT = process.env.PORT || 3000;
 httpServer.listen(PORT, () => {
     console.log(`🚀 Сайт запущен: http://localhost:${PORT}`);
+    initTwitch(io);
     
     if (process.env.ENABLE_BOT === 'true') {
         initTelegramBot();

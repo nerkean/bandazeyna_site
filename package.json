@@ -13,6 +13,9 @@
   "type": "module",
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
+    "@twurple/api": "^8.0.2",
+    "@twurple/auth": "^8.0.2",
+    "@twurple/eventsub-ws": "^8.0.2",
     "axios": "^1.13.2",
     "compression": "^1.8.1",
     "connect-mongo": "^5.1.0",
