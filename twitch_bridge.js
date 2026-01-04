@@ -19,7 +19,7 @@ export const initTwitch = async (io) => {
             const rewardTitle = event.rewardTitle.toLowerCase();
             console.log(`🎁 [TWITCH] Награда: ${rewardTitle}`);
 
-            if (rewardTitle.includes('мед')) {
+            if (rewardTitle.includes('мёд')) {
                 io.emit('stream_update', { action: 'vfx', type: 'honey_rain' });
             } 
             else if (rewardTitle.includes('глитч') || rewardTitle.includes('хайп') || rewardTitle.includes('эпик')) {
@@ -31,6 +31,9 @@ export const initTwitch = async (io) => {
             else if (rewardTitle.includes('фото') || rewardTitle.includes('папарацци')) {
                 io.emit('stream_update', { action: 'vfx', type: 'paparazzi' });
             }
+            else if (rewardTitle.includes('желе') || rewardTitle.includes('радуга')) {
+    io.emit('stream_update', { action: 'vfx', type: 'royal_jelly' });
+}
         });
 
     } catch (err) {
