@@ -134,6 +134,11 @@ const userProfileSchema = new mongoose.Schema({
   maxReactionsOnMessage: { type: Number, default: 0 },
   isWikiEditor: { type: Boolean, default: false },
   isPublicVote: { type: Boolean, default: false },
+  wonAwards: [{
+    title: { type: String, required: true }, 
+    category: { type: String },            
+    year: { type: Number, default: 2025 } 
+  }],
 }, { timestamps: true });
 
 userProfileSchema.index({ userId: 1, guildId: 1 }, { unique: true });

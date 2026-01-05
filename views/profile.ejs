@@ -128,6 +128,83 @@
             50% { transform: scale(1.05); opacity: 1; text-shadow: 0 0 40px rgba(231, 76, 60, 0.6); }
             100% { transform: scale(1); opacity: 0.8; text-shadow: 0 0 20px rgba(231, 76, 60, 0.2); }
         }
+
+        /* --- СТИЛИ МЕДАЛИ ПРЕМИИ --- */
+.award-medal-container {
+    display: inline-flex;
+    position: relative;
+    vertical-align: middle;
+    margin-left: 12px;
+    cursor: help;
+}
+
+.award-medal {
+    font-size: 1.6rem;
+    color: #ffd700;
+    filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.5));
+    animation: medal-float 3s infinite ease-in-out;
+}
+
+@keyframes medal-float {
+    0%, 100% { transform: translateY(0) scale(1); filter: drop-shadow(0 0 5px rgba(255, 215, 0, 0.4)); }
+    50% { transform: translateY(-3px) scale(1.1); filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.8)); }
+}
+
+.award-tooltip {
+    position: absolute;
+    bottom: 140%;
+    left: 50%;
+    transform: translateX(-50%) translateY(10px);
+    background: rgba(10, 10, 15, 0.95);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    color: #fff;
+    padding: 12px 18px;
+    border-radius: 15px;
+    white-space: nowrap;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.8);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+    z-index: 1000;
+    text-align: center;
+}
+
+.award-tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%; left: 50%;
+    transform: translateX(-50%);
+    border-width: 8px;
+    border-style: solid;
+    border-color: rgba(255, 215, 0, 0.3) transparent transparent transparent;
+}
+
+.award-medal-container:hover .award-tooltip {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(0);
+}
+
+.award-header {
+    display: block;
+    color: #ffd700;
+    font-weight: 900;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+    border-bottom: 1px solid rgba(255,215,0,0.2);
+    padding-bottom: 5px;
+}
+
+.award-item-title {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #fff;
+    margin: 4px 0;
+}
     </style>
 </head>
 <body>
@@ -152,6 +229,19 @@
                 <div class="profile-identity">
                     <h1>
                         <%= targetUser.username %>
+
+                        <% if (profile.wonAwards && profile.wonAwards.length > 0) { %>
+        <div class="award-medal-container">
+            <i class="fas fa-medal award-medal"></i>
+            <div class="award-tooltip">
+                <span class="award-header">ПОБЕДИТЕЛЬ DACHA AWARDS</span>
+                <% profile.wonAwards.forEach(award => { %>
+                    <span class="award-item-title">🏆 <%= award.title %> (<%= award.year %>)</span>
+                <% }) %>
+            </div>
+        </div>
+    <% } %>
+    
                         <% if (profile.isBanned) { %>
                             <span class="banned-badge"><i class="fas fa-ban"></i> Заблокирован</span>
                         <% } %>

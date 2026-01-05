@@ -11,13 +11,11 @@ import { getShopItems, getItemDefinition } from '../src/utils/definitions/itemDe
 import { getQuestDefinition } from '../src/utils/definitions/questDefinitions.js';
 import { getAchievementDefinition } from '../src/utils/definitions/achievementDefinitions.js';
 import { dailyRewards } from '../src/utils/definitions/dailyRewardDefinitions.js';
-import Nomination from '../src/models/Nomination.js';
 import Notification from '../src/models/Notification.js';
 import AdminLog from '../src/models/AdminLog.js';
 import { checkWikiAccess } from '../middleware/checkWikiAccess.js';
 import Giveaway from '../src/models/Giveaway.js'
 import cache from '../src/utils/cache.js';
-import AwardSettings from '../src/models/AwardSettings.js';
 
 const router = express.Router();
 
@@ -758,107 +756,6 @@ router.get('/sitemap.xml', async (req, res) => {
         console.error(e);
         res.status(500).end();
     }
-});
-
-router.get('/nominations', checkAuth, async (req, res) => {
-    try {
-        const nominations = await Nomination.find().sort({ order: 1 }).lean();
-        
-        const setting = await AwardSettings.findOne({ userId: req.user.id }).lean();
-        
-        const userWithSettings = {
-            ...req.user,
-            isPublicVote: setting ? setting.isPublicVote : false
-        };
-
-        res.render('nominations', { 
-            user: userWithSettings,
-            profile: req.userProfile,
-            nominations,
-            currentPage: 'nominations'
-        });
-    } catch (e) {
-        console.error('Ошибка в роуте номинаций:', e);
-        res.status(500).send('Ошибка загрузки номинаций');
-    }
-});
-
-router.get('/admin/nominations', checkAuth, async (req, res) => {
-    const ADMIN_IDS = ['438744415734071297']; 
-    if (!ADMIN_IDS.includes(req.user.id)) return res.redirect('/');
-
-    const nominations = await Nomination.find().sort({ order: 1 }).lean();
-    const allVoterIds = [...new Set(nominations.flatMap(n => n.votes.map(v => v.voterId)))];
-    
-    const users = await UserProfile.find({ userId: { $in: allVoterIds } }).lean();
-    const privacySettings = await AwardSettings.find({ userId: { $in: allVoterIds } }).lean();
-
-    const privacyMap = privacySettings.reduce((acc, s) => {
-        acc[s.userId] = s.isPublicVote;
-        return acc;
-    }, {});
-
-    const userMap = users.reduce((acc, u) => {
-        acc[u.userId] = {
-            username: u.username,
-            joinedAt: u.joinedAt,
-            isPublic: privacyMap[u.userId] || false
-        };
-        return acc;
-    }, {});
-
-    nominations.forEach(nom => {
-        const counts = {};
-        nom.votes.forEach(v => {
-            const userData = userMap[v.voterId] || { username: 'Unknown', joinedAt: null, isPublic: false };
-            v.voterUsername = userData.username;
-            v.voterJoinedAt = userData.joinedAt;
-            v.isPublic = userData.isPublic;
-            
-            counts[v.candidateId] = (counts[v.candidateId] || 0) + 1;
-        });
-
-        nom.candidates.forEach(can => {
-            can.voteCount = counts[can.userId] || 0;
-        });
-
-        nom.candidates.sort((a, b) => b.voteCount - a.voteCount);
-        nom.totalVotes = nom.votes.length;
-    });
-    
-    res.render('admin-nominations', { 
-        user: req.user, 
-        nominations,
-        title: 'Управление и Статистика',
-        noIndex: true
-    });
-});
-
-router.get('/redeem', (req, res) => {
-    res.render('redeem', { user: req.user });
-});
-
-router.get('/admin/stream-control', checkAuth, async (req, res) => {
-    if (req.user.id !== '438744415734071297') return res.redirect('/');
-    
-    const nominations = await Nomination.find().sort({ order: 1 }).lean();
-    
-    nominations.forEach(nom => {
-        const counts = {};
-        nom.votes.forEach(v => {
-            counts[v.candidateId] = (counts[v.candidateId] || 0) + 1;
-        });
-        nom.candidates.forEach(can => {
-            can.voteCount = counts[can.userId] || 0;
-        });
-        nom.leader = [...nom.candidates].sort((a, b) => b.voteCount - a.voteCount)[0];
-    });
-
-    res.render('admin/stream_control', { nominations, user: req.user });
-});
-
-router.get('/awards-presentation', async (req, res) => {
-    res.render('presentation', { layout: false });
 });
 
 export default router;
