@@ -16,6 +16,7 @@ import AdminLog from '../src/models/AdminLog.js';
 import { checkWikiAccess } from '../middleware/checkWikiAccess.js';
 import Giveaway from '../src/models/Giveaway.js'
 import cache from '../src/utils/cache.js';
+import MinecraftParticipant from '../src/models/MinecraftParticipant.js';
 
 const router = express.Router();
 
@@ -755,6 +756,21 @@ router.get('/sitemap.xml', async (req, res) => {
     } catch (e) {
         console.error(e);
         res.status(500).end();
+    }
+});
+
+router.get('/minecraft', checkAuth, async (req, res) => {
+    try {
+        const participant = await MinecraftParticipant.findOne({ userId: req.user.id });
+        
+        res.render('minecraft', { 
+            user: req.user, 
+            isRegistered: !!participant, 
+            registeredNick: participant ? participant.minecraftNick : null,
+            title: 'Minecraft Tournament'
+        });
+    } catch (e) {
+        res.status(500).send('Error');
     }
 });
 

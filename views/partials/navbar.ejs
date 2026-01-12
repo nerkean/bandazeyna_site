@@ -9,6 +9,10 @@
     
     <div class="nav-menu" id="navMenu">
         <div class="nav-links">
+            <a href="/minecraft" class="nav-item btn-minecraft">
+                <i class="fas fa-cube"></i> Ивент
+            </a>
+
             <% if (typeof user === 'undefined' || !user || !user.id.startsWith('tg_')) { %>
                 <a href="/market" class="nav-item"><i class="fas fa-chart-line"></i> Биржа</a>
                 <a href="/giveaways" class="nav-item"><i class="fas fa-gift"></i> Халява</a>

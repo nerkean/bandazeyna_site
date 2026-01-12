@@ -15,6 +15,7 @@ import jwt from 'jsonwebtoken';
 import ImageKit from 'imagekit';
 import { fileURLToPath } from 'url';
 import { body, validationResult } from 'express-validator';
+import MinecraftParticipant from '../src/models/MinecraftParticipant.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -857,6 +858,32 @@ router.get('/proxy/avatar/:userId/:avatarHash', async (req, res) => {
         res.send(buffer);
     } catch (e) {
         res.redirect('/assets/img/avatars/default_avatar.png');
+    }
+});
+
+router.post('/minecraft/register', checkAuth, async (req, res) => {
+    try {
+        const { nickname } = req.body;
+
+        if (!nickname || nickname.length < 3 || nickname.length > 16) {
+            return res.json({ success: false, error: 'Некорректный ник (3-16 символов)' });
+        }
+
+        const existing = await MinecraftParticipant.findOne({ userId: req.user.id });
+        if (existing) {
+            return res.json({ success: false, error: 'Вы уже зарегистрированы!' });
+        }
+
+        await MinecraftParticipant.create({
+            userId: req.user.id,
+            username: req.user.username,
+            minecraftNick: nickname
+        });
+
+        res.json({ success: true });
+    } catch (e) {
+        console.error(e);
+        res.status(500).json({ success: false, error: 'Ошибка сервера' });
     }
 });
 

@@ -1005,3 +1005,75 @@ ul { list-style: none; }
     to { opacity: 1; transform: scale(1) translateY(0); }
 }
 
+.btn-minecraft {
+        color: #fff !important;
+        font-weight: 800;
+        text-transform: uppercase;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        text-shadow: 2px 2px 0 #000;
+        transition: transform 0.1s, filter 0.1s;
+        image-rendering: pixelated;
+        text-decoration: none;
+    }
+
+    .btn-minecraft i {
+        color: #ffe600;
+        filter: drop-shadow(1px 1px 0 #000);
+    }
+
+    @media (min-width: 901px) {
+        .btn-minecraft {
+            background: linear-gradient(to bottom, #56ab2f 50%, #5d4037 50%);
+            border: 2px solid #1a1a1a;
+            padding: 8px 16px;
+            border-radius: 4px;
+            margin-right: 15px;
+            box-shadow: 
+                inset 0 2px 0 rgba(255,255,255,0.3),
+                0 4px 0 rgba(0,0,0,0.2);
+        }
+
+        .btn-minecraft:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.1);
+            box-shadow: 
+                inset 0 2px 0 rgba(255,255,255,0.3),
+                0 6px 0 rgba(0,0,0,0.3);
+        }
+
+        .btn-minecraft:active {
+            transform: translateY(1px);
+            box-shadow: 
+                inset 0 2px 0 rgba(255,255,255,0.3),
+                0 2px 0 rgba(0,0,0,0.2);
+        }
+    }
+
+    @media (max-width: 900px) {
+        .btn-minecraft {
+            width: 100%;
+            justify-content: flex-start; 
+            padding: 16px 20px;
+            margin: 0 0 10px 0;
+            border-radius: 14px;
+            font-size: 1.1rem;
+            background: linear-gradient(135deg, #3c8527 0%, #5d4037 100%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            opacity: 0; 
+            animation: slideInItem 0.4s forwards;
+            animation-delay: 0.05s;
+        }
+        
+        .btn-minecraft:active {
+            transform: scale(0.98);
+            filter: brightness(0.9);
+        }
+        
+        .btn-minecraft i {
+            font-size: 1.4rem;
+            margin-right: 5px;
+        }
+    }

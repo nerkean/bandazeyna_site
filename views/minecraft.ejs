@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <%- include('partials/head', { title: 'Minecraft Tournament | Дача Зейна', description: 'Регистрация на турнир. Вступай в кубическую битву!' }) %>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --mc-btn-green: #3c8527;
+            --mc-btn-shadow: #1e4615;
+            --mc-btn-highlight: #52a535;
+        }
+
+        body {
+            overflow-x: hidden;
+            background: #1a1a1a;
+            cursor: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAADFJREFUOE9jZGBgEAzE/wYiAxwjA4Hgf2qYgW4A3UEgMHA0gOEGUBOOhiZ6GkAAg80AAM91AgW78536AAAAAElFTkSuQmCC') 8 8, crosshair;
+        }
+
+        .minecraft-section {
+            position: relative;
+            min-height: 100vh;
+            width: 100%;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding-top: 60px;
+            background: #1a1a1a; 
+        }
+
+        .panorama-bg {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: url('https://i.imgur.com/3M7qL7r.jpg') repeat-x center center;
+            background-size: cover; 
+            filter: blur(4px) brightness(0.7);
+            transform: scale(1.1);
+            animation: panoramaMove 60s linear infinite;
+            z-index: 0;
+        }
+
+        @keyframes panoramaMove {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .vignette {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: radial-gradient(circle, transparent 40%, rgba(0,0,0,0.8) 100%);
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .steve-hand-container {
+            position: fixed;
+            bottom: -50px;
+            right: 15vw;
+            width: 400px;
+            height: 400px;
+            z-index: 10;
+            pointer-events: none;
+            transform-origin: 100% 100%;
+            transition: transform 0.1s;
+        }
+
+        .steve-hand {
+            width: 100%;
+            height: 100%;
+            background: url('https://i.imgur.com/yF9I5dM.png') no-repeat center bottom;
+            background-size: contain;
+            image-rendering: pixelated;
+        }
+
+        .steve-hand-container.punching {
+            animation: punch 0.2s ease-in-out;
+        }
+
+        @keyframes punch {
+            0% { transform: rotate(0deg) translateX(0) translateY(0); }
+            50% { transform: rotate(-45deg) translateX(-100px) translateY(50px) scale(0.9); }
+            100% { transform: rotate(0deg) translateX(0) translateY(0); }
+        }
+
+        .mc-container {
+            position: relative;
+            z-index: 5;
+            text-align: center;
+            max-width: 600px;
+            width: 90%;
+            font-family: 'VT323', monospace;
+            padding-bottom: 40px; 
+        }
+
+        .mc-logo {
+            margin-bottom: 10px;
+            position: relative;
+            display: inline-block;
+        }
+        
+        .mc-logo-main {
+            font-size: 80px;
+            line-height: 0.85;
+            color: #b3b3b3;
+            text-shadow: 0 6px 0 #3a3a3a, 0 12px 10px rgba(0,0,0,0.5);
+        }
+
+        .mc-splash {
+            position: absolute;
+            bottom: 0;
+            right: -60px;
+            font-size: 32px;
+            color: #ffff55;
+            text-shadow: 2px 2px 0 #3f3f3f;
+            transform: rotate(-20deg);
+            animation: splashPulse 0.8s alternate infinite ease-in-out;
+            white-space: nowrap;
+        }
+
+        @keyframes splashPulse {
+            from { transform: rotate(-20deg) scale(1); }
+            to { transform: rotate(-20deg) scale(1.1); }
+        }
+
+        .mc-date-banner {
+            font-size: 28px;
+            color: #ffff55;
+            text-shadow: 2px 2px 0 #000;
+            margin-bottom: 25px;
+            background: rgba(0, 0, 0, 0.6);
+            border: 2px solid #555;
+            display: inline-block;
+            padding: 5px 20px;
+            border-radius: 4px;
+        }
+
+        .mc-window {
+            background: #c6c6c6;
+            border: 4px solid #000;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+            padding: 4px;
+            position: relative;
+        }
+
+        .mc-inner {
+            background: #c6c6c6;
+            border-top: 4px solid #fff;
+            border-left: 4px solid #fff;
+            border-right: 4px solid #555;
+            border-bottom: 4px solid #555;
+            padding: 30px;
+        }
+
+        h2 { font-size: 24px; margin: 0 0 15px; color: #404040; font-weight: normal; }
+        p { font-size: 22px; color: #404040; margin-bottom: 25px; }
+
+        .mc-input {
+            width: 100%;
+            background: #000;
+            border: 2px solid #a0a0a0;
+            border-color: #373737 #fff #fff #373737;
+            color: #fff;
+            font-family: 'VT323', monospace;
+            font-size: 24px;
+            padding: 12px;
+            box-sizing: border-box;
+            outline: none;
+            margin-bottom: 25px;
+        }
+        .mc-input:focus { background: #1a1a1a; }
+
+        .mc-btn {
+            width: 100%;
+            font-family: 'VT323', monospace;
+            font-size: 30px;
+            color: #fff;
+            background: var(--mc-btn-green);
+            border: 4px solid;
+            border-color: var(--mc-btn-highlight) var(--mc-btn-shadow) var(--mc-btn-shadow) var(--mc-btn-highlight);
+            padding: 10px;
+            cursor: pointer;
+            text-shadow: 2px 2px 0 rgba(0,0,0,0.4);
+            position: relative;
+            touch-action: manipulation; 
+        }
+        .mc-btn:active {
+            border-color: var(--mc-btn-shadow) var(--mc-btn-highlight) var(--mc-btn-highlight) var(--mc-btn-shadow);
+            transform: translateY(2px);
+        }
+        .mc-btn:disabled { filter: grayscale(1); cursor: not-allowed; }
+
+        .status-message { font-size: 24px; margin-top: 15px; min-height: 30px; }
+        .success { color: #2e7d32; }
+        .error { color: #c62828; }
+
+        .particle {
+            position: absolute;
+            width: 10px; height: 10px;
+            background-color: #795548;
+            pointer-events: none;
+            z-index: 100;
+            box-shadow: inset 2px 2px rgba(255,255,255,0.2), inset -2px -2px rgba(0,0,0,0.2);
+        }
+
+        @media (max-width: 768px) {
+            body {
+                cursor: auto; 
+            }
+
+            .minecraft-section {
+                padding-top: 85px;
+                align-items: flex-start; 
+            }
+
+            .steve-hand-container { 
+                width: 160px; 
+                height: 160px; 
+                right: -20px; 
+                bottom: -20px; 
+                opacity: 0.8; 
+            }
+
+            .mc-logo-main { 
+                font-size: 48px; 
+                line-height: 1;
+            }
+            
+            .mc-splash { 
+                font-size: 18px; 
+                right: -10px; 
+                bottom: -15px;
+            }
+
+            .mc-date-banner { 
+                font-size: 18px; 
+                padding: 8px 10px; 
+                width: 90%;
+                box-sizing: border-box;
+                line-height: 1.2;
+            }
+
+            .mc-inner {
+                padding: 20px 15px;
+            }
+
+            .mc-input {
+                font-size: 20px;
+                margin-bottom: 20px;
+            }
+
+            .mc-btn {
+                font-size: 24px;
+                padding: 12px 0;
+            }
+
+            .mc-container {
+                margin-top: 20px;
+                margin-bottom: 40px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <%- include('partials/navbar') %>
+
+    <main class="minecraft-section" id="gameArea">
+        <div class="panorama-bg"></div>
+        <div class="vignette"></div>
+
+        <div class="steve-hand-container" id="steveHand">
+            <div class="steve-hand"></div>
+        </div>
+
+        <div class="mc-container">
+            <div class="mc-logo">
+                <div class="mc-logo-main">
+                    MINECRAFT<br>TOURNAMENT
+                </div>
+                <div class="mc-splash">100% Free!</div>
+            </div>
+
+            <div class="mc-date-banner">
+                📅 17 Января, Суббота<br>в 19:00 МСК
+            </div>
+
+            <div class="mc-window">
+                <div class="mc-inner">
+                    <% if (locals.isRegistered) { %>
+                        <h2>✅ ЗАЯВКА ПРИНЯТА</h2>
+                        <p style="font-size: 18px; line-height: 1.4;">Твой ник:<br><span style="color:#2a9d8f; background: rgba(0,0,0,0.1); padding: 2px 8px; display: inline-block; margin-top: 5px;"><%= registeredNick %></span></p>
+                        <p style="font-size: 16px; margin-bottom: 15px;">Следи за каналом #events в Discord</p>
+                        <a href="/" class="mc-btn" style="text-decoration:none; display:block; text-align:center;">НАЗАД</a>
+                    <% } else { %>
+                        <h2>РЕГИСТРАЦИЯ</h2>
+                        <form id="mcForm">
+                            <input type="text" id="nickname" class="mc-input" placeholder="Ник в Minecraft..." autocomplete="off" required>
+                            <button type="submit" class="mc-btn" id="submitBtn">ВСТУПИТЬ</button>
+                        </form>
+                        <div id="status" class="status-message"></div>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <%- include('partials/footer') %>
+
+    <script nonce="<%= locals.nonce %>">
+        document.addEventListener('DOMContentLoaded', () => {
+            const gameArea = document.getElementById('gameArea');
+            const hand = document.getElementById('steveHand');
+
+            const isMobile = window.innerWidth <= 768;
+
+            if (!isMobile) {
+                gameArea.addEventListener('mousemove', (e) => {
+                    const x = (window.innerWidth - e.clientX) / 30;
+                    const y = (window.innerHeight - e.clientY) / 30;
+                    hand.style.transform = `translate(${x}px, ${y}px)`;
+                });
+            }
+
+            gameArea.addEventListener('mousedown', (e) => {
+                hand.classList.remove('punching');
+                void hand.offsetWidth; 
+                hand.classList.add('punching');
+
+                spawnParticles(e.clientX, e.clientY);
+            });
+
+            gameArea.addEventListener('touchstart', (e) => {
+                 hand.classList.remove('punching');
+                 void hand.offsetWidth; 
+                 hand.classList.add('punching');
+                 
+                 const touch = e.touches[0];
+                 spawnParticles(touch.clientX, touch.clientY);
+            }, {passive: true});
+
+
+            function spawnParticles(x, y) {
+                const colors = ['#5d4037', '#795548', '#8d6e63', '#3e2723']; 
+                const count = isMobile ? 3 : 6;
+                
+                for (let i = 0; i < count; i++) {
+                    const part = document.createElement('div');
+                    part.classList.add('particle');
+                    document.body.appendChild(part);
+
+                    const offsetX = (Math.random() - 0.5) * 40;
+                    const offsetY = (Math.random() - 0.5) * 40;
+                    
+                    part.style.left = `${x + offsetX}px`;
+                    part.style.top = `${y + offsetY}px`;
+                    part.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+
+                    const angle = Math.random() * Math.PI * 2;
+                    const velocity = 2 + Math.random() * 4;
+                    const vx = Math.cos(angle) * velocity;
+                    let vy = -Math.random() * 5 - 2;
+
+                    let opacity = 1;
+                    
+                    const anim = setInterval(() => {
+                        vy += 0.5; 
+                        const rect = part.getBoundingClientRect();
+                        part.style.left = `${rect.left + vx}px`;
+                        part.style.top = `${rect.top + vy}px`;
+                        
+                        opacity -= 0.05;
+                        part.style.opacity = opacity;
+
+                        if (opacity <= 0) {
+                            clearInterval(anim);
+                            part.remove();
+                        }
+                    }, 20);
+                }
+            }
+
+            const form = document.getElementById('mcForm');
+            if (form) {
+                form.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const btn = document.getElementById('submitBtn');
+                    const status = document.getElementById('status');
+                    const nick = document.getElementById('nickname').value.trim();
+
+                    if(!nick) return;
+
+                    btn.disabled = true;
+                    btn.innerText = "ГЕНЕРАЦИЯ...";
+                    status.innerHTML = "";
+
+                    try {
+                        const res = await fetch('/api/minecraft/register', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ nickname: nick })
+                        });
+                        const data = await res.json();
+
+                        if (data.success) {
+                            status.innerHTML = '<span class="success">УСПЕШНО!</span>';
+                            setTimeout(() => location.reload(), 1500);
+                        } else {
+                            status.innerHTML = `<span class="error">${data.error}</span>`;
+                            btn.disabled = false;
+                            btn.innerText = "ВСТУПИТЬ";
+                        }
+                    } catch (err) {
+                        status.innerHTML = '<span class="error">ОШИБКА СЕТИ</span>';
+                        btn.disabled = false;
+                        btn.innerText = "ВСТУПИТЬ";
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
